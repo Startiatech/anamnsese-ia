@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useEffect, useState } from 'react'
 import {
   Select,
   SelectContent,
@@ -25,18 +25,32 @@ const CURRENT_YEAR = new Date().getFullYear()
 const YEARS = Array.from({ length: CURRENT_YEAR - 1899 }, (_, i) => CURRENT_YEAR - i)
 const DAYS = Array.from({ length: 31 }, (_, i) => i + 1)
 
+function partsFromValue(value: string): { day: string; month: string; year: string } {
+  if (!value || value.length < 10) return { day: '', month: '', year: '' }
+  const [y, m, d] = value.split('-')
+  return {
+    day: d ? String(parseInt(d, 10)) : '',
+    month: m ? String(parseInt(m, 10)) : '',
+    year: y ?? '',
+  }
+}
+
 export function BirthDateSelect({ value, onChange, onBlur, disabled }: BirthDateSelectProps) {
-  const [day, month, year] = useMemo(() => {
-    if (!value || value.length < 10) return ['', '', '']
-    const [y, m, d] = value.split('-')
-    return [
-      d ? String(parseInt(d, 10)) : '',
-      m ? String(parseInt(m, 10)) : '',
-      y ?? '',
-    ]
+  const [parts, setParts] = useState(() => partsFromValue(value))
+
+  useEffect(() => {
+    const next = partsFromValue(value)
+    setParts((prev) =>
+      prev.day === next.day && prev.month === next.month && prev.year === next.year
+        ? prev
+        : next,
+    )
   }, [value])
 
-  function assemble(next: { day: string; month: string; year: string }) {
+  const { day, month, year } = parts
+
+  function update(next: { day: string; month: string; year: string }) {
+    setParts(next)
     if (next.day && next.month && next.year) {
       const d = next.day.padStart(2, '0')
       const m = next.month.padStart(2, '0')
@@ -50,7 +64,7 @@ export function BirthDateSelect({ value, onChange, onBlur, disabled }: BirthDate
     <div className="grid grid-cols-3 gap-2">
       <Select
         value={day}
-        onValueChange={val => assemble({ day: val, month, year })}
+        onValueChange={val => update({ day: val, month, year })}
         onOpenChange={open => { if (!open) onBlur?.() }}
         disabled={disabled}
       >
@@ -68,7 +82,7 @@ export function BirthDateSelect({ value, onChange, onBlur, disabled }: BirthDate
 
       <Select
         value={month}
-        onValueChange={val => assemble({ day, month: val, year })}
+        onValueChange={val => update({ day, month: val, year })}
         onOpenChange={open => { if (!open) onBlur?.() }}
         disabled={disabled}
       >
@@ -86,7 +100,7 @@ export function BirthDateSelect({ value, onChange, onBlur, disabled }: BirthDate
 
       <Select
         value={year}
-        onValueChange={val => assemble({ day, month, year: val })}
+        onValueChange={val => update({ day, month, year: val })}
         onOpenChange={open => { if (!open) onBlur?.() }}
         disabled={disabled}
       >
