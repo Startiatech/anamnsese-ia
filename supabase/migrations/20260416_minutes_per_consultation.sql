@@ -1,0 +1,2 @@
+ALTER TABLE users
+  ADD COLUMN IF NOT EXISTS minutes_per_consultation INTEGER NOT NULL DEFAULT 45;

@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "supabase": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "C:\\Program Files\\nodejs\\node_modules\\@supabase\\mcp-server-supabase\\dist\\transports\\stdio.js",
+        "--project-ref",
+        "ynfamhflrndddjxwzqoq"
+      ],
+      "env": {
+        "SUPABASE_ACCESS_TOKEN": ""
+      }
+    }
+  }
+}

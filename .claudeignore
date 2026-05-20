@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+
+# Next.js build output
+.next/
+out/
+build/
+
+# Test coverage
+coverage/
+
+# Environment & secrets
+.env
+.env.local
+.env*.local
+*.pem
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# TypeScript build info
+*.tsbuildinfo
+next-env.d.ts
+
+# OS
+.DS_Store
+
+# Vercel
+.vercel
+
+# Data
+data/
+
+# Supabase local
+supabase/.branches/
+supabase/.temp/
