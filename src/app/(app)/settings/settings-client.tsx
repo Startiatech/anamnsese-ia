@@ -25,7 +25,6 @@ interface SettingsClientProps {
   showIntro?: boolean
   deletionScheduledAt?: string | null
   forceClinic?: boolean
-  nextUrl?: string
 }
 
 export function SettingsClient({
@@ -38,7 +37,6 @@ export function SettingsClient({
   showIntro = false,
   deletionScheduledAt,
   forceClinic = false,
-  nextUrl,
 }: SettingsClientProps) {
   const profileRef = useRef<ProfileHandle>(null)
   const securityRef = useRef<SecurityHandle>(null)
@@ -95,13 +93,13 @@ export function SettingsClient({
 
     toast.promise(promise, {
       loading: 'Aguarde...',
-      success: 'Dados salvos! Redirecionando...',
+      success: 'Dados da clínica salvos!',
       error: (e: Error) => e.message,
     })
 
     try {
       await promise
-      router.push(nextUrl ?? ROUTES.atendimentoNovo)
+      setClinicValidated(true)
       router.refresh()
     } catch {
       // toast.promise já mostrou o erro

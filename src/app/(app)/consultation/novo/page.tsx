@@ -15,7 +15,7 @@ export default async function NovoPacientePage() {
   if (!user) redirect(ROUTES.login)
 
   if (!isClinicComplete(user)) {
-    redirect(`${ROUTES.configuracoes}?force=clinica&next=${encodeURIComponent(ROUTES.atendimentoNovo)}`)
+    redirect(`${ROUTES.configuracoes}?force=clinica`)
   }
 
   return <NewPatientForm />

@@ -12,6 +12,16 @@ import { NewPatientSheet } from './new-patient-sheet'
 import { PatientRowActions } from './patient-row-actions'
 import { Button } from '@/components/ui/button'
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -39,15 +49,17 @@ function formatDate(iso: string): string {
 
 interface ConsultationPageClientProps {
   initialPatients: PatientWithStats[]
+  clinicComplete: boolean
 }
 
-export function ConsultationPageClient({ initialPatients }: ConsultationPageClientProps) {
+export function ConsultationPageClient({ initialPatients, clinicComplete }: ConsultationPageClientProps) {
   const router = useRouter()
   const { credits } = useApp()
   const [patients, setPatients] = useState<PatientWithStats[]>(initialPatients)
   const [newSheetOpen, setNewSheetOpen] = useState(false)
   const [processingId, setProcessingId] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
+  const [clinicDialogOpen, setClinicDialogOpen] = useState(false)
   const [sortBy, setSortBy] = useState<SortOption>('name-asc')
   const [onlyNoConsultation, setOnlyNoConsultation] = useState(false)
 
@@ -229,6 +241,10 @@ export function ConsultationPageClient({ initialPatients }: ConsultationPageClie
                                 toast.error('Créditos insuficientes. Adquira um plano para continuar.')
                                 return
                               }
+                              if (!clinicComplete) {
+                                setClinicDialogOpen(true)
+                                return
+                              }
                               setProcessingId(patient.id)
                               router.push(ROUTES.atendimentoId(patient.id))
                             }}
@@ -257,6 +273,24 @@ export function ConsultationPageClient({ initialPatients }: ConsultationPageClie
         onOpenChange={setNewSheetOpen}
         onSuccess={handlePatientCreated}
       />
+
+      <AlertDialog open={clinicDialogOpen} onOpenChange={setClinicDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Complete os dados da sua clínica</AlertDialogTitle>
+            <AlertDialogDescription>
+              Para iniciar um atendimento é necessário preencher os dados da sua clínica.
+              Eles serão usados no cabeçalho dos documentos gerados (PDF/DOCX).
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={() => router.push(`${ROUTES.configuracoes}?force=clinica`)}>
+              Ir para Configurações
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
     </div>
   )

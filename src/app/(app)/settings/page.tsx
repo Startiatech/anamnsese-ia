@@ -30,7 +30,6 @@ export default async function SettingsPage({
   const profileCompleted = user.onboardingCompleted
   const clinicCompleted = isClinicComplete(user)
   const forceClinic = params.force === 'clinica'
-  const nextUrl = typeof params.next === 'string' ? params.next : undefined
 
   return (
     <div className="space-y-6">
@@ -45,7 +44,6 @@ export default async function SettingsPage({
         showIntro={isOnboarding && !isPasswordReset && !isPinReset}
         deletionScheduledAt={user.deletionScheduledAt}
         forceClinic={forceClinic}
-        nextUrl={nextUrl}
       />
     </div>
   )

@@ -57,14 +57,14 @@ describe('ConsultationPageClient — busca de pacientes', () => {
   beforeEach(() => { vi.clearAllMocks(); mockCredits = 1 })
 
   it('exibe todos os pacientes sem busca', () => {
-    render(<ConsultationPageClient initialPatients={patients} />)
+    render(<ConsultationPageClient initialPatients={patients} clinicComplete />)
     expect(screen.getByText('Ana Silva')).toBeInTheDocument()
     expect(screen.getByText('Bruno Matos')).toBeInTheDocument()
     expect(screen.getByText('Carla Dias')).toBeInTheDocument()
   })
 
   it('filtra por nome (case-insensitive)', () => {
-    render(<ConsultationPageClient initialPatients={patients} />)
+    render(<ConsultationPageClient initialPatients={patients} clinicComplete />)
     fireEvent.change(screen.getByPlaceholderText(/buscar paciente/i), { target: { value: 'ana' } })
     expect(screen.getByText('Ana Silva')).toBeInTheDocument()
     expect(screen.queryByText('Bruno Matos')).not.toBeInTheDocument()
@@ -72,14 +72,14 @@ describe('ConsultationPageClient — busca de pacientes', () => {
   })
 
   it('filtra por CPF (somente dígitos)', () => {
-    render(<ConsultationPageClient initialPatients={patients} />)
+    render(<ConsultationPageClient initialPatients={patients} clinicComplete />)
     fireEvent.change(screen.getByPlaceholderText(/buscar paciente/i), { target: { value: '222' } })
     expect(screen.queryByText('Ana Silva')).not.toBeInTheDocument()
     expect(screen.getByText('Bruno Matos')).toBeInTheDocument()
   })
 
   it('exibe mensagem quando busca não retorna resultados', () => {
-    render(<ConsultationPageClient initialPatients={patients} />)
+    render(<ConsultationPageClient initialPatients={patients} clinicComplete />)
     fireEvent.change(screen.getByPlaceholderText(/buscar paciente/i), { target: { value: 'zzzninguem' } })
     expect(screen.getByText(/nenhum paciente encontrado/i)).toBeInTheDocument()
   })
@@ -93,7 +93,7 @@ describe('ConsultationPageClient — cheque de créditos', () => {
 
   it('navega para atendimento quando há créditos', () => {
     mockCredits = 1
-    render(<ConsultationPageClient initialPatients={[patient]} />)
+    render(<ConsultationPageClient initialPatients={[patient]} clinicComplete />)
     fireEvent.click(screen.getByRole('button', { name: /iniciar atendimento/i }))
     expect(mockPush).toHaveBeenCalledWith(expect.stringContaining('p-1'))
     expect(mockToastError).not.toHaveBeenCalled()
@@ -101,7 +101,7 @@ describe('ConsultationPageClient — cheque de créditos', () => {
 
   it('bloqueia navegação e exibe toast de erro quando créditos são zero', () => {
     mockCredits = 0
-    render(<ConsultationPageClient initialPatients={[patient]} />)
+    render(<ConsultationPageClient initialPatients={[patient]} clinicComplete />)
     fireEvent.click(screen.getByRole('button', { name: /iniciar atendimento/i }))
     expect(mockPush).not.toHaveBeenCalled()
     expect(mockToastError).toHaveBeenCalledWith(expect.stringMatching(/crédito/i))

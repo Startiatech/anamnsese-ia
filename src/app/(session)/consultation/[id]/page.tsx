@@ -77,7 +77,7 @@ export default async function ConsultationSessionPage({ params }: { params: Prom
   if (!patient) notFound()
 
   if (!storedUser || !isClinicComplete(storedUser)) {
-    redirect(`${ROUTES.configuracoes}?force=clinica&next=${encodeURIComponent(ROUTES.atendimentoId(id))}`)
+    redirect(`${ROUTES.configuracoes}?force=clinica`)
   }
 
   return (
