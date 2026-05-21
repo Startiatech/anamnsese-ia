@@ -2,7 +2,9 @@ import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import { getServerUser } from '@/server/services/session'
 import { supabase } from '@/server/supabase'
+import { findUserById } from '@/server/repositories/users'
 import { PatientRepository } from '@/server/repositories/db'
+import type { ClinicData } from '@/lib/clinic'
 import { Card, CardContent } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { ExportButtons } from '@/components/export/export-buttons'
@@ -17,12 +19,31 @@ export default async function ResultadoPage({ params }: { params: Promise<{ id: 
   const user = await getServerUser()
   if (!user) redirect(ROUTES.login)
 
+  const fullUser = await findUserById(user.sub)
   const crmParts = [user.crmType, user.crmNumber, user.crmUf].filter(Boolean)
   const professional = {
     name: user.name ?? '',
     specialty: user.specialty ?? '',
     crm: crmParts.length ? crmParts.join(' ') : '',
   }
+
+  const clinic: ClinicData | undefined = fullUser?.clinicName && fullUser.clinicLogoUrl
+    ? {
+        clinicName:           fullUser.clinicName,
+        clinicCnpj:           fullUser.clinicCnpj ?? '',
+        clinicAddress:        fullUser.clinicAddress ?? '',
+        clinicCep:            fullUser.clinicCep ?? '',
+        clinicPhone:          fullUser.clinicPhone ?? '',
+        clinicEmail:          fullUser.clinicEmail ?? '',
+        clinicWebsite:        fullUser.clinicWebsite,
+        clinicLogoUrl:        fullUser.clinicLogoUrl,
+        clinicLogoPath:       fullUser.clinicLogoPath ?? '',
+        clinicRtIsSelf:       fullUser.clinicRtIsSelf,
+        clinicRtName:         fullUser.clinicRtName,
+        clinicRtRegistry:     fullUser.clinicRtRegistry,
+        clinicBusinessHours:  fullUser.clinicBusinessHours,
+      }
+    : undefined
 
   const { data } = await supabase
     .from('consultations')
@@ -59,7 +80,7 @@ export default async function ResultadoPage({ params }: { params: Promise<{ id: 
           </p>
         </div>
         <div className="shrink-0 mt-1">
-          <ExportButtons patient={patient} consultation={consultation} professional={professional} />
+          <ExportButtons patient={patient} consultation={consultation} professional={professional} clinic={clinic} />
         </div>
       </div>
 

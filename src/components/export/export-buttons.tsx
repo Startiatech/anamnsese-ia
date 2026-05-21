@@ -1,8 +1,8 @@
-// src/components/export/ExportButtons.tsx
 'use client'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import type { Patient, Consultation } from '@/types'
+import type { ClinicData } from '@/lib/clinic'
 
 interface Professional {
   name: string
@@ -14,6 +14,7 @@ interface ExportButtonsProps {
   patient: Patient
   consultation: Consultation
   professional: Professional
+  clinic?: ClinicData
 }
 
 function downloadBlob(blob: Blob, filename: string) {
@@ -29,7 +30,7 @@ function safeFilename(name: string): string {
   return name.replace(/\s+/g, '-').toLowerCase()
 }
 
-export function ExportButtons({ patient, consultation, professional }: ExportButtonsProps) {
+export function ExportButtons({ patient, consultation, professional, clinic }: ExportButtonsProps) {
   function handleExportPDF() {
     toast.promise(
       import('@/lib/pdf').then(({ generatePDFBlob }) =>
@@ -39,6 +40,7 @@ export function ExportButtons({ patient, consultation, professional }: ExportBut
           doctorName: professional.name,
           doctorCRM: professional.crm,
           doctorSpecialty: professional.specialty,
+          clinic,
         })
       ).then((blob) => {
         downloadBlob(blob, `anamnese-${safeFilename(patient.name)}.pdf`)
@@ -56,6 +58,7 @@ export function ExportButtons({ patient, consultation, professional }: ExportBut
           doctorName: professional.name,
           doctorCRM: professional.crm,
           doctorSpecialty: professional.specialty,
+          clinic,
         })
       ).then((blob) => {
         downloadBlob(blob, `anamnese-${safeFilename(patient.name)}.docx`)
