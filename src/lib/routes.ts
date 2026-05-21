@@ -42,6 +42,7 @@ export const API = {
   meDebit:        '/api/auth/me/debit',
   meCredit:       '/api/auth/me/credit',
   mePin:          '/api/users/me/pin',
+  clinicLogo:     '/api/users/me/clinic/logo',
 
   // Admin
   createUser:   '/api/admin/create-user',
