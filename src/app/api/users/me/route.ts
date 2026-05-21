@@ -17,7 +17,7 @@ export async function PATCH(req: NextRequest) {
   if (hasClinicFields) {
     const parsed = clinicSchema.safeParse(body)
     if (!parsed.success) {
-      const message = parsed.error.errors[0]?.message ?? 'Dados da clínica inválidos'
+      const message = parsed.error.issues[0]?.message ?? 'Dados da clínica inválidos'
       return NextResponse.json({ error: message }, { status: 400 })
     }
     await updateClinicData(payload.sub, parsed.data)
