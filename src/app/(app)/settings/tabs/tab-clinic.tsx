@@ -1,0 +1,258 @@
+'use client'
+
+import { forwardRef, useImperativeHandle, useState } from 'react'
+import { useForm, Controller, type Resolver } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { Building2, MapPin, Info, Save } from 'lucide-react'
+import { Card, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { FieldInput, FieldLabel } from '@/components/ui/field-input'
+import { toast } from 'sonner'
+import { clinicSchema, type ClinicFormData } from '@/lib/schemas'
+import type { StoredUser } from '@/server/repositories/users'
+import { ClinicLogoUpload } from './clinic-logo-upload'
+
+export interface ClinicHandle {
+  validate: () => Promise<boolean>
+  getValues: () => ClinicFormData
+  /** true quando o logo foi enviado (valor atual não vazio) */
+  hasLogo: () => boolean
+}
+
+interface Props {
+  user: StoredUser
+  isOnboarding?: boolean
+}
+
+export const TabClinic = forwardRef<ClinicHandle, Props>(function TabClinic({ user, isOnboarding }, ref) {
+  const [logoUrl, setLogoUrl] = useState<string | null>(user.clinicLogoUrl ?? null)
+
+  const {
+    register,
+    control,
+    watch,
+    trigger,
+    getValues,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<ClinicFormData>({
+    resolver: zodResolver(clinicSchema) as Resolver<ClinicFormData>,
+    mode: 'onTouched',
+    defaultValues: {
+      clinicName: user.clinicName ?? '',
+      clinicCnpj: user.clinicCnpj ?? '',
+      clinicAddress: user.clinicAddress ?? '',
+      clinicCep: user.clinicCep ?? '',
+      clinicPhone: user.clinicPhone ?? '',
+      clinicEmail: user.clinicEmail ?? '',
+      clinicWebsite: user.clinicWebsite ?? '',
+      clinicRtIsSelf: user.clinicRtIsSelf ?? true,
+      clinicRtName: user.clinicRtName ?? '',
+      clinicRtRegistry: user.clinicRtRegistry ?? '',
+      clinicBusinessHours: user.clinicBusinessHours ?? '',
+    },
+  })
+
+  const rtIsSelf = watch('clinicRtIsSelf')
+
+  useImperativeHandle(ref, () => ({
+    validate: async () => {
+      const formOk = await trigger()
+      if (!logoUrl) {
+        toast.error('Envie o logo da clínica.')
+        return false
+      }
+      return formOk
+    },
+    getValues: () => getValues(),
+    hasLogo: () => !!logoUrl,
+  }))
+
+  async function onSubmit(data: ClinicFormData) {
+    if (!logoUrl) {
+      toast.error('Envie o logo da clínica.')
+      return
+    }
+    const promise = fetch('/api/users/me', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    }).then((r) => {
+      if (!r.ok) throw new Error('Erro ao salvar')
+    })
+    toast.promise(promise, {
+      loading: 'Aguarde...',
+      success: 'Dados da clínica salvos.',
+      error: 'Erro ao salvar.',
+    })
+    await promise.catch(() => {})
+  }
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      {/* Identificação */}
+      <Card>
+        <CardContent className="pt-5 pb-5">
+          <div className="flex gap-4">
+            <div className="shrink-0">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-violet-500/15 dark:bg-violet-500/10 border border-violet-500/25 dark:border-violet-500/20">
+                <Building2 className="h-5 w-5 text-violet-600 dark:text-violet-400" />
+              </div>
+            </div>
+            <div className="flex-1 space-y-1 pt-1">
+              <p className="text-sm font-semibold text-foreground uppercase tracking-wide">Identificação</p>
+              <p className="text-xs text-muted-foreground">Dados que aparecem no cabeçalho dos documentos gerados.</p>
+            </div>
+          </div>
+
+          <div className="mt-5 space-y-4">
+            <div className="space-y-1">
+              <FieldLabel>Logo</FieldLabel>
+              <ClinicLogoUpload value={logoUrl} onChange={setLogoUrl} />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+              <div className="space-y-1">
+                <FieldLabel>Nome da clínica</FieldLabel>
+                <FieldInput {...register('clinicName')} />
+                {errors.clinicName && (
+                  <p className="text-xs text-destructive">{errors.clinicName.message}</p>
+                )}
+              </div>
+              <div className="space-y-1">
+                <FieldLabel>CNPJ</FieldLabel>
+                <FieldInput {...register('clinicCnpj')} placeholder="00.000.000/0000-00" />
+                {errors.clinicCnpj && (
+                  <p className="text-xs text-destructive">{errors.clinicCnpj.message}</p>
+                )}
+              </div>
+              <div className="space-y-1">
+                <FieldLabel>Telefone</FieldLabel>
+                <FieldInput {...register('clinicPhone')} placeholder="(00) 00000-0000" />
+                {errors.clinicPhone && (
+                  <p className="text-xs text-destructive">{errors.clinicPhone.message}</p>
+                )}
+              </div>
+              <div className="space-y-1">
+                <FieldLabel>E-mail</FieldLabel>
+                <FieldInput {...register('clinicEmail')} />
+                {errors.clinicEmail && (
+                  <p className="text-xs text-destructive">{errors.clinicEmail.message}</p>
+                )}
+              </div>
+              <div className="sm:col-span-2 space-y-1">
+                <FieldLabel>Site (opcional)</FieldLabel>
+                <FieldInput {...register('clinicWebsite')} placeholder="https://" />
+                {errors.clinicWebsite && (
+                  <p className="text-xs text-destructive">{errors.clinicWebsite.message}</p>
+                )}
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Endereço */}
+      <Card>
+        <CardContent className="pt-5 pb-5">
+          <div className="flex gap-4">
+            <div className="shrink-0">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-cyan-500/15 dark:bg-cyan-500/10 border border-cyan-500/25 dark:border-cyan-500/20">
+                <MapPin className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
+              </div>
+            </div>
+            <div className="flex-1 space-y-1 pt-1">
+              <p className="text-sm font-semibold text-foreground uppercase tracking-wide">Endereço</p>
+              <p className="text-xs text-muted-foreground">Exibido no rodapé dos documentos.</p>
+            </div>
+          </div>
+          <div className="mt-5 grid grid-cols-1 sm:grid-cols-3 gap-x-6 gap-y-4">
+            <div className="sm:col-span-2 space-y-1">
+              <FieldLabel>Endereço</FieldLabel>
+              <FieldInput {...register('clinicAddress')} />
+              {errors.clinicAddress && (
+                <p className="text-xs text-destructive">{errors.clinicAddress.message}</p>
+              )}
+            </div>
+            <div className="space-y-1">
+              <FieldLabel>CEP</FieldLabel>
+              <FieldInput {...register('clinicCep')} placeholder="00000-000" />
+              {errors.clinicCep && (
+                <p className="text-xs text-destructive">{errors.clinicCep.message}</p>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Informações adicionais */}
+      <Card>
+        <CardContent className="pt-5 pb-5">
+          <div className="flex gap-4">
+            <div className="shrink-0">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-violet-500/15 dark:bg-violet-500/10 border border-violet-500/25 dark:border-violet-500/20">
+                <Info className="h-5 w-5 text-violet-600 dark:text-violet-400" />
+              </div>
+            </div>
+            <div className="flex-1 space-y-1 pt-1">
+              <p className="text-sm font-semibold text-foreground uppercase tracking-wide">Informações adicionais</p>
+              <p className="text-xs text-muted-foreground">Responsável técnico e horário de atendimento.</p>
+            </div>
+          </div>
+
+          <div className="mt-5 space-y-4">
+            <Controller
+              control={control}
+              name="clinicRtIsSelf"
+              render={({ field }) => (
+                <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={field.value}
+                    onChange={(e) => field.onChange(e.target.checked)}
+                    aria-label="Sou o Responsavel Tecnico desta clinica"
+                    className="h-4 w-4 accent-violet-500"
+                  />
+                  Sou o Responsável Técnico desta clínica
+                </label>
+              )}
+            />
+
+            {!rtIsSelf && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+                <div className="space-y-1">
+                  <FieldLabel htmlFor="clinicRtName">Nome do Responsável Técnico</FieldLabel>
+                  <FieldInput id="clinicRtName" aria-label="Nome do Responsavel Tecnico" {...register('clinicRtName')} />
+                  {errors.clinicRtName && (
+                    <p className="text-xs text-destructive">{errors.clinicRtName.message}</p>
+                  )}
+                </div>
+                <div className="space-y-1">
+                  <FieldLabel>Registro do RT</FieldLabel>
+                  <FieldInput {...register('clinicRtRegistry')} placeholder="Ex: CRM/SP 123456" />
+                  {errors.clinicRtRegistry && (
+                    <p className="text-xs text-destructive">{errors.clinicRtRegistry.message}</p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-1">
+              <FieldLabel>Horário de atendimento (opcional)</FieldLabel>
+              <FieldInput {...register('clinicBusinessHours')} placeholder="Ex: Seg a Sex, 8h-18h" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {!isOnboarding && (
+        <div className="flex justify-end">
+          <Button type="submit" disabled={isSubmitting} className="gap-2">
+            {!isSubmitting && <Save className="h-3.5 w-3.5" />}
+            {isSubmitting ? 'Aguarde...' : 'Salvar alterações'}
+          </Button>
+        </div>
+      )}
+    </form>
+  )
+})
