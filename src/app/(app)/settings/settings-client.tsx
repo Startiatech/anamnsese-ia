@@ -77,8 +77,12 @@ export function SettingsClient({
         { id: 'seguranca', label: 'Segurança', icon: Lock,      locked: securityLocked },
       ]
 
-  // Button label: "Próxima etapa" in perfil/clinica, "Salvar alterações" in segurança
-  const buttonLabel = active === 'seguranca' ? 'Salvar alterações' : 'Próxima etapa'
+  // Button label: forceClinic salva e fica em settings; onboarding avança/salva
+  const buttonLabel = forceClinic
+    ? 'Salvar dados da clínica'
+    : active === 'seguranca'
+      ? 'Salvar alterações'
+      : 'Próxima etapa'
   const ButtonIcon  = active === 'seguranca' ? Save : ArrowRight
 
   const router = useRouter()
@@ -223,7 +227,7 @@ export function SettingsClient({
         <TabProfile ref={profileRef} user={user} isOnboarding={isOnboarding} />
       </div>
       <div className={active === 'clinica' ? '' : 'hidden'}>
-        <TabClinic ref={clinicRef} user={user} isOnboarding={isOnboarding} />
+        <TabClinic ref={clinicRef} user={user} isOnboarding={isOnboarding || forceClinic} />
       </div>
       <div className={active === 'seguranca' ? '' : 'hidden'}>
         <TabSecurity ref={securityRef} userId={user.id} isOnboarding={isOnboarding} isPasswordReset={isPasswordReset} isPinReset={isPinReset} deletionScheduledAt={deletionScheduledAt} hasPin={!!user.pinHash} />
