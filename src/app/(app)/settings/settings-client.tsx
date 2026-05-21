@@ -1,17 +1,18 @@
 'use client'
 
 import { useRef, useState } from 'react'
-import { User, Lock, ArrowRight, Save } from 'lucide-react'
+import { User, Lock, ArrowRight, Save, Building2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import { TabProfile, type ProfileHandle } from './tabs/tab-profile'
 import { TabSecurity, type SecurityHandle } from './tabs/tab-security'
+import { TabClinic, type ClinicHandle } from './tabs/tab-clinic'
 import { OnboardingIntroModal } from '@/components/dashboard/onboarding-intro-modal'
 import type { StoredUser } from '@/server/repositories/users'
 import { ROUTES } from '@/lib/routes'
 import { UnderlineTabs } from '@/components/ui/underline-tabs'
 
-type TabId = 'perfil' | 'seguranca'
+type TabId = 'perfil' | 'clinica' | 'seguranca'
 
 interface SettingsClientProps {
   user: StoredUser
@@ -21,33 +22,97 @@ interface SettingsClientProps {
   profileCompleted?: boolean
   showIntro?: boolean
   deletionScheduledAt?: string | null
+  forceClinic?: boolean
+  nextUrl?: string
 }
 
-export function SettingsClient({ user, isOnboarding = false, isPasswordReset = false, isPinReset = false, profileCompleted = false, showIntro = false, deletionScheduledAt }: SettingsClientProps) {
+export function SettingsClient({
+  user,
+  isOnboarding = false,
+  isPasswordReset = false,
+  isPinReset = false,
+  profileCompleted = false,
+  showIntro = false,
+  deletionScheduledAt,
+  forceClinic = false,
+  nextUrl,
+}: SettingsClientProps) {
   const profileRef = useRef<ProfileHandle>(null)
   const securityRef = useRef<SecurityHandle>(null)
+  const clinicRef = useRef<ClinicHandle>(null)
 
-  const [active, setActive] = useState<TabId>(isPasswordReset ? 'seguranca' : 'perfil')
+  const initialTab: TabId = forceClinic ? 'clinica' : isPasswordReset ? 'seguranca' : 'perfil'
+
+  const [active, setActive] = useState<TabId>(initialTab)
   const [profileValidated, setProfileValidated] = useState(profileCompleted)
+  const [clinicValidated, setClinicValidated] = useState(profileCompleted)
   const [saving, setSaving] = useState(false)
 
-  // No reset de senha, aba segurança nunca fica bloqueada
-  const securityLocked = isOnboarding && !isPasswordReset && !profileValidated
+  // Locking logic
+  const clinicLocked = isOnboarding && !isPasswordReset && !profileValidated
+  const securityLocked = isOnboarding && !isPasswordReset && (!profileValidated || !clinicValidated)
 
-  const TABS: { id: TabId; label: string; icon: typeof User; locked: boolean }[] = [
-    { id: 'perfil',    label: 'Perfil',    icon: User, locked: isPasswordReset },
-    { id: 'seguranca', label: 'Segurança', icon: Lock, locked: securityLocked },
-  ]
+  const TABS: { id: TabId; label: string; icon: typeof User; locked: boolean }[] = forceClinic
+    ? [
+        { id: 'perfil',    label: 'Perfil',    icon: User,      locked: true },
+        { id: 'clinica',   label: 'Clínica',   icon: Building2, locked: false },
+        { id: 'seguranca', label: 'Segurança', icon: Lock,      locked: true },
+      ]
+    : [
+        { id: 'perfil',    label: 'Perfil',    icon: User,      locked: isPasswordReset },
+        { id: 'clinica',   label: 'Clínica',   icon: Building2, locked: clinicLocked },
+        { id: 'seguranca', label: 'Segurança', icon: Lock,      locked: securityLocked },
+      ]
 
-  const buttonLabel = active === 'perfil' ? 'Próxima etapa' : 'Salvar alterações'
-  const ButtonIcon  = active === 'perfil' ? ArrowRight : Save
+  // Button label: "Próxima etapa" in perfil/clinica, "Salvar alterações" in segurança
+  const buttonLabel = active === 'seguranca' ? 'Salvar alterações' : 'Próxima etapa'
+  const ButtonIcon  = active === 'seguranca' ? Save : ArrowRight
+
+  async function handleForceClinicSave() {
+    const valid = await clinicRef.current?.validate()
+    if (!valid) return
+
+    const clinicData = clinicRef.current!.getValues()
+
+    setSaving(true)
+
+    const promise = (async () => {
+      const r = await fetch('/api/users/me', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(clinicData),
+      })
+      if (!r.ok) {
+        const body = await r.json().catch(() => ({}))
+        throw new Error(body.error ?? 'Erro ao salvar dados da clínica')
+      }
+
+      window.location.href = nextUrl ?? ROUTES.atendimentoNovo
+    })()
+
+    toast.promise(promise, {
+      loading: 'Aguarde...',
+      success: 'Dados salvos! Redirecionando...',
+      error: (e: Error) => e.message,
+    })
+
+    await promise.catch(() => {}).finally(() => setSaving(false))
+  }
 
   async function handleProceed() {
     if (active === 'perfil') {
-      // Só valida localmente — nenhuma chamada à API
       const valid = await profileRef.current?.validate()
       if (valid) {
         setProfileValidated(true)
+        setActive('clinica')
+      }
+      return
+    }
+
+    if (active === 'clinica') {
+      const valid = await clinicRef.current?.validate()
+      if (valid) {
+        setClinicValidated(true)
         setActive('seguranca')
       }
       return
@@ -71,16 +136,17 @@ export function SettingsClient({ user, isOnboarding = false, isPasswordReset = f
     }
 
     const profileData = profileRef.current!.getValues()
+    const clinicData = clinicRef.current!.getValues()
     const { currentPassword, newPassword } = securityRef.current!.getValues()
 
     setSaving(true)
 
     const promise = (async () => {
-      // 1. Salva perfil
+      // 1. Salva perfil + clínica juntos
       const r1 = await fetch('/api/users/me', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(profileData),
+        body: JSON.stringify({ ...profileData, ...clinicData }),
       })
       if (!r1.ok) throw new Error('Erro ao salvar perfil')
 
@@ -107,8 +173,16 @@ export function SettingsClient({ user, isOnboarding = false, isPasswordReset = f
     await promise.catch(() => {}).finally(() => setSaving(false))
   }
 
+  const showProceedButton = isOnboarding || forceClinic
+
   return (
     <div className="space-y-6">
+
+      {forceClinic && (
+        <div className="rounded-md border border-yellow-500/40 bg-yellow-500/10 px-4 py-3 text-sm text-yellow-300">
+          Complete os dados da sua clínica para iniciar um novo atendimento.
+        </div>
+      )}
 
       <UnderlineTabs
         tabs={TABS.map(({ id, label, icon, locked }) => ({
@@ -122,9 +196,12 @@ export function SettingsClient({ user, isOnboarding = false, isPasswordReset = f
         onChange={setActive}
       />
 
-      {/* Ambos os tabs sempre montados — CSS hidden evita o problema de remount */}
+      {/* Todos os tabs sempre montados — CSS hidden evita o problema de remount */}
       <div className={active === 'perfil' ? '' : 'hidden'}>
         <TabProfile ref={profileRef} user={user} isOnboarding={isOnboarding} />
+      </div>
+      <div className={active === 'clinica' ? '' : 'hidden'}>
+        <TabClinic ref={clinicRef} user={user} isOnboarding={isOnboarding} />
       </div>
       <div className={active === 'seguranca' ? '' : 'hidden'}>
         <TabSecurity ref={securityRef} userId={user.id} isOnboarding={isOnboarding} isPasswordReset={isPasswordReset} isPinReset={isPinReset} deletionScheduledAt={deletionScheduledAt} hasPin={!!user.pinHash} />
@@ -132,10 +209,15 @@ export function SettingsClient({ user, isOnboarding = false, isPasswordReset = f
 
       <OnboardingIntroModal show={showIntro} userName={user.name} />
 
-      {/* Botão único — apenas no onboarding */}
-      {isOnboarding && (
+      {/* Botão único — apenas no onboarding ou forceClinic */}
+      {showProceedButton && (
         <div className="flex justify-end">
-          <Button type="button" onClick={handleProceed} disabled={saving} className="gap-2">
+          <Button
+            type="button"
+            onClick={forceClinic ? handleForceClinicSave : handleProceed}
+            disabled={saving}
+            className="gap-2"
+          >
             {saving ? 'Aguarde...' : buttonLabel}
             {!saving && <ButtonIcon className="h-3.5 w-3.5" />}
           </Button>

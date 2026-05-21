@@ -27,6 +27,8 @@ export default async function SettingsPage({
   const isPinReset = (isPasswordReset && user.pinIsTemp) || (params.pin === '1' && user.pinIsTemp)
   const isOnboarding = user.passwordIsTemp || !user.onboardingCompleted
   const profileCompleted = user.onboardingCompleted
+  const forceClinic = params.force === 'clinica'
+  const nextUrl = typeof params.next === 'string' ? params.next : undefined
 
   return (
     <div className="space-y-6">
@@ -39,6 +41,8 @@ export default async function SettingsPage({
         profileCompleted={profileCompleted}
         showIntro={isOnboarding && !isPasswordReset && !isPinReset}
         deletionScheduledAt={user.deletionScheduledAt}
+        forceClinic={forceClinic}
+        nextUrl={nextUrl}
       />
     </div>
   )

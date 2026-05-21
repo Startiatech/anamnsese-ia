@@ -55,6 +55,20 @@ vi.mock('@/components/dashboard/onboarding-intro-modal', () => ({
   OnboardingIntroModal: () => null,
 }))
 
+vi.mock('./tabs/tab-clinic', () => ({
+  TabClinic: React.forwardRef<
+    { validate: () => Promise<boolean>; getValues: () => Record<string, unknown>; hasLogo: () => boolean },
+    Record<string, unknown>
+  >(function MockTabClinic(_props, ref) {
+    React.useImperativeHandle(ref, () => ({
+      validate: vi.fn().mockResolvedValue(true),
+      getValues: vi.fn().mockReturnValue({ clinicName: 'Clínica Test' }),
+      hasLogo: vi.fn().mockReturnValue(false),
+    }))
+    return React.createElement('div', { 'data-testid': 'tab-clinic-mock' })
+  }),
+}))
+
 vi.mock('@/components/ui/underline-tabs', () => ({
   UnderlineTabs: ({ tabs, active, onChange }: { tabs: { id: string; label: string; disabled?: boolean }[]; active: string; onChange: (id: string) => void }) => (
     <div>
