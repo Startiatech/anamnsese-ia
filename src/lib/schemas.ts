@@ -1,5 +1,6 @@
 // src/lib/schemas.ts
 import { z } from 'zod'
+import { isValidCnpj } from './clinic'
 
 export const loginSchema = z.object({
   email: z.string().min(1, 'Email é obrigatório').email({ message: 'Email inválido' }),
@@ -119,3 +120,51 @@ export const planInterestSchema = z.object({
 })
 
 export type PlanInterestFormData = z.infer<typeof planInterestSchema>
+
+const PHONE_BR = /^(\(?\d{2}\)?[\s-]?)?\d{4,5}-?\d{4}$/
+
+export const clinicSchema = z.object({
+  clinicName: z.string().min(2, 'Nome da clinica obrigatorio').max(120).trim(),
+  clinicCnpj: z
+    .string()
+    .trim()
+    .transform((v) => v.replace(/\D/g, ''))
+    .refine((v) => v.length === 14, 'CNPJ deve ter 14 digitos')
+    .refine(isValidCnpj, 'CNPJ invalido'),
+  clinicAddress: z.string().min(5, 'Endereco obrigatorio').max(200).trim(),
+  clinicCep: z
+    .string()
+    .trim()
+    .transform((v) => v.replace(/\D/g, ''))
+    .refine((v) => /^\d{8}$/.test(v), 'CEP invalido'),
+  clinicPhone: z
+    .string()
+    .trim()
+    .max(20)
+    .refine((v) => PHONE_BR.test(v), 'Telefone invalido'),
+  clinicEmail: z.string().trim().max(120).email('Email invalido'),
+  clinicWebsite: z
+    .string()
+    .trim()
+    .max(200)
+    .optional()
+    .transform((v) => {
+      if (!v) return ''
+      return /^https?:\/\//i.test(v) ? v : `https://${v}`
+    }),
+  clinicRtIsSelf: z.boolean(),
+  clinicRtName: z.string().trim().max(120).optional().default(''),
+  clinicRtRegistry: z.string().trim().max(60).optional().default(''),
+  clinicBusinessHours: z.string().trim().max(200).optional().default(''),
+}).superRefine((data, ctx) => {
+  if (data.clinicRtIsSelf === false) {
+    if (!data.clinicRtName || data.clinicRtName.trim().length < 2) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['clinicRtName'], message: 'Nome do RT obrigatorio' })
+    }
+    if (!data.clinicRtRegistry || data.clinicRtRegistry.trim().length < 2) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['clinicRtRegistry'], message: 'Registro do RT obrigatorio' })
+    }
+  }
+})
+
+export type ClinicFormData = z.infer<typeof clinicSchema>
