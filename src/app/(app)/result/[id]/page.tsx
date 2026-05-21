@@ -32,6 +32,7 @@ export default async function ResultadoPage({ params }: { params: Promise<{ id: 
         clinicName:           fullUser.clinicName,
         clinicCnpj:           fullUser.clinicCnpj ?? '',
         clinicAddress:        fullUser.clinicAddress ?? '',
+        clinicAddressNumber:  fullUser.clinicAddressNumber,
         clinicCep:            fullUser.clinicCep ?? '',
         clinicPhone:          fullUser.clinicPhone ?? '',
         clinicEmail:          fullUser.clinicEmail ?? '',

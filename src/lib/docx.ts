@@ -88,7 +88,8 @@ async function buildHeader(clinic: ClinicData): Promise<Header> {
 function buildFooter(clinic: ClinicData): Footer {
   const parts: string[] = []
 
-  const addressLine = [clinic.clinicAddress, clinic.clinicCep ? `CEP ${formatCep(clinic.clinicCep)}` : '']
+  const addressFull = `${clinic.clinicAddress}${clinic.clinicAddressNumber ? `, ${clinic.clinicAddressNumber}` : ''}`
+  const addressLine = [addressFull, clinic.clinicCep ? `CEP ${formatCep(clinic.clinicCep)}` : '']
     .filter(Boolean)
     .join(' — ')
   if (addressLine) parts.push(addressLine)

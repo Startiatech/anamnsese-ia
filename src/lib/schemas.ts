@@ -132,6 +132,7 @@ export const clinicSchema = z.object({
     .refine((v) => v.length === 14, 'CNPJ deve ter 14 dígitos')
     .refine(isValidCnpj, 'CNPJ inválido'),
   clinicAddress: z.string().min(5, 'Endereço obrigatório').max(200).trim(),
+  clinicAddressNumber: z.string().trim().max(50).optional().default(''),
   clinicCep: z
     .string()
     .trim()

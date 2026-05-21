@@ -113,7 +113,7 @@ export async function generatePDFBlob({
     const rtName     = clinic.clinicRtIsSelf ? doctorName : (clinic.clinicRtName ?? '')
     const rtRegistry = clinic.clinicRtIsSelf ? doctorCRM  : (clinic.clinicRtRegistry ?? '')
     const footerLines = [
-      `${clinic.clinicAddress} · CEP ${formatCep(clinic.clinicCep)}`,
+      `${clinic.clinicAddress}${clinic.clinicAddressNumber ? `, ${clinic.clinicAddressNumber}` : ''} · CEP ${formatCep(clinic.clinicCep)}`,
       rtName ? `Responsavel Tecnico: ${rtName} — ${rtRegistry}` : '',
       clinic.clinicBusinessHours ?? '',
     ].filter(Boolean)

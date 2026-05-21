@@ -75,6 +75,7 @@ const expectedUser: StoredUser = {
   clinicName: undefined,
   clinicCnpj: undefined,
   clinicAddress: undefined,
+  clinicAddressNumber: undefined,
   clinicCep: undefined,
   clinicPhone: undefined,
   clinicEmail: undefined,

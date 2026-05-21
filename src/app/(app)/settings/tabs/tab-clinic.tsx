@@ -45,6 +45,7 @@ export const TabClinic = forwardRef<ClinicHandle, Props>(function TabClinic({ us
       clinicName: user.clinicName ?? '',
       clinicCnpj: user.clinicCnpj ? formatCNPJ(user.clinicCnpj) : '',
       clinicAddress: user.clinicAddress ?? '',
+      clinicAddressNumber: user.clinicAddressNumber ?? '',
       clinicCep: user.clinicCep ? formatCEP(user.clinicCep) : '',
       clinicPhone: user.clinicPhone ? formatPhone(user.clinicPhone) : '',
       clinicEmail: user.clinicEmail ?? '',
@@ -204,12 +205,19 @@ export const TabClinic = forwardRef<ClinicHandle, Props>(function TabClinic({ us
               <p className="text-xs text-muted-foreground">Exibido no rodapé dos documentos.</p>
             </div>
           </div>
-          <div className="mt-5 grid grid-cols-1 sm:grid-cols-3 gap-x-6 gap-y-4">
-            <div className="sm:col-span-2 space-y-1">
+          <div className="mt-5 grid grid-cols-1 sm:grid-cols-4 gap-x-6 gap-y-4">
+            <div className="sm:col-span-3 space-y-1">
               <FieldLabel>Endereço</FieldLabel>
-              <FieldInput {...register('clinicAddress')} />
+              <FieldInput {...register('clinicAddress')} placeholder="Preenchido automaticamente pelo CEP" />
               {errors.clinicAddress && (
                 <p className="text-xs text-destructive">{errors.clinicAddress.message}</p>
+              )}
+            </div>
+            <div className="space-y-1">
+              <FieldLabel>Número / complemento (opcional)</FieldLabel>
+              <FieldInput {...register('clinicAddressNumber')} placeholder="100, Sala 5" />
+              {errors.clinicAddressNumber && (
+                <p className="text-xs text-destructive">{errors.clinicAddressNumber.message}</p>
               )}
             </div>
             <div className="space-y-1">

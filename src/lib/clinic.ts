@@ -4,6 +4,7 @@ export interface ClinicData {
   clinicName: string
   clinicCnpj: string
   clinicAddress: string
+  clinicAddressNumber?: string
   clinicCep: string
   clinicPhone: string
   clinicEmail: string

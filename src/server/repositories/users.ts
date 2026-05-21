@@ -30,6 +30,7 @@ export interface StoredUser {
   clinicName?: string
   clinicCnpj?: string
   clinicAddress?: string
+  clinicAddressNumber?: string
   clinicCep?: string
   clinicPhone?: string
   clinicEmail?: string
@@ -69,6 +70,7 @@ function toStoredUser(row: Record<string, unknown>): StoredUser {
     clinicName: (row.clinic_name as string | null) ?? undefined,
     clinicCnpj: (row.clinic_cnpj as string | null) ?? undefined,
     clinicAddress: (row.clinic_address as string | null) ?? undefined,
+    clinicAddressNumber: (row.clinic_address_number as string | null) ?? undefined,
     clinicCep: (row.clinic_cep as string | null) ?? undefined,
     clinicPhone: (row.clinic_phone as string | null) ?? undefined,
     clinicEmail: (row.clinic_email as string | null) ?? undefined,
@@ -155,6 +157,7 @@ export async function updateClinicData(id: string, data: ClinicFormData): Promis
     clinic_name:           data.clinicName,
     clinic_cnpj:           data.clinicCnpj,
     clinic_address:        data.clinicAddress,
+    clinic_address_number: data.clinicAddressNumber ?? '',
     clinic_cep:            data.clinicCep,
     clinic_phone:          data.clinicPhone,
     clinic_email:          data.clinicEmail,
