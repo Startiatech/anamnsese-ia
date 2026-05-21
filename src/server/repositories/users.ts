@@ -25,6 +25,20 @@ export interface StoredUser {
   minutesPerConsultation: number
   pinHash?: string
   pinIsTemp: boolean
+  // ─── clinic ───
+  clinicName?: string
+  clinicCnpj?: string
+  clinicAddress?: string
+  clinicCep?: string
+  clinicPhone?: string
+  clinicEmail?: string
+  clinicWebsite?: string
+  clinicLogoUrl?: string
+  clinicLogoPath?: string
+  clinicRtIsSelf: boolean
+  clinicRtName?: string
+  clinicRtRegistry?: string
+  clinicBusinessHours?: string
 }
 
 function toStoredUser(row: Record<string, unknown>): StoredUser {
@@ -51,6 +65,19 @@ function toStoredUser(row: Record<string, unknown>): StoredUser {
     minutesPerConsultation: (row.minutes_per_consultation as number) ?? 45,
     pinHash: (row.pin_hash as string | null) ?? undefined,
     pinIsTemp: (row.pin_is_temp as boolean) ?? false,
+    clinicName: (row.clinic_name as string | null) ?? undefined,
+    clinicCnpj: (row.clinic_cnpj as string | null) ?? undefined,
+    clinicAddress: (row.clinic_address as string | null) ?? undefined,
+    clinicCep: (row.clinic_cep as string | null) ?? undefined,
+    clinicPhone: (row.clinic_phone as string | null) ?? undefined,
+    clinicEmail: (row.clinic_email as string | null) ?? undefined,
+    clinicWebsite: (row.clinic_website as string | null) ?? undefined,
+    clinicLogoUrl: (row.clinic_logo_url as string | null) ?? undefined,
+    clinicLogoPath: (row.clinic_logo_path as string | null) ?? undefined,
+    clinicRtIsSelf: (row.clinic_rt_is_self as boolean | null) ?? true,
+    clinicRtName: (row.clinic_rt_name as string | null) ?? undefined,
+    clinicRtRegistry: (row.clinic_rt_registry as string | null) ?? undefined,
+    clinicBusinessHours: (row.clinic_business_hours as string | null) ?? undefined,
   }
 }
 
@@ -120,4 +147,40 @@ export async function listUsers(): Promise<StoredUser[]> {
 export async function countRegisteredUsers(): Promise<number> {
   const { count } = await supabase.from('users').select('*', { count: 'exact', head: true })
   return count ?? 0
+}
+
+import type { ClinicFormData } from '@/lib/schemas'
+
+export async function updateClinicData(id: string, data: ClinicFormData): Promise<void> {
+  const update: Record<string, unknown> = {
+    clinic_name:           data.clinicName,
+    clinic_cnpj:           data.clinicCnpj,
+    clinic_address:        data.clinicAddress,
+    clinic_cep:            data.clinicCep,
+    clinic_phone:          data.clinicPhone,
+    clinic_email:          data.clinicEmail,
+    clinic_website:        data.clinicWebsite ?? '',
+    clinic_rt_is_self:     data.clinicRtIsSelf,
+    clinic_rt_name:        data.clinicRtName ?? '',
+    clinic_rt_registry:    data.clinicRtRegistry ?? '',
+    clinic_business_hours: data.clinicBusinessHours ?? '',
+  }
+  const { error } = await supabase.from('users').update(update).eq('id', id)
+  if (error) throw new Error(`updateClinicData failed: ${error.message}`)
+}
+
+export async function updateClinicLogo(id: string, logo: { url: string; path: string }): Promise<void> {
+  const { error } = await supabase.from('users').update({
+    clinic_logo_url: logo.url,
+    clinic_logo_path: logo.path,
+  }).eq('id', id)
+  if (error) throw new Error(`updateClinicLogo failed: ${error.message}`)
+}
+
+export async function clearClinicLogo(id: string): Promise<void> {
+  const { error } = await supabase.from('users').update({
+    clinic_logo_url: null,
+    clinic_logo_path: null,
+  }).eq('id', id)
+  if (error) throw new Error(`clearClinicLogo failed: ${error.message}`)
 }
