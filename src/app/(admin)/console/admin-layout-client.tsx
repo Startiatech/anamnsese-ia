@@ -32,7 +32,7 @@ function AdminShell({ children, interestCount }: { children: React.ReactNode; in
     { href: ROUTES.consoleInteresses, label: 'Interesses',  icon: Bell, badge: interestCount > 0 ? interestCount : undefined },
   ]
 
-  const appUrl = process.env.NEXT_PUBLIC_SITE_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? 'https://project-anamnese-ia-claude-code.vercel.app'
+  const appUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://magenta-hornet-184625.hostingersite.com'
   const broadcastMessage = [
     'Olá! 👋',
     '',

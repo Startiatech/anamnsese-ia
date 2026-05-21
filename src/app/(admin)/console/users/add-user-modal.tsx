@@ -30,7 +30,7 @@ export function AddUserModal({ open, onClose, onSuccess }: AddUserModalProps) {
       `📧 *E-mail:* ${data.email}`,
       `🔒 *Senha provisória:* ${tempPassword}`, '',
       '*Para acessar a plataforma, siga os passos abaixo:*',
-      `1️⃣ Acesse a página principal pelo link: 🔗 ${process.env.NEXT_PUBLIC_APP_URL}`,
+      `1️⃣ Acesse a página principal pelo link: 🔗 ${process.env.NEXT_PUBLIC_SITE_URL}`,
       '2️⃣ Clique no botão *Entrar* no canto superior direito da página',
       '3️⃣ Insira seu e-mail e senha provisória para realizar o login', '',
       'Por segurança, recomendamos que você altere sua senha no primeiro acesso.', '',
