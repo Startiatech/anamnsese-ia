@@ -57,6 +57,7 @@ export const API = {
 
   // App
   patients:       '/api/patients',
+  patientsCheck:  '/api/patients/check',
   patientId:      (id: string) => `/api/patients/${id}`,
   patientLatestConsultation: (id: string) => `/api/patients/${id}/latest-consultation`,
   consultations:        '/api/consultations',

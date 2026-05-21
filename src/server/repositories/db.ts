@@ -58,6 +58,16 @@ export const PatientRepository = {
     return data ? toPatient(data) : null
   },
 
+  async findByExternalId(userId: string, externalId: string): Promise<Patient | null> {
+    const { data } = await supabase
+      .from('patients')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('external_id', externalId)
+      .maybeSingle()
+    return data ? toPatient(data) : null
+  },
+
   async search(userId: string, query: string): Promise<Patient[]> {
     const safe = query.replace(/[%_,()]/g, '')
     const { data } = await supabase

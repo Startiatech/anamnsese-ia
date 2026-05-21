@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
@@ -26,6 +27,8 @@ export function NewPatientSheet({ open, onOpenChange, onSuccess }: NewPatientShe
     register,
     handleSubmit,
     setValue,
+    setError,
+    clearErrors,
     watch,
     reset,
     control,
@@ -37,8 +40,61 @@ export function NewPatientSheet({ open, onOpenChange, onSuccess }: NewPatientShe
 
   const cpfValue = watch('cpf') ?? ''
   const phoneValue = watch('phone') ?? ''
+  const externalIdValue = watch('externalId') ?? ''
+
+  useEffect(() => {
+    if (!open) return
+    const cpfValid = /^\d{3}\.\d{3}\.\d{3}-\d{2}$/.test(cpfValue)
+    const externalId = externalIdValue.trim()
+    if (!cpfValid && !externalId) return
+
+    const controller = new AbortController()
+    const timer = setTimeout(async () => {
+      try {
+        const params = new URLSearchParams()
+        if (cpfValid) params.set('cpf', cpfValue)
+        if (externalId) params.set('externalId', externalId)
+        const res = await fetch(`${API.patientsCheck}?${params.toString()}`, {
+          signal: controller.signal,
+        })
+        if (!res.ok) return
+        const { cpfExists, externalIdExists } = (await res.json()) as {
+          cpfExists: boolean
+          externalIdExists: boolean
+        }
+        if (cpfValid) {
+          if (cpfExists) setError('cpf', { type: 'duplicate', message: 'Já existe um paciente com este CPF.' })
+          else if (errors.cpf?.type === 'duplicate') clearErrors('cpf')
+        }
+        if (externalId) {
+          if (externalIdExists) setError('externalId', { type: 'duplicate', message: 'Já existe um paciente com esta identificação.' })
+          else if (errors.externalId?.type === 'duplicate') clearErrors('externalId')
+        }
+      } catch {
+        // ignora
+      }
+    }, 400)
+
+    return () => {
+      controller.abort()
+      clearTimeout(timer)
+    }
+  }, [open, cpfValue, externalIdValue, setError, clearErrors, errors.cpf?.type, errors.externalId?.type])
 
   async function onSubmit(data: PatientFormData) {
+    const params = new URLSearchParams({ cpf: data.cpf })
+    if (data.externalId) params.set('externalId', data.externalId)
+    const checkRes = await fetch(`${API.patientsCheck}?${params.toString()}`)
+    if (checkRes.ok) {
+      const { cpfExists, externalIdExists } = (await checkRes.json()) as {
+        cpfExists: boolean
+        externalIdExists: boolean
+      }
+      if (cpfExists) setError('cpf', { type: 'duplicate', message: 'Já existe um paciente com este CPF.' })
+      if (externalIdExists) setError('externalId', { type: 'duplicate', message: 'Já existe um paciente com esta identificação.' })
+      if (cpfExists || externalIdExists) return
+    }
+
     const promise = fetch(API.patients, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -142,6 +198,7 @@ export function NewPatientSheet({ open, onOpenChange, onSuccess }: NewPatientShe
             maxLength={100}
             {...register('externalId')}
           />
+          {errors.externalId && <p className="text-xs text-destructive">{errors.externalId.message}</p>}
         </div>
       </form>
     </AppSheet>
