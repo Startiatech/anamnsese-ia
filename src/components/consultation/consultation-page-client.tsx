@@ -21,6 +21,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import { Logo } from '@/components/ui/logo'
 import {
   Select,
   SelectContent,
@@ -275,12 +276,22 @@ export function ConsultationPageClient({ initialPatients, clinicComplete }: Cons
       />
 
       <AlertDialog open={clinicDialogOpen} onOpenChange={setClinicDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="max-w-md">
           <AlertDialogHeader>
+            <div className="flex flex-col items-center gap-4 mb-4">
+              <Logo size="sm" id="clinic-required-modal" />
+              <div className="w-full h-px bg-gradient-to-r from-transparent via-primary/25 to-transparent" />
+            </div>
             <AlertDialogTitle>Complete os dados da sua clínica</AlertDialogTitle>
-            <AlertDialogDescription>
-              Para iniciar um atendimento é necessário preencher os dados da sua clínica.
-              Eles serão usados no cabeçalho dos documentos gerados (PDF/DOCX).
+            <AlertDialogDescription asChild>
+              <div className="space-y-2 text-sm text-muted-foreground">
+                <p>
+                  Para iniciar um atendimento é necessário preencher os dados da sua clínica.
+                </p>
+                <p>
+                  Eles serão usados no cabeçalho dos documentos gerados (PDF e DOCX).
+                </p>
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
