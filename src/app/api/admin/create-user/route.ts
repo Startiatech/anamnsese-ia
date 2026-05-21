@@ -55,6 +55,7 @@ export async function POST(req: NextRequest) {
     bonusCredits: 0,
     minutesPerConsultation: 45,
     pinIsTemp: false,
+    clinicRtIsSelf: true,
   })
 
   return NextResponse.json({ ok: true })
