@@ -71,7 +71,7 @@ function AtendimentoFlow({
   creditsRemaining,
   planId,
 }: AtendimentoFlowProps) {
-  const { state } = useConsultationFlow()
+  const { state, isTranscribing } = useConsultationFlow()
   const router = useRouter()
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [showTrialEndModal, setShowTrialEndModal] = useState(false)
@@ -161,17 +161,21 @@ function AtendimentoFlow({
     )
   }
 
-  const abandonTitle = creditDebited && !aiWasUsed
-    ? 'Crédito será devolvido'
-    : creditDebited
-      ? 'Crédito não será devolvido'
-      : 'Abandonar consulta?'
+  const abandonTitle = isTranscribing
+    ? 'Transcrição em andamento'
+    : creditDebited && !aiWasUsed
+      ? 'Crédito será devolvido'
+      : creditDebited
+        ? 'Crédito não será devolvido'
+        : 'Abandonar consulta?'
 
-  const abandonDescription = creditDebited && !aiWasUsed
-    ? 'Nenhum processamento de IA foi utilizado. O crédito debitado será devolvido ao seu saldo.'
-    : creditDebited
-      ? 'Processamento de IA já foi utilizado nesta sessão. O crédito não poderá ser devolvido.'
-      : 'Tem certeza que deseja encerrar esta consulta? O paciente selecionado não será alterado.'
+  const abandonDescription = isTranscribing
+    ? 'O áudio está sendo processado. Se você abandonar agora, a transcrição em andamento será descartada e o crédito não será devolvido.'
+    : creditDebited && !aiWasUsed
+      ? 'Nenhum processamento de IA foi utilizado. O crédito debitado será devolvido ao seu saldo.'
+      : creditDebited
+        ? 'Processamento de IA já foi utilizado nesta sessão. O crédito não poderá ser devolvido.'
+        : 'Tem certeza que deseja encerrar esta consulta? O paciente selecionado não será alterado.'
 
   return (
     <>

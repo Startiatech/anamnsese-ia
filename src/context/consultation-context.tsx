@@ -16,6 +16,8 @@ interface ConsultationContextValue {
   audioAttemptsLimit: number | null
   refinementAttemptsLimit: number | null
   lastConsultationAt: string | null
+  isTranscribing: boolean
+  setIsTranscribing: (v: boolean) => void
 }
 
 const ConsultationContext = createContext<ConsultationContextValue | null>(null)
@@ -46,6 +48,7 @@ export function ConsultationProvider({
     selectedSections: [],
     structuredAnamnesis: null,
   })
+  const [isTranscribing, setIsTranscribing] = useState(false)
 
   const setPatient = useCallback((patient: Patient) =>
     setState(s => ({ ...s, patient })), [])
@@ -78,6 +81,7 @@ export function ConsultationProvider({
       state, setPatient, setRawTranscript, setSelectedSections,
       setStructuredAnamnesis, nextStep, prevStep, reset,
       planFeatures, professional, audioAttemptsLimit, refinementAttemptsLimit, lastConsultationAt,
+      isTranscribing, setIsTranscribing,
     }}>
       {children}
     </ConsultationContext.Provider>

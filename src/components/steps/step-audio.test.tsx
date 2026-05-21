@@ -18,6 +18,7 @@ vi.mock('@/context/consultation-context', () => ({
     nextStep: vi.fn(),
     setRawTranscript: vi.fn(),
     audioAttemptsLimit: null,
+    setIsTranscribing: vi.fn(),
   }),
 }))
 

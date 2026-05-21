@@ -27,7 +27,7 @@ export function StepAudio({
   initialTranscript,
   onTranscriptionComplete,
 }: StepAudioProps) {
-  const { nextStep, setRawTranscript, audioAttemptsLimit } = useConsultationFlow()
+  const { nextStep, setRawTranscript, audioAttemptsLimit, setIsTranscribing } = useConsultationFlow()
 
   const quotaExceeded = audioAttemptsLimit !== null && audioAttemptsUsed >= audioAttemptsLimit
 
@@ -294,6 +294,11 @@ export function StepAudio({
   const canRetry = audioAttemptsLimit === null || audioAttemptsUsed < audioAttemptsLimit
 
   const isTranscribing = audioState === 'streaming' || audioState === 'done'
+
+  useEffect(() => {
+    setIsTranscribing(audioState === 'streaming')
+    return () => setIsTranscribing(false)
+  }, [audioState, setIsTranscribing])
 
   // ── Render ─────────────────────────────────────────────────────────────────
 
