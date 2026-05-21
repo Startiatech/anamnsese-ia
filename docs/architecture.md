@@ -195,3 +195,58 @@ flowchart LR
     AS -->|criar paciente\neditar dados| FW[Formulários de fluxo]
     AD -->|criar usuário\nconfirmar exclusão| PA[Ações administrativas]
 ```
+
+## Dados da Clínica
+
+### Onboarding (3 abas obrigatórias)
+
+```mermaid
+flowchart LR
+    P[Perfil] --> C[Clínica]
+    C --> S[Segurança]
+    S --> D[Dashboard]
+```
+
+### Gate "Iniciar atendimento"
+
+```mermaid
+flowchart TD
+    U[Usuário acessa /consultation/novo]
+    U --> Q{isClinicComplete?}
+    Q -- não --> R["redirect /settings?force=clinica&next=/consultation/novo"]
+    R --> F[Aba Clínica travada e visível]
+    F --> S[PATCH /api/users/me]
+    S --> N["window.location.href = next"]
+    N --> NA[/consultation/novo]
+    Q -- sim --> NA
+```
+
+### Upload de logo da clínica
+
+```mermaid
+sequenceDiagram
+    participant U as ClinicLogoUpload
+    participant API as POST /api/users/me/clinic/logo
+    participant S as Supabase Storage (clinic-logos)
+    participant DB as users
+    U->>API: FormData(file)
+    API->>API: valida MIME + size (2MB)
+    API->>DB: findUserById → clinicLogoPath?
+    API->>S: remove(prev path)
+    API->>S: upload({userId}/{timestamp}.ext)
+    S-->>API: publicUrl
+    API->>DB: updateClinicLogo(url, path)
+    API-->>U: { url, path }
+```
+
+### Renderização nos documentos
+
+```mermaid
+flowchart LR
+    R[result/id/page.tsx] -->|findUserById| FU[StoredUser com clinic*]
+    FU -->|monta ClinicData| EB[ExportButtons]
+    EB --> PDF[generatePDFBlob]
+    EB --> DOCX[generateDOCXBlob]
+    PDF -->|cabeçalho + rodapé| OUT1[Blob PDF]
+    DOCX -->|header + footer| OUT2[Blob DOCX]
+```
