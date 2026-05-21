@@ -32,7 +32,6 @@ const MONTHS_PT = [
   'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro',
 ]
 
-const BRAND_HEX = '7C3AED'
 const MUTED_HEX = '6E6E78'
 const TEXT_HEX = '1E1E23'
 const RULE_HEX = 'C8C8D2'
@@ -95,7 +94,7 @@ async function buildHeader(clinic: ClinicData): Promise<Header> {
     children.push(
       new Paragraph({
         children: [
-          new TextRun({ text: clinic.clinicName, bold: true, size: 28, color: BRAND_HEX, font: 'Calibri' }),
+          new TextRun({ text: clinic.clinicName, bold: true, size: 28, color: TEXT_HEX, font: 'Calibri' }),
         ],
         spacing: { after: 30 },
       }),
@@ -128,7 +127,7 @@ async function buildHeader(clinic: ClinicData): Promise<Header> {
 
   children.push(
     new Paragraph({
-      border: { bottom: { style: BorderStyle.SINGLE, size: 8, color: BRAND_HEX, space: 1 } },
+      border: { bottom: { style: BorderStyle.SINGLE, size: 4, color: RULE_HEX, space: 1 } },
       spacing: { after: 0 },
     }),
   )
@@ -204,7 +203,7 @@ function metaCell(label: string, value: string): TableCell {
     },
     children: [
       new Paragraph({
-        children: [new TextRun({ text: label.toUpperCase(), size: 14, color: BRAND_HEX, font: 'Calibri', bold: true })],
+        children: [new TextRun({ text: label.toUpperCase(), size: 14, color: TEXT_HEX, font: 'Calibri', bold: true })],
         spacing: { after: 40 },
       }),
       ...(value
@@ -223,8 +222,7 @@ function buildMetaBlock(
 ): Paragraph[] {
   const out: Paragraph[] = [
     new Paragraph({
-      children: [new TextRun({ text: title.toUpperCase(), size: 16, color: BRAND_HEX, bold: true, font: 'Calibri' })],
-      border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: BRAND_HEX, space: 1 } },
+      children: [new TextRun({ text: title.toUpperCase(), size: 16, color: TEXT_HEX, bold: true, font: 'Calibri' })],
       spacing: { after: 80 },
     }),
   ]
@@ -259,12 +257,7 @@ export async function generateDOCXBlob({
     new Paragraph({
       alignment: AlignmentType.CENTER,
       children: [new TextRun({ text: 'ANAMNESE CLÍNICA', bold: true, size: 34, color: TEXT_HEX, font: 'Calibri' })],
-      spacing: { before: 200, after: 60 },
-    }),
-    new Paragraph({
-      alignment: AlignmentType.CENTER,
-      border: { bottom: { style: BorderStyle.SINGLE, size: 10, color: BRAND_HEX, space: 1 } },
-      spacing: { after: 200 },
+      spacing: { before: 200, after: 240 },
     }),
     new Paragraph({
       alignment: AlignmentType.RIGHT,
@@ -325,8 +318,7 @@ export async function generateDOCXBlob({
   for (const s of consultation.structuredAnamnesis.sections) {
     children.push(
       new Paragraph({
-        children: [new TextRun({ text: s.title.toUpperCase(), bold: true, size: 22, color: BRAND_HEX, font: 'Calibri' })],
-        border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: BRAND_HEX, space: 1 } },
+        children: [new TextRun({ text: s.title.toUpperCase(), bold: true, size: 22, color: TEXT_HEX, font: 'Calibri' })],
         spacing: { before: 200, after: 120 },
       }),
       new Paragraph({

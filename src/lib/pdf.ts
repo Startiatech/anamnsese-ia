@@ -54,10 +54,9 @@ async function loadImageAsDataUrl(url: string): Promise<{ data: string; format: 
 }
 
 const COLORS = {
-  text:    [30, 30, 35] as [number, number, number],
-  muted:   [110, 110, 120] as [number, number, number],
-  rule:    [200, 200, 210] as [number, number, number],
-  brand:   [124, 58, 237] as [number, number, number], // violet-600
+  text:  [25, 25, 25] as [number, number, number],
+  muted: [110, 110, 110] as [number, number, number],
+  rule:  [200, 200, 200] as [number, number, number],
 }
 
 export async function generatePDFBlob({
@@ -100,8 +99,8 @@ export async function generatePDFBlob({
       }
     }
 
-    // Nome da clínica (sans-serif, brand color)
-    setColor(COLORS.brand)
+    // Nome da clínica
+    setColor(COLORS.text)
     doc.setFont('helvetica', 'bold').setFontSize(15)
     doc.text(clinic.clinicName, textX, headerStart + 6)
 
@@ -122,11 +121,9 @@ export async function generatePDFBlob({
 
     y = headerStart + Math.max(logoH, 18) + 4
 
-    // Linha decorativa
-    doc.setDrawColor(COLORS.brand[0], COLORS.brand[1], COLORS.brand[2]).setLineWidth(0.6)
+    // Linha sutil sob cabeçalho
+    doc.setDrawColor(COLORS.rule[0], COLORS.rule[1], COLORS.rule[2]).setLineWidth(0.3)
     doc.line(MARGIN_X, y, pageW - MARGIN_X, y)
-    doc.setDrawColor(COLORS.rule[0], COLORS.rule[1], COLORS.rule[2]).setLineWidth(0.2)
-    doc.line(MARGIN_X, y + 1, pageW - MARGIN_X, y + 1)
     y += 10
   }
 
@@ -134,10 +131,7 @@ export async function generatePDFBlob({
   setColor(COLORS.text)
   doc.setFont('helvetica', 'bold').setFontSize(17)
   doc.text('ANAMNESE CLÍNICA', pageW / 2, y, { align: 'center' })
-  y += 5
-  doc.setDrawColor(COLORS.brand[0], COLORS.brand[1], COLORS.brand[2]).setLineWidth(0.5)
-  doc.line(pageW / 2 - 18, y, pageW / 2 + 18, y)
-  y += 8
+  y += 10
 
   // ─── Data e local (estilo carta) ───────────────────────────────────────────
   setColor(COLORS.muted)
@@ -151,14 +145,11 @@ export async function generatePDFBlob({
 
   function drawBlock(label: string, lines: { label: string; value: string }[], xOffset: number) {
     let by = blockStartY
-    // Header do bloco
-    setColor(COLORS.brand)
-    doc.setFont('helvetica', 'bold').setFontSize(8)
+    // Header do bloco (sem linha)
+    setColor(COLORS.text)
+    doc.setFont('helvetica', 'bold').setFontSize(9)
     doc.text(label.toUpperCase(), MARGIN_X + xOffset, by)
-    by += 2
-    doc.setDrawColor(COLORS.brand[0], COLORS.brand[1], COLORS.brand[2]).setLineWidth(0.3)
-    doc.line(MARGIN_X + xOffset, by, MARGIN_X + xOffset + blockW, by)
-    by += 4
+    by += 6
 
     // Conteúdo
     lines.forEach(({ label: l, value }) => {
@@ -200,17 +191,13 @@ export async function generatePDFBlob({
   // ─── Seções da anamnese ────────────────────────────────────────────────────
   consultation.structuredAnamnesis.sections.forEach((section) => {
     checkPageBreak(14)
-    // Título da seção
-    setColor(COLORS.brand)
+    // Título da seção (sem linha)
+    setColor(COLORS.text)
     doc.setFont('helvetica', 'bold').setFontSize(10.5)
     doc.text(section.title.toUpperCase(), MARGIN_X, y)
-    y += 2.5
-    doc.setDrawColor(COLORS.brand[0], COLORS.brand[1], COLORS.brand[2]).setLineWidth(0.3)
-    doc.line(MARGIN_X, y, MARGIN_X + 35, y)
-    y += 5
+    y += 6
 
     // Corpo
-    setColor(COLORS.text)
     doc.setFont('times', 'normal').setFontSize(11)
     const wrapped = doc.splitTextToSize(section.content, contentW) as string[]
     wrapped.forEach((line) => {
@@ -218,7 +205,7 @@ export async function generatePDFBlob({
       doc.text(line, MARGIN_X, y)
       y += 5.2
     })
-    y += 5
+    y += 6
   })
 
   // ─── Rodapé em cada página ─────────────────────────────────────────────────
