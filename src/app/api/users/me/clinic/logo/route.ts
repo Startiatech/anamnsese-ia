@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
-import { verifyToken, COOKIE_NAME } from '@/server/services/auth'
-import type { JWTPayload } from '@/server/services/auth'
+import { getServerUser } from '@/server/services/session'
 import { supabase } from '@/server/supabase'
 import { updateClinicLogo, clearClinicLogo, findUserById } from '@/server/repositories/users'
 
@@ -14,16 +13,8 @@ const EXT_BY_MIME: Record<string, string> = {
   'image/svg+xml': 'svg',
 }
 
-function extractUser(req: Request): Promise<JWTPayload | null> {
-  const cookieHeader = req.headers.get('cookie') ?? ''
-  const match = cookieHeader.match(new RegExp(`(?:^|;\\s*)${COOKIE_NAME}=([^;]+)`))
-  const token = match?.[1]
-  if (!token) return Promise.resolve(null)
-  return verifyToken(token)
-}
-
 export async function POST(req: Request) {
-  const user = await extractUser(req)
+  const user = await getServerUser()
   if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
 
   let form: FormData
@@ -61,7 +52,7 @@ export async function POST(req: Request) {
 }
 
 export async function DELETE(req: Request) {
-  const user = await extractUser(req)
+  const user = await getServerUser()
   if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
   const current = await findUserById(user.sub)
   if (current?.clinicLogoPath) {
