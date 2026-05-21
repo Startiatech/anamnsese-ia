@@ -1,4 +1,5 @@
 import { supabase } from '@/server/supabase'
+import type { ClinicFormData } from '@/lib/schemas'
 
 export type UserRole = 'user' | 'admin' | 'master'
 
@@ -148,8 +149,6 @@ export async function countRegisteredUsers(): Promise<number> {
   const { count } = await supabase.from('users').select('*', { count: 'exact', head: true })
   return count ?? 0
 }
-
-import type { ClinicFormData } from '@/lib/schemas'
 
 export async function updateClinicData(id: string, data: ClinicFormData): Promise<void> {
   const update: Record<string, unknown> = {

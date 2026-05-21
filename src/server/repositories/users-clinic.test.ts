@@ -44,7 +44,7 @@ describe('updateClinicData', () => {
       clinic_rt_registry: '',
       clinic_business_hours: 'Seg-Sex',
     }))
-    const call = mockSupabase.update.mock.calls[0][0] as Record<string, unknown>
+    const call: Record<string, unknown> = mockSupabase.update.mock.calls[0][0]
     expect(call).not.toHaveProperty('clinic_logo_url')
     expect(call).not.toHaveProperty('clinic_logo_path')
   })
