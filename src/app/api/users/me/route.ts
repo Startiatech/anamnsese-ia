@@ -2,33 +2,56 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerUser } from '@/server/services/session'
 import { supabase } from '@/server/supabase'
 import { comparePassword, hashPassword } from '@/server/services/auth'
-import { findUserById } from '@/server/repositories/users'
+import { findUserById, updateClinicData } from '@/server/repositories/users'
+import { clinicSchema } from '@/lib/schemas'
 
 export async function PATCH(req: NextRequest) {
   const payload = await getServerUser()
   if (!payload) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const body = await req.json()
+  const body = await req.json() as Record<string, unknown>
+
+  // ─── Atualização de dados da clínica ─────────────────────────────────────
+  const hasClinicFields = Object.keys(body).some((k) => k.startsWith('clinic'))
+
+  if (hasClinicFields) {
+    const parsed = clinicSchema.safeParse(body)
+    if (!parsed.success) {
+      const message = parsed.error.errors[0]?.message ?? 'Dados da clínica inválidos'
+      return NextResponse.json({ error: message }, { status: 400 })
+    }
+    await updateClinicData(payload.sub, parsed.data)
+  }
+
+  // Remove chaves clinic* do body para não interferir no processamento de perfil/senha
+  const profileBody = Object.fromEntries(
+    Object.entries(body).filter(([k]) => !k.startsWith('clinic'))
+  )
 
   // ─── Atualização de senha ─────────────────────────────────────────────────
-  if (body.newPassword) {
+  if (profileBody.newPassword) {
     const user = await findUserById(payload.sub)
     if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 })
 
     // Senha temporária (reset via PIN): não exige senha atual
     if (!user.passwordIsTemp) {
-      if (!body.currentPassword) return NextResponse.json({ error: 'Informe a senha atual' }, { status: 400 })
-      const valid = await comparePassword(body.currentPassword, user.passwordHash)
+      if (!profileBody.currentPassword) return NextResponse.json({ error: 'Informe a senha atual' }, { status: 400 })
+      const valid = await comparePassword(profileBody.currentPassword as string, user.passwordHash)
       if (!valid) return NextResponse.json({ error: 'Senha atual incorreta' }, { status: 400 })
     }
 
-    const newHash = await hashPassword(body.newPassword)
+    const newHash = await hashPassword(profileBody.newPassword as string)
     await supabase.from('users').update({ password_hash: newHash, password_is_temp: false }).eq('id', payload.sub)
     return NextResponse.json({ ok: true })
   }
 
   // ─── Atualização de perfil ────────────────────────────────────────────────
-  const { name, phone, specialty, crmType, crmNumber, crmUf, minutesPerConsultation } = body
+  // Se apenas campos clinic* foram enviados, retorna ok sem atualizar perfil
+  if (Object.keys(profileBody).length === 0) {
+    return NextResponse.json({ ok: true })
+  }
+
+  const { name, phone, specialty, crmType, crmNumber, crmUf, minutesPerConsultation } = profileBody
 
   const profileIsComplete =
     typeof specialty === 'string' && specialty.length > 0 &&
