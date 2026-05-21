@@ -3,12 +3,13 @@
 import { forwardRef, useImperativeHandle, useState } from 'react'
 import { useForm, Controller, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Building2, MapPin, Info, Save } from 'lucide-react'
+import { Building2, MapPin, Info, Save, Loader2 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { FieldInput, FieldLabel } from '@/components/ui/field-input'
 import { toast } from 'sonner'
 import { clinicSchema, type ClinicFormData } from '@/lib/schemas'
+import { formatCNPJ, formatCEP, formatPhone } from '@/lib/utils'
 import type { StoredUser } from '@/server/repositories/users'
 import { ClinicLogoUpload } from './clinic-logo-upload'
 
@@ -26,12 +27,14 @@ interface Props {
 
 export const TabClinic = forwardRef<ClinicHandle, Props>(function TabClinic({ user, isOnboarding }, ref) {
   const [logoUrl, setLogoUrl] = useState<string | null>(user.clinicLogoUrl ?? null)
+  const [cepLoading, setCepLoading] = useState(false)
 
   const {
     register,
     control,
     watch,
     trigger,
+    setValue,
     getValues,
     handleSubmit,
     formState: { errors, isSubmitting },
@@ -40,10 +43,10 @@ export const TabClinic = forwardRef<ClinicHandle, Props>(function TabClinic({ us
     mode: 'onTouched',
     defaultValues: {
       clinicName: user.clinicName ?? '',
-      clinicCnpj: user.clinicCnpj ?? '',
+      clinicCnpj: user.clinicCnpj ? formatCNPJ(user.clinicCnpj) : '',
       clinicAddress: user.clinicAddress ?? '',
-      clinicCep: user.clinicCep ?? '',
-      clinicPhone: user.clinicPhone ?? '',
+      clinicCep: user.clinicCep ? formatCEP(user.clinicCep) : '',
+      clinicPhone: user.clinicPhone ? formatPhone(user.clinicPhone) : '',
       clinicEmail: user.clinicEmail ?? '',
       clinicWebsite: user.clinicWebsite ?? '',
       clinicRtIsSelf: user.clinicRtIsSelf ?? true,
@@ -54,6 +57,29 @@ export const TabClinic = forwardRef<ClinicHandle, Props>(function TabClinic({ us
   })
 
   const rtIsSelf = watch('clinicRtIsSelf')
+
+  async function handleCepBlur(value: string) {
+    const digits = value.replace(/\D/g, '')
+    if (digits.length !== 8) return
+    setCepLoading(true)
+    try {
+      const r = await fetch(`https://viacep.com.br/ws/${digits}/json/`)
+      if (!r.ok) return
+      const data = (await r.json()) as { erro?: boolean; logradouro?: string; bairro?: string; localidade?: string; uf?: string }
+      if (data.erro) {
+        toast.error('CEP não encontrado.')
+        return
+      }
+      const parts = [data.logradouro, data.bairro, data.localidade && data.uf ? `${data.localidade} - ${data.uf}` : '']
+        .filter(Boolean)
+        .join(', ')
+      if (parts) setValue('clinicAddress', parts, { shouldValidate: true, shouldDirty: true })
+    } catch {
+      toast.error('Erro ao buscar CEP.')
+    } finally {
+      setCepLoading(false)
+    }
+  }
 
   useImperativeHandle(ref, () => ({
     validate: async () => {
@@ -121,28 +147,40 @@ export const TabClinic = forwardRef<ClinicHandle, Props>(function TabClinic({ us
               </div>
               <div className="space-y-1">
                 <FieldLabel>CNPJ</FieldLabel>
-                <FieldInput {...register('clinicCnpj')} placeholder="00.000.000/0000-00" />
+                <FieldInput
+                  {...register('clinicCnpj')}
+                  placeholder="00.000.000/0000-00"
+                  inputMode="numeric"
+                  maxLength={18}
+                  onChange={(e) => setValue('clinicCnpj', formatCNPJ(e.target.value), { shouldValidate: true })}
+                />
                 {errors.clinicCnpj && (
                   <p className="text-xs text-destructive">{errors.clinicCnpj.message}</p>
                 )}
               </div>
               <div className="space-y-1">
                 <FieldLabel>Telefone</FieldLabel>
-                <FieldInput {...register('clinicPhone')} placeholder="(00) 00000-0000" />
+                <FieldInput
+                  {...register('clinicPhone')}
+                  placeholder="(00) 00000-0000"
+                  inputMode="tel"
+                  maxLength={15}
+                  onChange={(e) => setValue('clinicPhone', formatPhone(e.target.value), { shouldValidate: true })}
+                />
                 {errors.clinicPhone && (
                   <p className="text-xs text-destructive">{errors.clinicPhone.message}</p>
                 )}
               </div>
               <div className="space-y-1">
                 <FieldLabel>E-mail</FieldLabel>
-                <FieldInput {...register('clinicEmail')} />
+                <FieldInput {...register('clinicEmail')} type="email" inputMode="email" autoComplete="email" />
                 {errors.clinicEmail && (
                   <p className="text-xs text-destructive">{errors.clinicEmail.message}</p>
                 )}
               </div>
               <div className="sm:col-span-2 space-y-1">
                 <FieldLabel>Site (opcional)</FieldLabel>
-                <FieldInput {...register('clinicWebsite')} placeholder="https://" />
+                <FieldInput {...register('clinicWebsite')} type="url" inputMode="url" placeholder="https://" />
                 {errors.clinicWebsite && (
                   <p className="text-xs text-destructive">{errors.clinicWebsite.message}</p>
                 )}
@@ -176,7 +214,19 @@ export const TabClinic = forwardRef<ClinicHandle, Props>(function TabClinic({ us
             </div>
             <div className="space-y-1">
               <FieldLabel>CEP</FieldLabel>
-              <FieldInput {...register('clinicCep')} placeholder="00000-000" />
+              <div className="relative">
+                <FieldInput
+                  {...register('clinicCep')}
+                  placeholder="00000-000"
+                  inputMode="numeric"
+                  maxLength={9}
+                  onChange={(e) => setValue('clinicCep', formatCEP(e.target.value), { shouldValidate: true })}
+                  onBlur={(e) => handleCepBlur(e.target.value)}
+                />
+                {cepLoading && (
+                  <Loader2 className="absolute right-0 top-2 h-4 w-4 animate-spin text-muted-foreground" />
+                )}
+              </div>
               {errors.clinicCep && (
                 <p className="text-xs text-destructive">{errors.clinicCep.message}</p>
               )}
