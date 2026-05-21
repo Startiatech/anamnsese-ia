@@ -28,6 +28,7 @@ export default defineConfig({
     env: {
       NEXT_PUBLIC_SUPABASE_URL: supabaseUrl ?? '',
       SUPABASE_SERVICE_ROLE_KEY: supabaseKey ?? '',
+      JWT_SECRET: process.env.JWT_SECRET ?? env.JWT_SECRET ?? '',
     },
   },
   resolve: {
