@@ -1,8 +1,10 @@
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import { getServerUser } from '@/server/services/session'
 import { PatientRepository } from '@/server/repositories/db'
 import { findUserById } from '@/server/repositories/users'
 import { supabase } from '@/server/supabase'
+import { isClinicComplete } from '@/lib/clinic'
+import { ROUTES } from '@/lib/routes'
 import { ConsultationPageFlow } from './consultation-page-flow'
 
 async function getConsultationPageData(
@@ -73,6 +75,10 @@ export default async function ConsultationSessionPage({ params }: { params: Prom
   ])
 
   if (!patient) notFound()
+
+  if (!storedUser || !isClinicComplete(storedUser)) {
+    redirect(`${ROUTES.configuracoes}?force=clinica&next=${encodeURIComponent(ROUTES.atendimentoId(id))}`)
+  }
 
   return (
     <ConsultationPageFlow
