@@ -52,6 +52,11 @@ describe('clinicSchema', () => {
   it('exige nome e registro do RT quando rt_is_self = false', () => {
     const r = clinicSchema.safeParse({ ...valid, clinicRtIsSelf: false })
     expect(r.success).toBe(false)
+    if (!r.success) {
+      const paths = r.error.issues.map((i) => String(i.path[0]))
+      expect(paths).toContain('clinicRtName')
+      expect(paths).toContain('clinicRtRegistry')
+    }
   })
 
   it('aceita rt_is_self = false com nome e registro preenchidos', () => {
