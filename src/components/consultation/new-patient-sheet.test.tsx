@@ -8,7 +8,7 @@ vi.mock('sonner', () => ({
 }))
 
 vi.mock('@/lib/routes', () => ({
-  API: { patients: '/api/patients' },
+  API: { patients: '/api/patients', patientsCheck: '/api/patients/check' },
 }))
 
 vi.mock('@/lib/utils', async (importActual) => ({
@@ -46,11 +46,20 @@ function fillRequiredFields() {
 describe('NewPatientSheet', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: async () => ({ id: 'generated-id', name: 'João Silva', cpf: '529.982.247-25', birthDate: '1990-05-10', createdAt: new Date().toISOString() }),
+    mockFetch.mockImplementation((url: string) => {
+      if (url.includes('/check')) {
+        return Promise.resolve({ ok: true, json: async () => ({ cpfExists: false, externalIdExists: false }) })
+      }
+      return Promise.resolve({
+        ok: true,
+        json: async () => ({ id: 'generated-id', name: 'João Silva', cpf: '529.982.247-25', birthDate: '1990-05-10', createdAt: new Date().toISOString() }),
+      })
     })
   })
+
+  function createCall() {
+    return mockFetch.mock.calls.find((c) => c[1] && c[1].method === 'POST')
+  }
 
   it('renders the Identificação / Prontuário field', () => {
     render(<NewPatientSheet {...defaultProps} />)
@@ -61,8 +70,8 @@ describe('NewPatientSheet', () => {
     render(<NewPatientSheet {...defaultProps} />)
     fillRequiredFields()
     fireEvent.submit(screen.getByRole('form', { hidden: true }))
-    await waitFor(() => expect(mockFetch).toHaveBeenCalled())
-    const body = JSON.parse(mockFetch.mock.calls[0][1].body)
+    await waitFor(() => expect(createCall()).toBeDefined())
+    const body = JSON.parse(createCall()![1].body)
     expect(body.externalId).toBeUndefined()
   })
 
@@ -71,8 +80,8 @@ describe('NewPatientSheet', () => {
     fillRequiredFields()
     fireEvent.change(screen.getByLabelText(/identificação \/ prontuário/i), { target: { value: 'PRONT-42' } })
     fireEvent.submit(screen.getByRole('form', { hidden: true }))
-    await waitFor(() => expect(mockFetch).toHaveBeenCalled())
-    const body = JSON.parse(mockFetch.mock.calls[0][1].body)
+    await waitFor(() => expect(createCall()).toBeDefined())
+    const body = JSON.parse(createCall()![1].body)
     expect(body.externalId).toBe('PRONT-42')
   })
 })
