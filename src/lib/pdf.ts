@@ -145,24 +145,23 @@ export async function generatePDFBlob({
 
   function drawBlock(label: string, lines: { label: string; value: string }[], xOffset: number) {
     let by = blockStartY
-    // Header do bloco (sem linha)
+    // Header do bloco
     setColor(COLORS.text)
     doc.setFont('helvetica', 'bold').setFontSize(9)
     doc.text(label.toUpperCase(), MARGIN_X + xOffset, by)
     by += 6
 
-    // Conteúdo
+    // Conteúdo inline: "Label: valor"
+    doc.setFont('times', 'normal').setFontSize(10.5)
     lines.forEach(({ label: l, value }) => {
       if (!value) return
-      setColor(COLORS.muted)
-      doc.setFont('helvetica', 'normal').setFontSize(8)
-      doc.text(l.toUpperCase(), MARGIN_X + xOffset, by)
-      by += 3.5
-      setColor(COLORS.text)
-      doc.setFont('times', 'normal').setFontSize(10.5)
-      const wrapped = doc.splitTextToSize(value, blockW) as string[]
-      wrapped.forEach((w) => { doc.text(w, MARGIN_X + xOffset, by); by += 4 })
-      by += 1
+      const text = `${l}: ${value}`
+      const wrapped = doc.splitTextToSize(text, blockW) as string[]
+      wrapped.forEach((w) => {
+        setColor(COLORS.text)
+        doc.text(w, MARGIN_X + xOffset, by)
+        by += 4.5
+      })
     })
     return by
   }

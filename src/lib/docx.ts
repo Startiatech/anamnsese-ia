@@ -230,12 +230,8 @@ function buildMetaBlock(
     if (!value) continue
     out.push(
       new Paragraph({
-        children: [new TextRun({ text: label.toUpperCase(), size: 14, color: MUTED_HEX, font: 'Calibri' })],
-        spacing: { after: 20 },
-      }),
-      new Paragraph({
-        children: [new TextRun({ text: value, size: 20, color: TEXT_HEX, font: 'Times New Roman' })],
-        spacing: { after: 60 },
+        children: [new TextRun({ text: `${label}: ${value}`, size: 20, color: TEXT_HEX, font: 'Times New Roman' })],
+        spacing: { after: 40 },
       }),
     )
   }
