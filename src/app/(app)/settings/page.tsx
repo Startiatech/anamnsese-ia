@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { getServerUser } from '@/server/services/session'
 import { findUserById } from '@/server/repositories/users'
+import { isClinicComplete } from '@/lib/clinic'
 import { ROUTES } from '@/lib/routes'
 import { PageHeader } from '@/components/console/page-header'
 import { SettingsClient } from './settings-client'
@@ -27,6 +28,7 @@ export default async function SettingsPage({
   const isPinReset = (isPasswordReset && user.pinIsTemp) || (params.pin === '1' && user.pinIsTemp)
   const isOnboarding = user.passwordIsTemp || !user.onboardingCompleted
   const profileCompleted = user.onboardingCompleted
+  const clinicCompleted = isClinicComplete(user)
   const forceClinic = params.force === 'clinica'
   const nextUrl = typeof params.next === 'string' ? params.next : undefined
 
@@ -39,6 +41,7 @@ export default async function SettingsPage({
         isPasswordReset={isPasswordReset || isPinReset}
         isPinReset={isPinReset}
         profileCompleted={profileCompleted}
+        clinicCompleted={clinicCompleted}
         showIntro={isOnboarding && !isPasswordReset && !isPinReset}
         deletionScheduledAt={user.deletionScheduledAt}
         forceClinic={forceClinic}

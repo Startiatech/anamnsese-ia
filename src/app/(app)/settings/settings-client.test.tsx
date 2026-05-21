@@ -133,6 +133,7 @@ describe('SettingsClient — handleProceed PIN obrigatório', () => {
       isPasswordReset: false,
       isPinReset: false,
       profileCompleted: true,
+      clinicCompleted: true,
     })
 
     // Navega para aba segurança
@@ -160,6 +161,7 @@ describe('SettingsClient — handleProceed PIN obrigatório', () => {
       isPasswordReset: false,
       isPinReset: true,
       profileCompleted: true,
+      clinicCompleted: true,
     })
 
     fireEvent.click(screen.getByTestId('tab-seguranca'))
@@ -185,6 +187,7 @@ describe('SettingsClient — handleProceed PIN obrigatório', () => {
       isPasswordReset: false,
       isPinReset: false,
       profileCompleted: true,
+      clinicCompleted: true,
     })
 
     fireEvent.click(screen.getByTestId('tab-seguranca'))

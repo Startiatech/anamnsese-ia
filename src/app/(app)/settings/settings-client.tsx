@@ -20,6 +20,7 @@ interface SettingsClientProps {
   isPasswordReset?: boolean
   isPinReset?: boolean
   profileCompleted?: boolean
+  clinicCompleted?: boolean
   showIntro?: boolean
   deletionScheduledAt?: string | null
   forceClinic?: boolean
@@ -32,6 +33,7 @@ export function SettingsClient({
   isPasswordReset = false,
   isPinReset = false,
   profileCompleted = false,
+  clinicCompleted = false,
   showIntro = false,
   deletionScheduledAt,
   forceClinic = false,
@@ -45,7 +47,7 @@ export function SettingsClient({
 
   const [active, setActive] = useState<TabId>(initialTab)
   const [profileValidated, setProfileValidated] = useState(profileCompleted)
-  const [clinicValidated, setClinicValidated] = useState(profileCompleted)
+  const [clinicValidated, setClinicValidated] = useState(clinicCompleted)
   const [saving, setSaving] = useState(false)
 
   // Locking logic
