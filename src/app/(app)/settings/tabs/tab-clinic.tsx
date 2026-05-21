@@ -124,9 +124,6 @@ export const TabClinic = forwardRef<ClinicHandle, Props>(function TabClinic({ us
           <div className="mt-5 space-y-4">
             <div className="space-y-1">
               <FieldLabel>Logo (opcional)</FieldLabel>
-              <p className="text-xs text-muted-foreground">
-                Aparece no cabeçalho dos documentos. Você pode adicionar depois.
-              </p>
               <ClinicLogoUpload value={logoUrl} onChange={setLogoUrl} />
             </div>
 
