@@ -205,12 +205,15 @@ export const TabClinic = forwardRef<ClinicHandle, Props>(function TabClinic({ us
               control={control}
               name="clinicRtIsSelf"
               render={({ field }) => (
-                <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer select-none">
+                <label
+                  htmlFor="clinicRtIsSelf"
+                  className="flex items-center gap-2 text-sm text-foreground cursor-pointer select-none"
+                >
                   <input
+                    id="clinicRtIsSelf"
                     type="checkbox"
                     checked={field.value}
                     onChange={(e) => field.onChange(e.target.checked)}
-                    aria-label="Sou o Responsavel Tecnico desta clinica"
                     className="h-4 w-4 accent-violet-500"
                   />
                   Sou o Responsável Técnico desta clínica
@@ -222,7 +225,7 @@ export const TabClinic = forwardRef<ClinicHandle, Props>(function TabClinic({ us
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
                 <div className="space-y-1">
                   <FieldLabel htmlFor="clinicRtName">Nome do Responsável Técnico</FieldLabel>
-                  <FieldInput id="clinicRtName" aria-label="Nome do Responsavel Tecnico" {...register('clinicRtName')} />
+                  <FieldInput id="clinicRtName" {...register('clinicRtName')} />
                   {errors.clinicRtName && (
                     <p className="text-xs text-destructive">{errors.clinicRtName.message}</p>
                   )}

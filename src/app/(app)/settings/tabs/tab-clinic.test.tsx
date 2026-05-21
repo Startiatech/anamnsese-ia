@@ -17,9 +17,9 @@ function baseUser(over: Partial<StoredUser> = {}): StoredUser {
 describe('TabClinic', () => {
   it('toggle RT esconde campos por padrao e mostra ao desmarcar', () => {
     render(<TabClinic ref={createRef<ClinicHandle>()} user={baseUser()} />)
-    expect(screen.queryByLabelText(/nome do responsavel/i)).toBeNull()
-    fireEvent.click(screen.getByLabelText(/sou o responsavel tecnico/i))
-    expect(screen.getByLabelText(/nome do responsavel/i)).toBeTruthy()
+    expect(screen.queryByLabelText(/nome do respons.vel t.cnico/i)).toBeNull()
+    fireEvent.click(screen.getByLabelText(/sou o respons.vel t.cnico/i))
+    expect(screen.getByLabelText(/nome do respons.vel t.cnico/i)).toBeTruthy()
   })
 
   it('campo Site mostra "(opcional)" no label', () => {
