@@ -12,6 +12,17 @@ import { OnboardingIntroModal } from '@/components/dashboard/onboarding-intro-mo
 import type { StoredUser } from '@/server/repositories/users'
 import { ROUTES } from '@/lib/routes'
 import { UnderlineTabs } from '@/components/ui/underline-tabs'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import { Logo } from '@/components/ui/logo'
 
 type TabId = 'perfil' | 'clinica' | 'seguranca'
 
@@ -48,6 +59,7 @@ export function SettingsClient({
   const [profileValidated, setProfileValidated] = useState(profileCompleted)
   const [clinicValidated, setClinicValidated] = useState(clinicCompleted)
   const [saving, setSaving] = useState(false)
+  const [clinicSavedDialogOpen, setClinicSavedDialogOpen] = useState(false)
 
   // Locking logic
   const clinicLocked = isOnboarding && !isPasswordReset && !profileValidated
@@ -101,6 +113,7 @@ export function SettingsClient({
       await promise
       setClinicValidated(true)
       router.refresh()
+      setClinicSavedDialogOpen(true)
     } catch {
       // toast.promise já mostrou o erro
     } finally {
@@ -232,6 +245,32 @@ export function SettingsClient({
           </Button>
         </div>
       )}
+
+      <AlertDialog open={clinicSavedDialogOpen} onOpenChange={setClinicSavedDialogOpen}>
+        <AlertDialogContent className="max-w-md">
+          <AlertDialogHeader>
+            <div className="flex flex-col items-center gap-4 mb-4">
+              <Logo size="sm" id="clinic-saved-modal" />
+              <div className="w-full h-px bg-gradient-to-r from-transparent via-primary/25 to-transparent" />
+            </div>
+            <AlertDialogTitle>Dados salvos com sucesso!</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-2 text-sm text-muted-foreground">
+                <p>
+                  Os dados da sua clínica foram atualizados. Agora você já pode iniciar
+                  um novo atendimento.
+                </p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Continuar em Configurações</AlertDialogCancel>
+            <AlertDialogAction onClick={() => router.push(ROUTES.atendimento)}>
+              Ir para Atendimentos
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
