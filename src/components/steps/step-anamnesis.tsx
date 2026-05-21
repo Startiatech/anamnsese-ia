@@ -2,8 +2,6 @@
 'use client'
 import { useState, useCallback } from 'react'
 import { toast } from 'sonner'
-import { Document, Packer, Paragraph, TextRun, HeadingLevel } from 'docx'
-import jsPDF from 'jspdf'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent } from '@/components/ui/card'
@@ -42,7 +40,7 @@ export function StepAnamnesis({
   onComplete,
   refinementAttemptsUsed,
 }: StepAnamnesisProps) {
-  const { state, setStructuredAnamnesis, professional, refinementAttemptsLimit } = useConsultationFlow()
+  const { state, setStructuredAnamnesis, professional, clinic, refinementAttemptsLimit } = useConsultationFlow()
   const { saveConsultation } = useConsultation(patientId)
   const patient = state.patient
   const [sections, setSections] = useState<Section[]>(state.structuredAnamnesis?.sections ?? [])
@@ -164,119 +162,56 @@ export function StepAnamnesis({
     })
   }
 
-  function handlePrint() {
-    const doc = new jsPDF({ unit: 'mm', format: 'a4' })
-    const pageW = doc.internal.pageSize.getWidth()
-    const margin = 20
-    const maxW = pageW - margin * 2
-    const today = new Date().toLocaleDateString('pt-BR')
-    let y = 20
-
-    const addLine = (text: string, fontSize: number, bold = false, gap = 6) => {
-      doc.setFontSize(fontSize)
-      doc.setFont('helvetica', bold ? 'bold' : 'normal')
-      const lines = doc.splitTextToSize(text, maxW) as string[]
-      lines.forEach((line: string) => {
-        if (y > 275) { doc.addPage(); y = 20 }
-        doc.text(line, margin, y)
-        y += gap
-      })
+  function buildConsultationShape() {
+    return {
+      id: 'preview',
+      patientId: patient?.id ?? '',
+      rawTranscript: state.rawTranscript,
+      structuredAnamnesis: { sections },
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     }
+  }
 
-    // ── Cabeçalho profissional ───────────────────────────────────────────────
-    addLine('ANAMNESE CLÍNICA', 16, true, 8)
-    doc.setDrawColor(180, 180, 180)
-    doc.line(margin, y, pageW - margin, y)
-    y += 6
+  function safeFilename(name: string): string {
+    return name.replace(/\s+/g, '-').toLowerCase() || 'anamnese'
+  }
 
-    addLine(`Data: ${today}`, 10, false, 5)
-    y += 3
-
-    // Profissional
-    addLine('PROFISSIONAL', 11, true, 6)
-    if (professional.name) addLine(`Nome: ${professional.name}`, 10, false, 5)
-    if (professional.specialty) addLine(`Especialidade: ${professional.specialty}`, 10, false, 5)
-    if (professional.crm) addLine(`CRM: ${professional.crm}`, 10, false, 5)
-    y += 4
-
-    // Paciente
-    addLine('PACIENTE', 11, true, 6)
-    if (patient?.name) addLine(`Nome: ${patient.name}`, 10, false, 5)
-    if (patient?.cpf) addLine(`CPF: ${patient.cpf}`, 10, false, 5)
-    if (patient?.birthDate) {
-      const [yyyy, mm, dd] = patient.birthDate.split('-')
-      addLine(`Data de nascimento: ${dd}/${mm}/${yyyy}`, 10, false, 5)
-    }
-    if (patient?.phone) addLine(`Telefone: ${patient.phone}`, 10, false, 5)
-    y += 4
-
-    doc.line(margin, y, pageW - margin, y)
-    y += 8
-
-    // ── Seções da anamnese ───────────────────────────────────────────────────
-    sections.forEach(section => {
-      addLine(section.title, 13, true, 7)
-      y += 1
-      addLine(section.content, 11, false, 6)
-      y += 6
+  async function handlePrint() {
+    if (!patient) return
+    const { generatePDFBlob } = await import('@/lib/pdf')
+    const blob = await generatePDFBlob({
+      patient,
+      consultation: buildConsultationShape(),
+      doctorName: professional.name,
+      doctorCRM: professional.crm,
+      doctorSpecialty: professional.specialty,
+      clinic,
     })
-
-    doc.save('anamnese.pdf')
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `anamnese-${safeFilename(patient.name)}.pdf`
+    a.click()
+    URL.revokeObjectURL(url)
     setExportedPdf(true)
   }
 
   async function handleDocx() {
-    const today = new Date().toLocaleDateString('pt-BR')
-
-    const metaLines: Paragraph[] = [
-      new Paragraph({
-        children: [new TextRun({ text: 'ANAMNESE CLÍNICA', bold: true, size: 32 })],
-        spacing: { after: 120 },
-      }),
-      new Paragraph({
-        children: [new TextRun({ text: `Data: ${today}`, size: 20 })],
-        spacing: { after: 240 },
-      }),
-      new Paragraph({
-        children: [new TextRun({ text: 'PROFISSIONAL', bold: true, size: 22 })],
-        spacing: { after: 80 },
-      }),
-      ...(professional.name ? [new Paragraph({ children: [new TextRun({ text: `Nome: ${professional.name}`, size: 20 })], spacing: { after: 60 } })] : []),
-      ...(professional.specialty ? [new Paragraph({ children: [new TextRun({ text: `Especialidade: ${professional.specialty}`, size: 20 })], spacing: { after: 60 } })] : []),
-      ...(professional.crm ? [new Paragraph({ children: [new TextRun({ text: `CRM: ${professional.crm}`, size: 20 })], spacing: { after: 60 } })] : []),
-      new Paragraph({ children: [new TextRun({ text: '' })], spacing: { after: 120 } }),
-      new Paragraph({
-        children: [new TextRun({ text: 'PACIENTE', bold: true, size: 22 })],
-        spacing: { after: 80 },
-      }),
-      ...(patient?.name ? [new Paragraph({ children: [new TextRun({ text: `Nome: ${patient.name}`, size: 20 })], spacing: { after: 60 } })] : []),
-      ...(patient?.cpf ? [new Paragraph({ children: [new TextRun({ text: `CPF: ${patient.cpf}`, size: 20 })], spacing: { after: 60 } })] : []),
-      ...(patient?.birthDate ? (() => {
-        const [yyyy, mm, dd] = patient.birthDate!.split('-')
-        return [new Paragraph({ children: [new TextRun({ text: `Data de nascimento: ${dd}/${mm}/${yyyy}`, size: 20 })], spacing: { after: 60 } })]
-      })() : []),
-      ...(patient?.phone ? [new Paragraph({ children: [new TextRun({ text: `Telefone: ${patient.phone}`, size: 20 })], spacing: { after: 60 } })] : []),
-      new Paragraph({ children: [new TextRun({ text: '' })], spacing: { after: 200 } }),
-    ]
-
-    const sectionParagraphs = sections.flatMap(s => [
-      new Paragraph({ text: s.title, heading: HeadingLevel.HEADING_2 }),
-      new Paragraph({
-        children: [new TextRun({ text: s.content, size: 20 })],
-        spacing: { after: 200 },
-      }),
-    ])
-
-    const doc = new Document({
-      sections: [{
-        children: [...metaLines, ...sectionParagraphs],
-      }],
+    if (!patient) return
+    const { generateDOCXBlob } = await import('@/lib/docx')
+    const blob = await generateDOCXBlob({
+      patient,
+      consultation: buildConsultationShape(),
+      doctorName: professional.name,
+      doctorCRM: professional.crm,
+      doctorSpecialty: professional.specialty,
+      clinic,
     })
-    const blob = await Packer.toBlob(doc)
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = 'anamnese.docx'
+    a.download = `anamnese-${safeFilename(patient.name)}.docx`
     a.click()
     URL.revokeObjectURL(url)
     setExportedDocx(true)

@@ -1,6 +1,7 @@
 'use client'
 import { createContext, useContext, useState, useCallback, ReactNode } from 'react'
 import type { ConsultationFlowState, Patient, StructuredAnamnesis, ConsultationStep, PlanFeatures, Professional } from '@/types'
+import type { ClinicData } from '@/lib/clinic'
 
 interface ConsultationContextValue {
   state: ConsultationFlowState
@@ -13,6 +14,7 @@ interface ConsultationContextValue {
   reset: () => void
   planFeatures: PlanFeatures
   professional: Professional
+  clinic?: ClinicData
   audioAttemptsLimit: number | null
   refinementAttemptsLimit: number | null
   lastConsultationAt: string | null
@@ -28,6 +30,7 @@ export function ConsultationProvider({
   initialTranscript,
   planFeatures,
   professional,
+  clinic,
   audioAttemptsLimit,
   refinementAttemptsLimit,
   lastConsultationAt,
@@ -37,6 +40,7 @@ export function ConsultationProvider({
   initialTranscript?: string
   planFeatures: PlanFeatures
   professional: Professional
+  clinic?: ClinicData
   audioAttemptsLimit: number | null
   refinementAttemptsLimit: number | null
   lastConsultationAt: string | null
@@ -80,7 +84,7 @@ export function ConsultationProvider({
     <ConsultationContext.Provider value={{
       state, setPatient, setRawTranscript, setSelectedSections,
       setStructuredAnamnesis, nextStep, prevStep, reset,
-      planFeatures, professional, audioAttemptsLimit, refinementAttemptsLimit, lastConsultationAt,
+      planFeatures, professional, clinic, audioAttemptsLimit, refinementAttemptsLimit, lastConsultationAt,
       isTranscribing, setIsTranscribing,
     }}>
       {children}

@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { debitConsultationCredit, abandonConsultation, completeConsultation } from '@/server/actions/consultation'
 import { ROUTES } from '@/lib/routes'
+import type { ClinicData } from '@/lib/clinic'
 import { Logo } from '@/components/ui/logo'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { TrialEndModal } from '@/components/trial/trial-end-modal'
@@ -50,6 +51,7 @@ interface ConsultationPageFlowProps {
   initialTranscript: string
   lastConsultationAt: string | null
   professional: Professional
+  clinic?: ClinicData
   creditsRemaining: number
   planId: string
 }
@@ -307,6 +309,7 @@ export function ConsultationPageFlow({
   initialTranscript,
   lastConsultationAt,
   professional,
+  clinic,
   creditsRemaining,
   planId,
 }: ConsultationPageFlowProps) {
@@ -316,6 +319,7 @@ export function ConsultationPageFlow({
       initialTranscript={initialTranscript}
       planFeatures={planFeatures}
       professional={professional}
+      clinic={clinic}
       audioAttemptsLimit={audioAttemptsLimit}
       refinementAttemptsLimit={refinementAttemptsLimit}
       lastConsultationAt={lastConsultationAt}

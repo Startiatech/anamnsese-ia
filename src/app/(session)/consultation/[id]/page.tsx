@@ -3,7 +3,7 @@ import { getServerUser } from '@/server/services/session'
 import { PatientRepository } from '@/server/repositories/db'
 import { findUserById } from '@/server/repositories/users'
 import { supabase } from '@/server/supabase'
-import { isClinicComplete } from '@/lib/clinic'
+import { isClinicComplete, type ClinicData } from '@/lib/clinic'
 import { ROUTES } from '@/lib/routes'
 import { ConsultationPageFlow } from './consultation-page-flow'
 
@@ -80,6 +80,25 @@ export default async function ConsultationSessionPage({ params }: { params: Prom
     redirect(`${ROUTES.configuracoes}?force=clinica`)
   }
 
+  const clinic: ClinicData | undefined = storedUser.clinicName
+    ? {
+        clinicName:           storedUser.clinicName,
+        clinicCnpj:           storedUser.clinicCnpj ?? '',
+        clinicAddress:        storedUser.clinicAddress ?? '',
+        clinicAddressNumber:  storedUser.clinicAddressNumber,
+        clinicCep:            storedUser.clinicCep ?? '',
+        clinicPhone:          storedUser.clinicPhone ?? '',
+        clinicEmail:          storedUser.clinicEmail ?? '',
+        clinicWebsite:        storedUser.clinicWebsite,
+        clinicLogoUrl:        storedUser.clinicLogoUrl,
+        clinicLogoPath:       storedUser.clinicLogoPath,
+        clinicRtIsSelf:       storedUser.clinicRtIsSelf,
+        clinicRtName:         storedUser.clinicRtName,
+        clinicRtRegistry:     storedUser.clinicRtRegistry,
+        clinicBusinessHours:  storedUser.clinicBusinessHours,
+      }
+    : undefined
+
   return (
     <ConsultationPageFlow
       patient={patient}
@@ -91,6 +110,7 @@ export default async function ConsultationSessionPage({ params }: { params: Prom
       initialTranscript={data.initialTranscript}
       lastConsultationAt={data.lastConsultationAt}
       professional={data.professional}
+      clinic={clinic}
       creditsRemaining={storedUser?.creditsRemaining ?? 0}
       planId={storedUser?.planId ?? 'experimental'}
     />
