@@ -181,7 +181,7 @@ export function SettingsClient({
     <div className="space-y-6">
 
       {forceClinic && (
-        <div className="rounded-md border border-yellow-500/40 bg-yellow-500/10 px-4 py-3 text-sm text-yellow-300">
+        <div className="rounded-md border border-amber-300 bg-amber-100 px-4 py-3 text-sm text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
           Complete os dados da sua clínica para iniciar um novo atendimento.
         </div>
       )}
