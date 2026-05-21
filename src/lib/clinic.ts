@@ -8,8 +8,8 @@ export interface ClinicData {
   clinicCep: string
   clinicPhone: string
   clinicEmail: string
-  clinicLogoUrl: string
-  clinicLogoPath: string
+  clinicLogoUrl?: string
+  clinicLogoPath?: string
   clinicWebsite?: string
   clinicRtIsSelf: boolean
   clinicRtName?: string
@@ -35,7 +35,7 @@ export function isValidCnpj(cnpj: string): boolean {
 export function isClinicComplete(user: StoredUser): boolean {
   const required = [
     user.clinicName, user.clinicCnpj, user.clinicAddress, user.clinicCep,
-    user.clinicPhone, user.clinicEmail, user.clinicLogoUrl, user.clinicLogoPath,
+    user.clinicPhone, user.clinicEmail,
   ]
   if (required.some((v) => !v || String(v).trim() === '')) return false
   if (user.clinicRtIsSelf === false) {

@@ -27,7 +27,7 @@ export default async function ResultadoPage({ params }: { params: Promise<{ id: 
     crm: crmParts.length ? crmParts.join(' ') : '',
   }
 
-  const clinic: ClinicData | undefined = fullUser?.clinicName && fullUser.clinicLogoUrl
+  const clinic: ClinicData | undefined = fullUser?.clinicName
     ? {
         clinicName:           fullUser.clinicName,
         clinicCnpj:           fullUser.clinicCnpj ?? '',

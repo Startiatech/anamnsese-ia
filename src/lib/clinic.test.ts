@@ -37,8 +37,8 @@ describe('isClinicComplete', () => {
   it('true quando todos obrigatorios preenchidos e RT = self', () => {
     expect(isClinicComplete(baseUser())).toBe(true)
   })
-  it('false quando logo ausente', () => {
-    expect(isClinicComplete(baseUser({ clinicLogoUrl: undefined }))).toBe(false)
+  it('true mesmo sem logo (opcional)', () => {
+    expect(isClinicComplete(baseUser({ clinicLogoUrl: undefined, clinicLogoPath: undefined }))).toBe(true)
   })
   it('false quando RT nao e self e nome do RT ausente', () => {
     expect(isClinicComplete(baseUser({ clinicRtIsSelf: false, clinicRtRegistry: 'CRM/SP 1' }))).toBe(false)

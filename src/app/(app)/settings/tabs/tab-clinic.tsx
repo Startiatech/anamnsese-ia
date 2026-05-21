@@ -83,23 +83,12 @@ export const TabClinic = forwardRef<ClinicHandle, Props>(function TabClinic({ us
   }
 
   useImperativeHandle(ref, () => ({
-    validate: async () => {
-      const formOk = await trigger()
-      if (!logoUrl) {
-        toast.error('Envie o logo da clínica.')
-        return false
-      }
-      return formOk
-    },
+    validate: () => trigger(),
     getValues: () => getValues(),
     hasLogo: () => !!logoUrl,
   }))
 
   async function onSubmit(data: ClinicFormData) {
-    if (!logoUrl) {
-      toast.error('Envie o logo da clínica.')
-      return
-    }
     const promise = fetch('/api/users/me', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -134,7 +123,10 @@ export const TabClinic = forwardRef<ClinicHandle, Props>(function TabClinic({ us
 
           <div className="mt-5 space-y-4">
             <div className="space-y-1">
-              <FieldLabel>Logo</FieldLabel>
+              <FieldLabel>Logo (opcional)</FieldLabel>
+              <p className="text-xs text-muted-foreground">
+                Aparece no cabeçalho dos documentos. Você pode adicionar depois.
+              </p>
               <ClinicLogoUpload value={logoUrl} onChange={setLogoUrl} />
             </div>
 
