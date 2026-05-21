@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { LogoMark } from '@/components/ui/logo'
-import { ArrowLeft, ArrowRight, Send, CheckCircle2 } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Send, CheckCircle2, Pencil, Check, X } from 'lucide-react'
 import { toast } from 'sonner'
 
 // ─── Chat types & config ───────────────────────────────────────────────────
@@ -17,14 +17,33 @@ const STEPS = [
 ]
 
 const validators: Record<string, (v: string) => string | null> = {
-  name:      (v) => v.trim().length < 2 ? 'Digite pelo menos 2 caracteres.' : null,
+  name: (v) => {
+    const t = v.trim()
+    if (t.length < 2) return 'Digite pelo menos 2 caracteres.'
+    if (!/^[A-Za-zÀ-ÖØ-öø-ÿ'\-\s]+$/.test(t)) return 'O nome deve conter apenas letras.'
+    return null
+  },
   email:     (v) => !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? 'Email inválido.' : null,
-  specialty: (v) => v.trim().length < 2 ? 'Informe sua especialidade.' : null,
+  specialty: (v) => {
+    const t = v.trim()
+    if (t.length < 2) return 'Informe sua especialidade.'
+    if (!/^[A-Za-zÀ-ÖØ-öø-ÿ'\-\s]+$/.test(t)) return 'A especialidade deve conter apenas letras.'
+    return null
+  },
   phone:     (v) => !/^[\d\s\(\)\-\+]{8,}$/.test(v.trim()) ? 'Informe um telefone válido.' : null,
   message:   () => null,
 }
 
 type StepKey = 'name' | 'email' | 'specialty' | 'phone' | 'message'
+
+function maskPhone(v: string): string {
+  const d = v.replace(/\D/g, '').slice(0, 11)
+  if (d.length === 0) return ''
+  if (d.length <= 2) return `(${d}`
+  if (d.length <= 6) return `(${d.slice(0, 2)}) ${d.slice(2)}`
+  if (d.length <= 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`
+  return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`
+}
 type FormData = Partial<Record<StepKey, string>>
 interface Message { id?: string; from: 'bot' | 'user'; text: string; pending?: boolean }
 
@@ -63,6 +82,9 @@ export function AccessRequestChat({ onBack }: AccessRequestChatProps) {
   const [formData, setFormData] = useState<FormData>({})
   const [showConfirm, setShowConfirm] = useState(false)
   const [isConfirming, setIsConfirming] = useState(false)
+  const [editingField, setEditingField] = useState<StepKey | null>(null)
+  const [editValue, setEditValue] = useState('')
+  const [editError, setEditError] = useState('')
   const [submitted, setSubmitted] = useState(false)
   const [duplicateRequest, setDuplicateRequest] = useState<{ name: string; email: string; specialty: string; createdAt: string } | null>(null)
   const [showDuplicateAction, setShowDuplicateAction] = useState(false)
@@ -171,6 +193,31 @@ export function AccessRequestChat({ onBack }: AccessRequestChatProps) {
       botReply('Perfeito! Aqui está um resumo da sua solicitação:', 700)
       setTimeout(() => setShowConfirm(true), 1600)
     }
+  }
+
+  function startEdit(key: StepKey) {
+    setEditingField(key)
+    setEditValue(formData[key] ?? '')
+    setEditError('')
+  }
+
+  function cancelEdit() {
+    setEditingField(null)
+    setEditValue('')
+    setEditError('')
+  }
+
+  function saveEdit() {
+    if (!editingField) return
+    const value = editValue.trim()
+    const step = STEPS.find((s) => s.key === editingField)
+    if (!value && !step?.optional) { setEditError('Este campo é obrigatório.'); return }
+    const err = value ? validators[editingField]?.(value) : null
+    if (err) { setEditError(err); return }
+    setFormData((prev) => ({ ...prev, [editingField]: value }))
+    setEditingField(null)
+    setEditValue('')
+    setEditError('')
   }
 
   async function handleConfirm() {
@@ -318,18 +365,63 @@ export function AccessRequestChat({ onBack }: AccessRequestChatProps) {
           {showConfirm && (
             <div className="flex items-end gap-2">
               <SparkAvatar />
-              <div className="rounded-2xl rounded-bl-sm p-4 space-y-2 text-sm max-w-xs bg-muted border border-border">
+              <div className="rounded-2xl rounded-bl-sm p-4 space-y-3 text-sm max-w-xs bg-muted border border-border">
                 {(['name','email','specialty','phone','message'] as StepKey[])
-                  .filter((k) => formData[k])
+                  .filter((k) => formData[k] || k === 'message')
                   .map((k) => ({ label: { name:'Nome', email:'Email', specialty:'Especialidade', phone:'WhatsApp', message:'Mensagem' }[k], key: k }))
-                  .map(({ label, key }) => (
-                    <div key={key}>
-                      <span className="text-xs text-muted-foreground/60 uppercase tracking-wider">{label}</span>
-                      <p className="text-foreground/90">{formData[key]}</p>
-                    </div>
-                  ))}
+                  .map(({ label, key }) => {
+                    const step = STEPS.find((s) => s.key === key)
+                    const isEditing = editingField === key
+                    return (
+                      <div key={key} className="group">
+                        <span className="text-xs text-muted-foreground/60 uppercase tracking-wider">{label}</span>
+                        {isEditing ? (
+                          <div className="mt-1 space-y-1">
+                            <div className="flex items-center gap-1.5">
+                              <input
+                                autoFocus
+                                value={editValue}
+                                inputMode={key === 'phone' ? 'tel' : undefined}
+                                onChange={(e) => {
+                                  const raw = e.target.value
+                                  setEditValue(key === 'phone' ? maskPhone(raw) : raw)
+                                  setEditError('')
+                                }}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') { e.preventDefault(); saveEdit() }
+                                  if (e.key === 'Escape') { e.preventDefault(); cancelEdit() }
+                                }}
+                                placeholder={step?.placeholder}
+                                className="flex-1 min-w-0 bg-background border border-border rounded px-2 py-1 text-sm text-foreground outline-none focus:border-violet-500/60"
+                              />
+                              <Button variant="ghost" size="icon" onClick={saveEdit} disabled={isConfirming} className="h-7 w-7 shrink-0 text-emerald-600 hover:text-emerald-500">
+                                <Check className="h-3.5 w-3.5" />
+                              </Button>
+                              <Button variant="ghost" size="icon" onClick={cancelEdit} disabled={isConfirming} className="h-7 w-7 shrink-0 text-muted-foreground hover:text-foreground">
+                                <X className="h-3.5 w-3.5" />
+                              </Button>
+                            </div>
+                            {editError && <p className="text-xs text-destructive">{editError}</p>}
+                          </div>
+                        ) : (
+                          <div className="flex items-start justify-between gap-2">
+                            <p className="text-foreground/90 break-words flex-1 min-w-0">{formData[key] || <span className="italic text-muted-foreground/50">(sem mensagem)</span>}</p>
+                            <button
+                              type="button"
+                              onClick={() => startEdit(key)}
+                              disabled={isConfirming || editingField !== null}
+                              className="opacity-60 hover:opacity-100 text-muted-foreground hover:text-violet-500 disabled:opacity-30 disabled:cursor-not-allowed shrink-0 mt-0.5"
+                              aria-label={`Editar ${label}`}
+                            >
+                              <Pencil className="h-3 w-3" />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
                 <div className="mt-5 pt-4 border-t border-border">
-                  <Button variant="outline" onClick={handleConfirm} disabled={isConfirming} className="w-full border-violet-500/30 text-violet-700 dark:text-violet-300 hover:border-violet-500/60 hover:text-violet-800 dark:hover:text-violet-200">
+                  <Button variant="outline" onClick={handleConfirm} disabled={isConfirming || editingField !== null} className="w-full border-violet-500/30 text-violet-700 dark:text-violet-300 hover:border-violet-500/60 hover:text-violet-800 dark:hover:text-violet-200">
                     {isConfirming ? 'Aguarde...' : 'Confirmar solicitação'}
                   </Button>
                 </div>
@@ -346,7 +438,12 @@ export function AccessRequestChat({ onBack }: AccessRequestChatProps) {
             {inputError && <p className="text-xs text-destructive mb-2">{inputError}</p>}
             <div className="flex items-center gap-3 border-b border-border pb-3 focus-within:border-violet-500/60 transition-colors">
               <input ref={chatInputRef} value={chatInput}
-                onChange={(e) => { setChatInput(e.target.value); setInputError('') }}
+                inputMode={STEPS[currentStep]?.key === 'phone' ? 'tel' : undefined}
+                onChange={(e) => {
+                  const raw = e.target.value
+                  const next = STEPS[currentStep]?.key === 'phone' ? maskPhone(raw) : raw
+                  setChatInput(next); setInputError('')
+                }}
                 onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleChatSend() } }}
                 placeholder={isTyping ? '...' : (STEPS[currentStep]?.optional ? `${STEPS[currentStep].placeholder} (opcional — Enter para pular)` : STEPS[currentStep]?.placeholder)}
                 disabled={isTyping || messages.length === 0}
