@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import NovoPacientePage from './page'
+import { NewPatientForm as NovoPacientePage } from './new-patient-form'
 
 const { mockPush, mockToastError, mockCreatePatient } = vi.hoisted(() => ({
   mockPush: vi.fn(),

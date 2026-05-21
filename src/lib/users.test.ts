@@ -72,6 +72,19 @@ const expectedUser: StoredUser = {
   minutesPerConsultation: 45,
   pinHash: undefined,
   pinIsTemp: false,
+  clinicName: undefined,
+  clinicCnpj: undefined,
+  clinicAddress: undefined,
+  clinicCep: undefined,
+  clinicPhone: undefined,
+  clinicEmail: undefined,
+  clinicWebsite: undefined,
+  clinicLogoUrl: undefined,
+  clinicLogoPath: undefined,
+  clinicRtIsSelf: true,
+  clinicRtName: undefined,
+  clinicRtRegistry: undefined,
+  clinicBusinessHours: undefined,
 }
 
 beforeEach(() => vi.clearAllMocks())
