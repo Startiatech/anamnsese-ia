@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { User, Lock, ArrowRight, Save, Building2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
@@ -70,6 +71,8 @@ export function SettingsClient({
   const buttonLabel = active === 'seguranca' ? 'Salvar alterações' : 'Próxima etapa'
   const ButtonIcon  = active === 'seguranca' ? Save : ArrowRight
 
+  const router = useRouter()
+
   async function handleForceClinicSave() {
     const valid = await clinicRef.current?.validate()
     if (!valid) return
@@ -88,8 +91,6 @@ export function SettingsClient({
         const body = await r.json().catch(() => ({}))
         throw new Error(body.error ?? 'Erro ao salvar dados da clínica')
       }
-
-      window.location.href = nextUrl ?? ROUTES.atendimentoNovo
     })()
 
     toast.promise(promise, {
@@ -98,7 +99,15 @@ export function SettingsClient({
       error: (e: Error) => e.message,
     })
 
-    await promise.catch(() => {}).finally(() => setSaving(false))
+    try {
+      await promise
+      router.push(nextUrl ?? ROUTES.atendimentoNovo)
+      router.refresh()
+    } catch {
+      // toast.promise já mostrou o erro
+    } finally {
+      setSaving(false)
+    }
   }
 
   async function handleProceed() {
