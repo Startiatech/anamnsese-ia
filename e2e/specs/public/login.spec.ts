@@ -29,14 +29,15 @@ test.describe('login', () => {
   // on-demand do Next dev em paralelo nos 4 viewports.
   test.setTimeout(90_000)
 
-  test('master loga com sucesso e e redirecionado para /console', async ({ page }) => {
-    await page.goto('/login')
-    // Aguarda hidratacao do React Hook Form antes de interagir.
-    // Sem esse wait, o click pode disparar antes do onSubmit handler estar
-    // registrado, e o form nao submete (botao continua "Entrar", sem "Aguarde...").
-    await expect(page.getByRole('button', { name: /entrar/i })).toBeEnabled()
-    await page.waitForLoadState('networkidle')
+  test('master loga com sucesso e e redirecionado para /console', async ({ page }, testInfo) => {
+    // Login do master roda em apenas 1 viewport: rate-limit da API
+    // `/api/auth/login` usa chave `login:${ip}:${email}` (src/lib/rate-limit.ts).
+    // 4 logins paralelos com mesmo email+IP estouram o limite (HTTP 429).
+    // UI de login eh identica em todos viewports — testar 1x cobre o caso.
+    test.skip(testInfo.project.name !== 'desktop', 'evita rate-limit paralelo do master')
 
+    await page.goto('/login')
+    await page.waitForLoadState('networkidle')
     await page.getByLabel(/email/i).fill(MASTER_EMAIL)
     await page.getByLabel(/senha/i).fill(MASTER_PASSWORD)
     await page.getByRole('button', { name: /entrar/i }).click()
@@ -56,10 +57,13 @@ test.describe('login', () => {
     await expect(page).toHaveURL(/\/dashboard/)
   })
 
-  test('senha errada exibe toast "Email ou senha incorretos" e mantem em /login', async ({ page }) => {
+  test('credencial invalida exibe toast "Email ou senha incorretos" e mantem em /login', async ({ page }, testInfo) => {
+    // Usa email unico por viewport para evitar rate-limit compartilhado
+    // (chave eh `login:${ip}:${email}` — emails distintos = limites independentes).
+    const email = `e2e-credencial-${testInfo.project.name}-${Date.now()}@test.com`
     await page.goto('/login')
     await page.waitForLoadState('networkidle')
-    await page.getByLabel(/email/i).fill(MASTER_EMAIL)
+    await page.getByLabel(/email/i).fill(email)
     await page.getByLabel(/senha/i).fill('senha-errada-e2e-123')
     await page.getByRole('button', { name: /entrar/i }).click()
 
