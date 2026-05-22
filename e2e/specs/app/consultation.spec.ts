@@ -145,9 +145,12 @@ test.describe('fluxo de consulta com IA mockada', () => {
     const finalizarAtendimento = page.getByRole('button', { name: /finalizar atendimento/i })
     await expect(finalizarAtendimento).toBeVisible()
     await expect(finalizarAtendimento).toBeEnabled()
-    // Em mobile (375px) o toast Sonner bottom-right intercepta o click.
-    // force: true ignora a sobreposicao — ja validamos visivel + habilitado.
-    await finalizarAtendimento.click({ force: true })
+    // Remove toasts Sonner ativos: em mobile (375px) eles ficam bottom-right
+    // sobre o botao e intercepm tanto o click quanto a abertura do modal.
+    await page.evaluate(() => {
+      document.querySelectorAll('[data-sonner-toast]').forEach((el) => el.remove())
+    })
+    await finalizarAtendimento.click()
 
     // Modal -> botao "Finalizar"
     const confirmFinalizar = page.getByRole('button', { name: /^finalizar$/i })
