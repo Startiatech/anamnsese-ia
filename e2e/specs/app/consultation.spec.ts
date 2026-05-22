@@ -145,10 +145,13 @@ test.describe('fluxo de consulta com IA mockada', () => {
     const finalizarAtendimento = page.getByRole('button', { name: /finalizar atendimento/i })
     await expect(finalizarAtendimento).toBeVisible()
     await expect(finalizarAtendimento).toBeEnabled()
-    // Remove toasts Sonner ativos: em mobile (375px) eles ficam bottom-right
-    // sobre o botao e intercepm tanto o click quanto a abertura do modal.
+    // Desabilita pointer-events na area de toasts Sonner para evitar interceptacao
+    // sem remover nodes do DOM (Sonner gerencia o ciclo de vida internamente,
+    // remover causa NotFoundError no insertBefore do React).
     await page.evaluate(() => {
-      document.querySelectorAll('[data-sonner-toast]').forEach((el) => el.remove())
+      document.querySelectorAll('[data-sonner-toaster], [data-sonner-toast]').forEach((el) => {
+        ;(el as HTMLElement).style.pointerEvents = 'none'
+      })
     })
     await finalizarAtendimento.click()
 

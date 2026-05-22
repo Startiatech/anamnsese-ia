@@ -67,7 +67,9 @@ test.describe('configuracoes do usuario', () => {
     await expect(salvar).toBeEnabled()
     // Dispensar toasts Sonner ativos antes do click (mobile)
     await page.evaluate(() => {
-      document.querySelectorAll('[data-sonner-toast]').forEach((el) => el.remove())
+      document.querySelectorAll('[data-sonner-toaster], [data-sonner-toast]').forEach((el) => {
+        ;(el as HTMLElement).style.pointerEvents = 'none'
+      })
     })
     await salvar.click()
 
@@ -111,7 +113,9 @@ test.describe('configuracoes do usuario', () => {
     const salvar = page.getByRole('button', { name: /salvar altera[cç][oõ]es/i }).first()
     await expect(salvar).toBeEnabled()
     await page.evaluate(() => {
-      document.querySelectorAll('[data-sonner-toast]').forEach((el) => el.remove())
+      document.querySelectorAll('[data-sonner-toaster], [data-sonner-toast]').forEach((el) => {
+        ;(el as HTMLElement).style.pointerEvents = 'none'
+      })
     })
     await salvar.click()
 
