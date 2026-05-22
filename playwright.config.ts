@@ -28,11 +28,11 @@ export default defineConfig({
   projects: [
     {
       name: 'mobile',
-      use: { ...devices['iPhone SE'], viewport: { width: 375, height: 667 } },
+      use: { ...devices['Desktop Chrome'], viewport: { width: 375, height: 667 } },
     },
     {
       name: 'tablet',
-      use: { ...devices['iPad (gen 7)'], viewport: { width: 768, height: 1024 } },
+      use: { ...devices['Desktop Chrome'], viewport: { width: 768, height: 1024 } },
     },
     {
       name: 'laptop',
