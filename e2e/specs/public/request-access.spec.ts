@@ -84,7 +84,9 @@ test.describe('solicitar acesso (login?mode=solicitar)', () => {
   test('cria access_request com sucesso e persiste no banco', async ({ page }, testInfo) => {
     const uniqueId = makeE2eId(`e2e-req-${testInfo.project.name}`)
     const email = `${uniqueId}@test.com`
-    const name = `E2E ${uniqueId}`
+    // Validador `validators.name` aceita apenas letras + espacos (sem hifens/numeros).
+    // Por isso o nome eh fixo "Teste Automatizado E E"; a unicidade vai no email.
+    const name = 'Teste Automatizado'
     const specialty = 'Clinica Geral'
     const phone = '11999990000'
     const message = `Mensagem E2E ${testInfo.project.name}`
@@ -142,7 +144,9 @@ test.describe('solicitar acesso (login?mode=solicitar)', () => {
 
   test('email mal formado dispara erro inline "Email inválido."', async ({ page }, testInfo) => {
     const uniqueId = makeE2eId(`e2e-req-invalid-${testInfo.project.name}`)
-    const name = `E2E ${uniqueId}`
+    // Validador `validators.name` aceita apenas letras + espacos (sem hifens/numeros).
+    // Por isso o nome eh fixo "Teste Automatizado E E"; a unicidade vai no email.
+    const name = 'Teste Automatizado'
 
     await openChat(page)
 
