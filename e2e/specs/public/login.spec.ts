@@ -31,6 +31,12 @@ test.describe('login', () => {
 
   test('master loga com sucesso e e redirecionado para /console', async ({ page }) => {
     await page.goto('/login')
+    // Aguarda hidratacao do React Hook Form antes de interagir.
+    // Sem esse wait, o click pode disparar antes do onSubmit handler estar
+    // registrado, e o form nao submete (botao continua "Entrar", sem "Aguarde...").
+    await expect(page.getByRole('button', { name: /entrar/i })).toBeEnabled()
+    await page.waitForLoadState('networkidle')
+
     await page.getByLabel(/email/i).fill(MASTER_EMAIL)
     await page.getByLabel(/senha/i).fill(MASTER_PASSWORD)
     await page.getByRole('button', { name: /entrar/i }).click()
@@ -52,6 +58,7 @@ test.describe('login', () => {
 
   test('senha errada exibe toast "Email ou senha incorretos" e mantem em /login', async ({ page }) => {
     await page.goto('/login')
+    await page.waitForLoadState('networkidle')
     await page.getByLabel(/email/i).fill(MASTER_EMAIL)
     await page.getByLabel(/senha/i).fill('senha-errada-e2e-123')
     await page.getByRole('button', { name: /entrar/i }).click()
