@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test'
 import { createTestUser, loginAsUser } from '../../fixtures/auth'
 import { getTestSupabase } from '../../fixtures/supabase'
+import { seedClinicForUser } from '../../fixtures/seed'
 
 /**
  * Configuracoes do usuario — descoberta de implementacao:
@@ -32,6 +33,17 @@ test.describe('configuracoes do usuario', () => {
 
   test('edita nome e telefone do perfil e persiste no banco', async ({ page }) => {
     const user = await createTestUser({ role: 'user' })
+    // Pre-popula campos obrigatorios do perfil (specialty/CRM) para nao bloquear o save
+    await getTestSupabase()
+      .from('users')
+      .update({
+        specialty: 'Clinica Geral',
+        crm_type: 'CRM',
+        crm_number: '123456',
+        crm_uf: 'SP',
+      })
+      .eq('id', user.id)
+
     await loginAsUser(page, user)
 
     await page.goto('/settings')
@@ -74,6 +86,9 @@ test.describe('configuracoes do usuario', () => {
 
   test('edita dados da clinica e persiste no banco', async ({ page }) => {
     const user = await createTestUser({ role: 'user' })
+    // Tab Clinica requer todos os campos obrigatorios preenchidos para salvar.
+    // Seedamos um estado base; o teste apenas TROCA nome+CNPJ.
+    await seedClinicForUser(user.id)
     await loginAsUser(page, user)
 
     await page.goto('/settings')
