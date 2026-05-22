@@ -146,7 +146,19 @@ test.describe('console requests (admin)', () => {
 
     const aprovarItem = page.getByRole('menuitem', { name: /aprovar/i })
     await expect(aprovarItem).toBeVisible()
+
+    // Captura as duas respostas da API em paralelo ao click para garantir
+    // que o fluxo completou (handleApprove faz POST + PATCH em sequencia).
+    const createUserResponse = page.waitForResponse(
+      (resp) => resp.url().includes('/api/admin/create-user') && resp.request().method() === 'POST',
+      { timeout: 20_000 },
+    )
     await aprovarItem.click()
+    const createRes = await createUserResponse
+    if (createRes.status() !== 200 && createRes.status() !== 201) {
+      const body = await createRes.text().catch(() => '<no body>')
+      throw new Error(`[e2e] create-user falhou ${createRes.status()}: ${body}`)
+    }
 
     // Confirma persistencia no banco
     await waitForRequestStatus(seeded.id, 'approved')
