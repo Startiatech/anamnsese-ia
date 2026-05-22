@@ -31,7 +31,9 @@ test.describe('login', () => {
     await page.getByLabel(/senha/i).fill(MASTER_PASSWORD)
     await page.getByRole('button', { name: /entrar/i }).click()
 
-    await page.waitForURL(/\/console(\?|$|\/)/, { timeout: 15_000 })
+    // Timeout maior: em paralelo (4 workers), o Next dev pode estar compilando
+    // /console pela primeira vez quando este teste roda em laptop/desktop.
+    await page.waitForURL(/\/console(\?|$|\/)/, { timeout: 45_000 })
     await expect(page).toHaveURL(/\/console/)
   })
 
@@ -42,7 +44,7 @@ test.describe('login', () => {
     await page.getByLabel(/senha/i).fill(E2E_DEFAULT_PASSWORD)
     await page.getByRole('button', { name: /entrar/i }).click()
 
-    await page.waitForURL(/\/dashboard(\?|$|\/)/, { timeout: 15_000 })
+    await page.waitForURL(/\/dashboard(\?|$|\/)/, { timeout: 45_000 })
     await expect(page).toHaveURL(/\/dashboard/)
   })
 
@@ -52,7 +54,11 @@ test.describe('login', () => {
     await page.getByLabel(/senha/i).fill('senha-errada-e2e-123')
     await page.getByRole('button', { name: /entrar/i }).click()
 
-    await expect(page.getByText('Email ou senha incorretos')).toBeVisible({ timeout: 10_000 })
+    // Sonner renderiza o texto em 2 nos (toast visivel + aria-live invisivel).
+    // Usamos [data-sonner-toast] filtrado por texto para evitar strict mode violation.
+    await expect(
+      page.locator('[data-sonner-toast]').filter({ hasText: 'Email ou senha incorretos' })
+    ).toBeVisible({ timeout: 15_000 })
     await expect(page).toHaveURL(/\/login/)
   })
 
@@ -62,7 +68,9 @@ test.describe('login', () => {
     await page.getByLabel(/senha/i).fill('qualquerCoisa123')
     await page.getByRole('button', { name: /entrar/i }).click()
 
-    await expect(page.getByText('Email ou senha incorretos')).toBeVisible({ timeout: 10_000 })
+    await expect(
+      page.locator('[data-sonner-toast]').filter({ hasText: 'Email ou senha incorretos' })
+    ).toBeVisible({ timeout: 15_000 })
     await expect(page).toHaveURL(/\/login/)
   })
 
