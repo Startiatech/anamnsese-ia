@@ -33,6 +33,29 @@ export async function createPatient(userId: string, overrides?: Partial<E2ePatie
   return { id: data.id, userId: data.user_id, name: data.name, cpf: data.cpf }
 }
 
+/**
+ * Preenche dados de clinica para o usuario passar no guard `isClinicComplete`.
+ * Sem isso, `/consultation/[id]` redireciona para `/settings?force=clinica`.
+ * Usado nos specs de consultation flow.
+ */
+export async function seedClinicForUser(userId: string): Promise<void> {
+  const supabase = getTestSupabase()
+  const { error } = await supabase
+    .from('users')
+    .update({
+      clinic_name:           'E2E Clinica',
+      clinic_cnpj:           '11222333000181',
+      clinic_address:        'Rua de Teste, 100',
+      clinic_address_number: '100',
+      clinic_cep:            '01001000',
+      clinic_phone:          '11999990000',
+      clinic_email:          'e2e-clinic@test.com',
+      clinic_rt_is_self:     true,
+    })
+    .eq('id', userId)
+  if (error) throw new Error(`[e2e] seedClinicForUser falhou: ${error.message}`)
+}
+
 export async function createAccessRequest(): Promise<{ id: string; email: string }> {
   const uniqueId = makeE2eId('e2e-req')
   const email = `${uniqueId}@test.com`
