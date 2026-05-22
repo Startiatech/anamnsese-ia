@@ -197,7 +197,7 @@ export const TabProfile = forwardRef<ProfileHandle, TabProfileProps>(function Ta
           <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
             <div className="sm:col-span-2 space-y-1">
               <FieldLabel>Nome completo</FieldLabel>
-              <FieldInput {...register('name')} />
+              <FieldInput {...register('name')} data-testid="settings-profile-name" />
               {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
             </div>
             <div className="space-y-1">
@@ -206,7 +206,7 @@ export const TabProfile = forwardRef<ProfileHandle, TabProfileProps>(function Ta
             </div>
             <div className="space-y-1">
               <FieldLabel>Telefone</FieldLabel>
-              <FieldInput {...register('phone')} placeholder="(00) 00000-0000" />
+              <FieldInput {...register('phone')} placeholder="(00) 00000-0000" data-testid="settings-profile-phone" />
             </div>
           </div>
         </CardContent>

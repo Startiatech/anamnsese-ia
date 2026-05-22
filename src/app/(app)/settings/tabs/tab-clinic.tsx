@@ -130,7 +130,7 @@ export const TabClinic = forwardRef<ClinicHandle, Props>(function TabClinic({ us
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
               <div className="space-y-1">
                 <FieldLabel>Nome da clínica</FieldLabel>
-                <FieldInput {...register('clinicName')} />
+                <FieldInput {...register('clinicName')} data-testid="settings-clinic-name" />
                 {errors.clinicName && (
                   <p className="text-xs text-destructive">{errors.clinicName.message}</p>
                 )}
@@ -143,6 +143,7 @@ export const TabClinic = forwardRef<ClinicHandle, Props>(function TabClinic({ us
                   inputMode="numeric"
                   maxLength={18}
                   onChange={(e) => setValue('clinicCnpj', formatCNPJ(e.target.value), { shouldValidate: true })}
+                  data-testid="settings-clinic-cnpj"
                 />
                 {errors.clinicCnpj && (
                   <p className="text-xs text-destructive">{errors.clinicCnpj.message}</p>

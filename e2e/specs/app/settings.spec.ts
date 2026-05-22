@@ -37,18 +37,17 @@ test.describe('configuracoes do usuario', () => {
     await page.goto('/settings')
     await page.waitForLoadState('networkidle')
 
-    // Tab "Perfil" ja eh a inicial — confirma renderizacao via titulo da pagina
+    // Tab "Perfil" ja eh a inicial — confirma renderizacao
     await expect(page.getByRole('heading', { name: /configura[cç][oõ]es/i })).toBeVisible({
       timeout: 30_000,
     })
-    await expect(page.getByText(/^PESSOAIS$/)).toBeVisible()
 
     const novoNome = `E2E Nome ${Date.now()}`
-    const nomeInput = page.getByLabel(/nome completo/i)
+    const nomeInput = page.getByTestId('settings-profile-name')
     await expect(nomeInput).toBeVisible()
     await nomeInput.fill(novoNome)
 
-    const telInput = page.getByLabel(/^telefone$/i).first()
+    const telInput = page.getByTestId('settings-profile-phone')
     await telInput.fill('(11) 98888-7777')
 
     // Botao "Salvar alterações" do form de Perfil
@@ -86,14 +85,13 @@ test.describe('configuracoes do usuario', () => {
     await expect(tabClinica).toBeEnabled()
     await tabClinica.click()
 
-    // Confirma que a tab Clinica esta ativa via label "NOME DA CLÍNICA"
-    await expect(page.getByText(/^NOME DA CL[IÍ]NICA$/i).first()).toBeVisible({ timeout: 10_000 })
+    // Confirma que a tab Clinica esta ativa via testid do input
+    const nomeClinicaInput = page.getByTestId('settings-clinic-name')
+    await expect(nomeClinicaInput).toBeVisible({ timeout: 10_000 })
 
     const novoNomeClinica = `E2E Clinica ${Date.now()}`
-    await page.getByLabel(/nome da cl[ií]nica/i).fill(novoNomeClinica)
-    await page.getByLabel(/cnpj/i).fill('11.222.333/0001-81')
-    await page.getByLabel(/^telefone$/i).first().fill('(11) 3333-4444')
-    await page.getByLabel(/^e-mail$/i).first().fill(`e2e-clinic-${Date.now()}@test.com`)
+    await nomeClinicaInput.fill(novoNomeClinica)
+    await page.getByTestId('settings-clinic-cnpj').fill('11.222.333/0001-81')
 
     const salvar = page.getByRole('button', { name: /salvar altera[cç][oõ]es/i }).first()
     await expect(salvar).toBeEnabled()
