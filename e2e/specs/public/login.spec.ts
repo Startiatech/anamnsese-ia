@@ -38,11 +38,25 @@ test.describe('login', () => {
 
     await page.goto('/login')
     await page.waitForLoadState('networkidle')
+
+    // Aguarda o form estar interativo antes de preencher (React hidratado)
+    const submitBtn = page.getByRole('button', { name: /entrar/i })
+    await expect(submitBtn).toBeEnabled()
+
     await page.getByLabel(/email/i).fill(MASTER_EMAIL)
     await page.getByLabel(/senha/i).fill(MASTER_PASSWORD)
-    await page.getByRole('button', { name: /entrar/i }).click()
 
-    await page.waitForURL(/\/console(\?|$|\/)/, { timeout: 60_000 })
+    // Captura a resposta da API em paralelo ao click — garante que o submit
+    // realmente disparou mesmo sob carga do dev server.
+    const loginResponse = page.waitForResponse(
+      (resp) => resp.url().includes('/api/auth/login') && resp.request().method() === 'POST',
+      { timeout: 30_000 },
+    )
+    await submitBtn.click()
+    const response = await loginResponse
+    expect(response.status()).toBe(200)
+
+    await page.waitForURL(/\/console(\?|$|\/)/, { timeout: 30_000 })
     await expect(page).toHaveURL(/\/console/)
   })
 
