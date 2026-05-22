@@ -37,8 +37,9 @@ test.describe('landing page', () => {
   test('CTA "Solicitar acesso gratuito" navega para /login?mode=solicitar', async ({ page }) => {
     await page.goto('/')
 
-    // CTASection — link sempre visível (não escondido por breakpoint)
-    const solicitar = page.getByRole('link', { name: /solicitar acesso gratuito/i })
+    // Existem 2 links "Solicitar acesso gratuito" (planos + CTA final).
+    // Usamos o ultimo (CTA section ao fim da pagina) — sempre visivel em todos viewports.
+    const solicitar = page.getByRole('link', { name: /solicitar acesso gratuito/i }).last()
     await expect(solicitar).toBeVisible()
     await solicitar.click()
     await page.waitForURL(/\/login\?.*mode=solicitar/)
