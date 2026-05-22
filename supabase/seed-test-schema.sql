@@ -91,7 +91,11 @@ CREATE TABLE public.consultations (
   recording_consent_text text,
   CONSTRAINT consultations_pkey PRIMARY KEY (id),
   CONSTRAINT consultations_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id),
-  CONSTRAINT consultations_patient_id_fkey FOREIGN KEY (patient_id) REFERENCES public.patients(id)
+  CONSTRAINT consultations_patient_id_fkey FOREIGN KEY (patient_id) REFERENCES public.patients(id),
+  -- Necessario para upsert com onConflict='user_id,patient_id' em
+  -- src/server/repositories/db.ts (cada par medico+paciente armazena
+  -- apenas a anamnese mais recente).
+  CONSTRAINT consultations_user_id_patient_id_key UNIQUE (user_id, patient_id)
 );
 
 -- 5) api_usage_log (FK -> users, patients)
