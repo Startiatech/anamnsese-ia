@@ -37,10 +37,11 @@ test.describe('configuracoes do usuario', () => {
     await page.goto('/settings')
     await page.waitForLoadState('networkidle')
 
-    // Tab "Perfil" ja eh a inicial
-    await expect(page.getByRole('heading', { name: /pessoais/i }).first()).toBeVisible({
+    // Tab "Perfil" ja eh a inicial — confirma renderizacao via titulo da pagina
+    await expect(page.getByRole('heading', { name: /configura[cç][oõ]es/i })).toBeVisible({
       timeout: 30_000,
     })
+    await expect(page.getByText(/^PESSOAIS$/)).toBeVisible()
 
     const novoNome = `E2E Nome ${Date.now()}`
     const nomeInput = page.getByLabel(/nome completo/i)
@@ -85,8 +86,8 @@ test.describe('configuracoes do usuario', () => {
     await expect(tabClinica).toBeEnabled()
     await tabClinica.click()
 
-    // Heading da seccao Identificacao
-    await expect(page.getByRole('heading', { name: /identifica[cç][aã]o/i }).first()).toBeVisible()
+    // Confirma que a tab Clinica esta ativa via label "NOME DA CLÍNICA"
+    await expect(page.getByText(/^NOME DA CL[IÍ]NICA$/i).first()).toBeVisible({ timeout: 10_000 })
 
     const novoNomeClinica = `E2E Clinica ${Date.now()}`
     await page.getByLabel(/nome da cl[ií]nica/i).fill(novoNomeClinica)
