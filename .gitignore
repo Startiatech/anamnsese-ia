@@ -47,3 +47,9 @@ yarn-error.log*
 next-env.d.ts
 data/
 .claude/settings.local.json
+
+# playwright
+/playwright-report/
+/test-results/
+/.playwright-cache/
+/playwright/.cache/
