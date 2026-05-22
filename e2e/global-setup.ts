@@ -3,7 +3,8 @@ import { config as loadEnv } from 'dotenv'
 const TEST_PROJECT_REF = 'nnmpucgxehzvcliglayr'
 
 async function globalSetup() {
-  loadEnv({ path: '.env.test' })
+  loadEnv({ path: '.env.local' })
+  loadEnv({ path: '.env.test', override: true })
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY

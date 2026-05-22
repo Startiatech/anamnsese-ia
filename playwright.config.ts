@@ -1,7 +1,10 @@
 import { defineConfig, devices } from '@playwright/test'
 import { config as loadEnv } from 'dotenv'
 
-loadEnv({ path: '.env.test' })
+// .env.local fornece JWT_SECRET e demais vars compartilhadas com o dev server.
+// .env.test sobrescreve as chaves Supabase para apontar para o banco de teste.
+loadEnv({ path: '.env.local' })
+loadEnv({ path: '.env.test', override: true })
 
 const PORT = 3000
 const BASE_URL = `http://localhost:${PORT}`
