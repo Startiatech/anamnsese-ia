@@ -224,7 +224,7 @@ function AtendimentoFlow({
             </div>
             <Button
               size="sm"
-              className="shrink-0 bg-red-600 hover:bg-red-700 text-white shadow-none focus-visible:ring-0"
+              className="shrink-0 bg-red-600 hover:bg-red-700 text-white shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               onClick={handleAbandonClick}
             >
               Abandonar
@@ -257,7 +257,7 @@ function AtendimentoFlow({
             <div className="mt-auto">
               <Button
                 size="lg"
-                className="w-full bg-red-600 hover:bg-red-700 text-white shadow-none focus-visible:ring-0"
+                className="w-full bg-red-600 hover:bg-red-700 text-white shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                 onClick={handleAbandonClick}
               >
                 Abandonar consulta

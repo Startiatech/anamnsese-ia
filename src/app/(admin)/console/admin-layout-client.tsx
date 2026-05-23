@@ -60,6 +60,13 @@ function AdminShell({ children, interestCount }: { children: React.ReactNode; in
   ]
 
   return (
+    <>
+    <a
+      href="#main-content"
+      className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[300] focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+    >
+      Pular para o conteúdo principal
+    </a>
     <SidebarProvider>
       <AppSidebar navItems={navItems} actionItems={actionItems} />
 
@@ -70,12 +77,13 @@ function AdminShell({ children, interestCount }: { children: React.ReactNode; in
           onLogout={handleLogout}
           pendingCount={pendingCount}
         />
-        <div className="container max-w-5xl mx-auto px-4 py-10">
+        <main id="main-content" tabIndex={-1} className="container max-w-5xl mx-auto px-4 py-10">
           {children}
-        </div>
+        </main>
         <ScrollToTop />
       </SidebarInset>
     </SidebarProvider>
+    </>
   )
 }
 
