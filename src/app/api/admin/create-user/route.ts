@@ -36,8 +36,9 @@ export async function POST(req: NextRequest) {
   const { data: plan } = await supabase.from('plans').select('quota').eq('id', 'experimental').single()
   const creditsRemaining = (plan?.quota as number) ?? 5
 
+  const userId = crypto.randomUUID()
   await addUser({
-    id: crypto.randomUUID(),
+    id: userId,
     name,
     email,
     passwordHash,
@@ -57,6 +58,11 @@ export async function POST(req: NextRequest) {
     pinIsTemp: false,
     clinicRtIsSelf: true,
   })
+
+  // Persiste a senha em texto plano enquanto for temporaria para permitir
+  // "Ver credenciais" no console sem regerar. Limpa quando o usuario troca
+  // a senha (em /api/users/me PATCH com novo password).
+  await supabase.from('users').update({ temp_password_plain: password }).eq('id', userId)
 
   return NextResponse.json({ ok: true })
 }

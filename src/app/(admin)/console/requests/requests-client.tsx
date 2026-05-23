@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useConsoleNotification } from '@/context/console-notification-context'
-import { ClipboardX, MessageSquare, MoreHorizontal, CheckCircle, XCircle, RotateCw } from 'lucide-react'
+import { ClipboardX, MessageSquare, MoreHorizontal, CheckCircle, XCircle, KeyRound } from 'lucide-react'
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription } from '@/components/ui/empty'
 import type { AccessRequest } from '@/lib/types'
 import { PageHeader } from '@/components/console/page-header'
@@ -99,14 +99,12 @@ export function RequestsClient(_: { initialRequests: AccessRequest[] }) {
     setProcessingId(null)
   }
 
-  async function handleResendCredentials(request: AccessRequest) {
+  async function handleViewCredentials(request: AccessRequest) {
     setProcessingId(request.id)
-    const promise = fetch(`/api/admin/requests/${request.id}/resend-credentials`, {
-      method: 'POST',
-    }).then(async (res) => {
+    const promise = fetch(`/api/admin/requests/${request.id}/view-credentials`).then(async (res) => {
       if (!res.ok) {
-        const body = await res.json().catch(() => ({ error: 'Erro ao reenviar credenciais' }))
-        throw new Error(body.error ?? 'Erro ao reenviar credenciais')
+        const body = await res.json().catch(() => ({ error: 'Erro ao buscar credenciais' }))
+        throw new Error(body.error ?? 'Erro ao buscar credenciais')
       }
       const data = (await res.json()) as Credentials & { ok: boolean }
       setCredentials({
@@ -117,9 +115,9 @@ export function RequestsClient(_: { initialRequests: AccessRequest[] }) {
       })
     })
     toast.promise(promise, {
-      loading: 'Gerando nova senha...',
-      success: 'Nova senha gerada!',
-      error: 'Erro ao gerar credenciais.',
+      loading: 'Consultando credenciais...',
+      success: 'Credenciais carregadas!',
+      error: (e: Error) => e.message,
     })
     await promise.catch(() => {})
     setProcessingId(null)
@@ -251,16 +249,16 @@ export function RequestsClient(_: { initialRequests: AccessRequest[] }) {
                             </DropdownMenuContent>
                           </DropdownMenu>
                         )}
-                        {r.status === 'approved' && (
+                        {r.status === 'approved' && r.userPasswordIsTemp && (
                           <Button
                             variant="outline"
                             size="sm"
                             disabled={processing}
-                            onClick={() => handleResendCredentials(r)}
+                            onClick={() => handleViewCredentials(r)}
                             className="gap-1.5 h-8"
                           >
-                            <RotateCw className="h-3.5 w-3.5" />
-                            {processing ? 'Aguarde...' : 'Reenviar'}
+                            <KeyRound className="h-3.5 w-3.5" />
+                            {processing ? 'Aguarde...' : 'Ver credenciais'}
                           </Button>
                         )}
                       </TableCell>

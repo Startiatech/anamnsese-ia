@@ -41,7 +41,12 @@ export async function PATCH(req: NextRequest) {
     }
 
     const newHash = await hashPassword(profileBody.newPassword as string)
-    await supabase.from('users').update({ password_hash: newHash, password_is_temp: false }).eq('id', payload.sub)
+    // Limpa a senha temporaria em texto plano: usuario agora tem senha propria,
+    // master nao precisa mais (e nao deve) ver a antiga via "Ver credenciais".
+    await supabase
+      .from('users')
+      .update({ password_hash: newHash, password_is_temp: false, temp_password_plain: null })
+      .eq('id', payload.sub)
     return NextResponse.json({ ok: true })
   }
 

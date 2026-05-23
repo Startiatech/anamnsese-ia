@@ -7,6 +7,8 @@ export interface AccessRequest {
   message?: string
   createdAt: string
   status: 'pending' | 'approved' | 'rejected'
+  /** Apenas para status='approved': se o usuario criado ainda tem senha temporaria. */
+  userPasswordIsTemp?: boolean
 }
 
 export interface NewUser {
