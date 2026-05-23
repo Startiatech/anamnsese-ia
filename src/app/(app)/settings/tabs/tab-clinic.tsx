@@ -164,7 +164,13 @@ export const TabClinic = forwardRef<ClinicHandle, Props>(function TabClinic({ us
               </div>
               <div className="space-y-1">
                 <FieldLabel>E-mail</FieldLabel>
-                <FieldInput {...register('clinicEmail')} type="email" inputMode="email" autoComplete="email" />
+                <FieldInput
+                  {...register('clinicEmail')}
+                  type="email"
+                  inputMode="email"
+                  autoComplete="email"
+                  placeholder="contato@suaclinica.com (pode ser igual ao seu)"
+                />
                 {errors.clinicEmail && (
                   <p className="text-xs text-destructive">{errors.clinicEmail.message}</p>
                 )}
