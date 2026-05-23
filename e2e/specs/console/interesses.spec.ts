@@ -35,12 +35,14 @@ async function seedInterest(opts: { plan: PlanValue; tag?: string }): Promise<Se
   const tag = opts.tag ?? Math.random().toString(36).slice(2, 8)
   const email = `e2e-interesse-${tag}-${Date.now()}@test.com`
   const name = `E2E Interesse ${tag}`
+  const phone = '(11) 98888-7777'
   const supabase = getTestSupabase()
   const { data, error } = await supabase
     .from('plan_interest')
     .insert({
       name,
       email,
+      phone,
       plan: opts.plan,
       created_at: new Date().toISOString(),
     })

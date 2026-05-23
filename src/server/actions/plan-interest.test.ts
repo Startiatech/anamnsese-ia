@@ -18,12 +18,14 @@ describe('savePlanInterestAction', () => {
     const result = await savePlanInterestAction({
       name: 'João Silva',
       email: 'joao@email.com',
+      phone: '(11) 98888-7777',
       plan: 'profissional',
     })
 
     expect(mockSave).toHaveBeenCalledWith({
       name: 'João Silva',
       email: 'joao@email.com',
+      phone: '(11) 98888-7777',
       plan: 'profissional',
     })
     expect(result).toEqual({})
@@ -33,6 +35,7 @@ describe('savePlanInterestAction', () => {
     const result = await savePlanInterestAction({
       name: 'João Silva',
       email: 'nao-e-email',
+      phone: '(11) 98888-7777',
       plan: 'profissional',
     })
 
@@ -43,6 +46,30 @@ describe('savePlanInterestAction', () => {
   it('retorna { error } sem chamar repository quando nome é muito curto', async () => {
     const result = await savePlanInterestAction({
       name: 'A',
+      email: 'joao@email.com',
+      phone: '(11) 98888-7777',
+      plan: 'profissional',
+    })
+
+    expect(mockSave).not.toHaveBeenCalled()
+    expect(result).toHaveProperty('error')
+  })
+
+  it('retorna { error } sem chamar repository quando telefone é inválido', async () => {
+    const result = await savePlanInterestAction({
+      name: 'João Silva',
+      email: 'joao@email.com',
+      phone: '123',
+      plan: 'profissional',
+    })
+
+    expect(mockSave).not.toHaveBeenCalled()
+    expect(result).toHaveProperty('error')
+  })
+
+  it('retorna { error } sem chamar repository quando telefone está ausente', async () => {
+    const result = await savePlanInterestAction({
+      name: 'João Silva',
       email: 'joao@email.com',
       plan: 'profissional',
     })
@@ -55,6 +82,7 @@ describe('savePlanInterestAction', () => {
     const result = await savePlanInterestAction({
       name: 'João Silva',
       email: 'joao@email.com',
+      phone: '(11) 98888-7777',
       plan: 'enterprise',
     })
 
@@ -75,6 +103,7 @@ describe('savePlanInterestAction', () => {
     const result = await savePlanInterestAction({
       name: 'João Silva',
       email: 'joao@email.com',
+      phone: '(11) 98888-7777',
       plan: 'gestao-clinicas',
     })
 

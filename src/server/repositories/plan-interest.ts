@@ -5,16 +5,23 @@ export interface PlanInterest {
   id: string
   name: string
   email: string
+  phone: string | null
   plan: PlanInterestPlan
   created_at: string
 }
 
 export const PlanInterestRepository = {
-  async save(data: { name: string; email: string; plan: PlanInterestPlan }): Promise<{ error?: string }> {
+  async save(data: { name: string; email: string; phone: string; plan: PlanInterestPlan }): Promise<{ error?: string }> {
     const { error } = await supabase
       .from('plan_interest')
       .upsert(
-        { name: data.name, email: data.email, plan: data.plan, created_at: new Date().toISOString() },
+        {
+          name: data.name,
+          email: data.email,
+          phone: data.phone,
+          plan: data.plan,
+          created_at: new Date().toISOString(),
+        },
         { onConflict: 'email,plan' }
       )
 
@@ -25,7 +32,7 @@ export const PlanInterestRepository = {
   async list(): Promise<PlanInterest[]> {
     const { data, error } = await supabase
       .from('plan_interest')
-      .select('id, name, email, plan, created_at')
+      .select('id, name, email, phone, plan, created_at')
       .order('created_at', { ascending: false })
 
     if (error) return []

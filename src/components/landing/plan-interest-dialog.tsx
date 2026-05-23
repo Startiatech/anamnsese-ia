@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { AppDialog } from '@/components/ui/app-dialog'
 import { planInterestSchema, type PlanInterestFormData, type PlanInterestPlan } from '@/lib/schemas'
 import { savePlanInterestAction } from '@/server/actions/plan-interest'
+import { formatPhone } from '@/lib/utils'
 
 const PLAN_LABELS: Record<PlanInterestPlan, string> = {
   profissional:      'Profissional',
@@ -27,6 +28,7 @@ export function PlanInterestDialog({ plan, open, onOpenChange }: PlanInterestDia
     register,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<PlanInterestFormData>({
     mode: 'onTouched',
@@ -88,6 +90,23 @@ export function PlanInterestDialog({ plan, open, onOpenChange }: PlanInterestDia
           />
           {errors.email && (
             <p className="text-xs text-destructive">{errors.email.message}</p>
+          )}
+        </div>
+
+        <div className="space-y-1.5">
+          <Label htmlFor="interest-phone">Telefone</Label>
+          <Input
+            id="interest-phone"
+            type="tel"
+            placeholder="(00) 00000-0000"
+            inputMode="tel"
+            maxLength={15}
+            autoComplete="tel"
+            {...register('phone')}
+            onChange={(e) => setValue('phone', formatPhone(e.target.value), { shouldValidate: true, shouldTouch: true })}
+          />
+          {errors.phone && (
+            <p className="text-xs text-destructive">{errors.phone.message}</p>
           )}
         </div>
       </form>

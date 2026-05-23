@@ -113,15 +113,16 @@ export type ProfileFormData = z.infer<typeof profileSchema>
 export const PLAN_INTEREST_PLANS = ['profissional', 'gestao-clinicas'] as const
 export type PlanInterestPlan = typeof PLAN_INTEREST_PLANS[number]
 
+const PHONE_BR = /^(\(?\d{2}\)?[\s-]?)?\d{4,5}-?\d{4}$/
+
 export const planInterestSchema = z.object({
   name:  z.string().min(2, 'Nome deve ter pelo menos 2 caracteres').max(100).trim(),
   email: z.string().min(1, 'Email é obrigatório').email({ message: 'Email inválido' }),
+  phone: z.string().min(1, 'Telefone é obrigatório').regex(PHONE_BR, 'Telefone inválido').trim(),
   plan:  z.enum(PLAN_INTEREST_PLANS),
 })
 
 export type PlanInterestFormData = z.infer<typeof planInterestSchema>
-
-const PHONE_BR = /^(\(?\d{2}\)?[\s-]?)?\d{4,5}-?\d{4}$/
 
 export const clinicSchema = z.object({
   clinicName: z.string().min(2, 'Nome da clínica obrigatório').max(120).trim(),
