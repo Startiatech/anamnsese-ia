@@ -53,7 +53,19 @@ export function SettingsClient({
   const securityRef = useRef<SecurityHandle>(null)
   const clinicRef = useRef<ClinicHandle>(null)
 
-  const initialTab: TabId = forceClinic ? 'clinica' : isPasswordReset ? 'seguranca' : 'perfil'
+  // Calcula tab inicial considerando progresso ja salvo no servidor.
+  // Em onboarding: pula tabs ja completadas (resistente a F5).
+  const computeInitialTab = (): TabId => {
+    if (forceClinic) return 'clinica'
+    if (isPasswordReset) return 'seguranca'
+    if (isOnboarding) {
+      if (!profileCompleted) return 'perfil'
+      if (!clinicCompleted) return 'clinica'
+      return 'seguranca'
+    }
+    return 'perfil'
+  }
+  const initialTab: TabId = computeInitialTab()
 
   const [active, setActive] = useState<TabId>(initialTab)
   const [profileValidated, setProfileValidated] = useState(profileCompleted)
@@ -128,18 +140,50 @@ export function SettingsClient({
   async function handleProceed() {
     if (active === 'perfil') {
       const valid = await profileRef.current?.validate()
-      if (valid) {
+      if (!valid) return
+      setSaving(true)
+      const profileData = profileRef.current!.getValues()
+      const promise = fetch('/api/users/me', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(profileData),
+      }).then((r) => {
+        if (!r.ok) throw new Error('Erro ao salvar perfil')
+      })
+      toast.promise(promise, { loading: 'Aguarde...', success: 'Perfil salvo!', error: 'Erro ao salvar perfil.' })
+      try {
+        await promise
         setProfileValidated(true)
         setActive('clinica')
+      } catch {
+        // toast.promise ja mostrou o erro
+      } finally {
+        setSaving(false)
       }
       return
     }
 
     if (active === 'clinica') {
       const valid = await clinicRef.current?.validate()
-      if (valid) {
+      if (!valid) return
+      setSaving(true)
+      const clinicData = clinicRef.current!.getValues()
+      const promise = fetch('/api/users/me', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(clinicData),
+      }).then((r) => {
+        if (!r.ok) throw new Error('Erro ao salvar clínica')
+      })
+      toast.promise(promise, { loading: 'Aguarde...', success: 'Clínica salva!', error: 'Erro ao salvar clínica.' })
+      try {
+        await promise
         setClinicValidated(true)
         setActive('seguranca')
+      } catch {
+        // toast.promise ja mostrou o erro
+      } finally {
+        setSaving(false)
       }
       return
     }

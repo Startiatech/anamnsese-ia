@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { getServerUser } from '@/server/services/session'
 import { findUserById } from '@/server/repositories/users'
-import { isClinicComplete } from '@/lib/clinic'
+import { isClinicComplete, isProfileComplete } from '@/lib/clinic'
 import { ROUTES } from '@/lib/routes'
 import { PageHeader } from '@/components/console/page-header'
 import { SettingsClient } from './settings-client'
@@ -27,7 +27,9 @@ export default async function SettingsPage({
   // OU usuário clicou em "Atualizar PIN" no banner (?pin=1) → fluxo guiado só de PIN
   const isPinReset = (isPasswordReset && user.pinIsTemp) || (params.pin === '1' && user.pinIsTemp)
   const isOnboarding = user.passwordIsTemp || !user.onboardingCompleted
-  const profileCompleted = user.onboardingCompleted
+  // Derivado dos campos reais — permite retomar onboarding na proxima
+  // etapa apos F5/reload, em vez de cair sempre na aba "Perfil".
+  const profileCompleted = isProfileComplete(user)
   const clinicCompleted = isClinicComplete(user)
   const forceClinic = params.force === 'clinica'
 

@@ -32,6 +32,21 @@ export function isValidCnpj(cnpj: string): boolean {
       && calc(digits.slice(0,13), w2) === Number(digits[13])
 }
 
+/**
+ * Considera o perfil completo quando os campos obrigatorios do
+ * profileSchema (`src/lib/schemas.ts`) estao preenchidos. Usado para
+ * decidir em qual tab do onboarding o usuario volta apos F5.
+ */
+export function isProfileComplete(user: StoredUser): boolean {
+  const required = [user.name, user.specialty, user.crmNumber, user.crmUf]
+  if (required.some((v) => !v || String(v).trim() === '')) return false
+  // crmNumber deve ter 4 a 8 digitos
+  if (!/^\d{4,8}$/.test(String(user.crmNumber))) return false
+  // UF deve ter 2 chars
+  if (String(user.crmUf).length !== 2) return false
+  return true
+}
+
 export function isClinicComplete(user: StoredUser): boolean {
   const required = [
     user.clinicName, user.clinicCnpj, user.clinicAddress, user.clinicCep,
