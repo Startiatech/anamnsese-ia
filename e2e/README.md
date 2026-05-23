@@ -12,11 +12,22 @@ Suite end-to-end do Anamnese IA. Cobre LP, login, app do usuario profissional e 
 
 | Comando | Uso |
 | --- | --- |
-| `pnpm test:e2e` | Roda suite completa |
-| `pnpm test:e2e --project=mobile` | So mobile (375x667) |
+| `pnpm test:e2e e2e/specs/public/` | Roda lote publicas (LP, login, request access) |
+| `pnpm test:e2e e2e/specs/app/` | Roda lote app (dashboard, consultation, settings) |
+| `pnpm test:e2e e2e/specs/console/` | Roda lote console (8 paginas admin) |
+| `pnpm test:e2e --project=desktop` | So um viewport |
 | `pnpm test:e2e:ui` | Modo interativo (debug visual) |
 | `pnpm test:e2e:headed` | Roda vendo o navegador |
 | `pnpm test:e2e:report` | Abre relatorio HTML pos-run |
+| `pnpm test:e2e` | Suite completa (ver nota abaixo) |
+
+### Estrategia de execucao
+
+**Recomendado: rodar em lotes** (`public/`, `app/`, `console/` separados).
+
+Rodar a suite inteira (`pnpm test:e2e` sem path) sobrecarrega o Next.js dev server — sao 280+ testes contra 1 unico processo, com compilacao on-demand de varias rotas em paralelo. Resultado: timeouts cascateando em viewports que ficam pra ultima fila. Por isso a recomendacao e dividir.
+
+Em CI futuro com build de producao (sem compilacao on-demand), a suite completa fica estavel.
 
 ## Estrutura
 
@@ -24,12 +35,21 @@ Suite end-to-end do Anamnese IA. Cobre LP, login, app do usuario profissional e 
 e2e/
 ├── global-setup.ts       # validacao anti-producao
 ├── global-teardown.ts    # cleanup final
-├── fixtures/             # auth, seed, mocks, supabase client
+├── fixtures/             # auth, seed, mocks, session, supabase client
 └── specs/
     ├── public/           # landing, login, request access
-    ├── app/              # dashboard, patients, consultation, settings
-    └── console/          # users, access-requests, feedbacks
+    ├── app/              # dashboard, consultation, settings
+    └── console/          # console-dashboard, solicitacoes, usuarios,
+                          # planos, configuracoes, feedbacks,
+                          # interesses, divulgacao
 ```
+
+### Fixtures importantes
+
+- **`auth.ts`** — `createTestUser({ role })`, `loginAsUser` via UI (POST /api/auth/login)
+- **`session.ts`** — `loginAsMasterViaCookie` via JWT direto (bypassa rate-limit). Usar para todas as specs do console.
+- **`seed.ts`** — `createPatient`, `createAccessRequest`, `seedClinicForUser`, `cleanupE2eData`
+- **`mocks.ts`** — `mockAiEndpoints` (transcribe/anamnesis/refine) para specs de consulta
 
 ## Padroes obrigatorios
 

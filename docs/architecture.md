@@ -250,3 +250,45 @@ flowchart LR
     PDF -->|cabeçalho + rodapé| OUT1[Blob PDF]
     DOCX -->|header + footer| OUT2[Blob DOCX]
 ```
+
+## Camada E2E (Playwright)
+
+Suite de testes end-to-end localizada em `e2e/`. Cobre LP, login, app do usuario profissional e console master nos viewports mobile/tablet/laptop/desktop.
+
+```mermaid
+graph TD
+    PW[Playwright runner] -->|sobe| DEV[pnpm dev :3000]
+    PW -->|global-setup| GUARD[Valida ref do banco teste]
+    GUARD -->|ok| FIXTURES[Fixtures]
+    FIXTURES -->|service_role| SB[(Supabase teste)]
+    FIXTURES -->|JWT direto| COOKIE[Cookie anamnese_auth]
+    PW -->|executa| SPECS[Specs em 4 viewports]
+    SPECS --> APP[App Next.js]
+    APP -->|API| SB
+    SPECS -.->|mock| AI[/api/transcribe, /api/anamnesis, /api/anamnesis/refine]
+    PW -->|global-teardown| CLEANUP[cleanupE2eData LIKE e2e-
+## Camada E2E (Playwright)
+
+Suite de testes end-to-end localizada em `e2e/`. Cobre LP, login, app do usuario profissional e console master nos viewports mobile/tablet/laptop/desktop.
+
+```mermaid
+graph TD
+    PW[Playwright runner] -->|sobe| DEV[pnpm dev :3000]
+    PW -->|global-setup| GUARD[Valida ref do banco teste]
+    GUARD -->|ok| FIXTURES[Fixtures auth/seed/mocks/session]
+    FIXTURES -->|service_role| SB[(Supabase teste)]
+    FIXTURES -->|JWT direto| COOKIE[Cookie anamnese_auth]
+    PW -->|executa| SPECS[Specs em 4 viewports]
+    SPECS --> APP[App Next.js]
+    APP -->|API| SB
+    SPECS -.->|mock| AI[api/transcribe + anamnesis + refine]
+    PW -->|global-teardown| CLEANUP[cleanupE2eData LIKE e2e-%]
+    CLEANUP --> SB
+```
+
+**Pontos-chave:**
+- Guard rail bloqueia execucao contra producao (whitelist do ref de teste)
+- Cada spec roda nos 4 viewports declarados em `playwright.config.ts`
+- IA real nunca eh chamada — `mockAiEndpoints(page)` intercepta as 3 rotas
+- Cleanup automatico ao final preserva master e dados sem prefixo `e2e-`
+- Specs do console usam `loginAsMasterViaCookie` (JWT programatico) para evitar rate-limit de `/api/auth/login`

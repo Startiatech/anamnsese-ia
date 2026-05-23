@@ -100,6 +100,7 @@ Invocar com `@nome-do-agente` para revisão isolada. Agentes em `.claude/agents/
 - `@ui-reviewer` — conformidade visual de componentes e páginas
 - `@async-actions-reviewer` — loading, toast, redirect em formulários e mutations
 - `@stripe-reviewer` — webhooks, checkout, idempotência, sincronização planos/créditos
+- `@e2e-playwright-reviewer` — locators, viewports, mocks de IA e flakiness em specs Playwright
 
 ---
 
