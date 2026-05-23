@@ -68,6 +68,21 @@ test.describe('console divulgacao (admin sidebar)', () => {
 
   test('clique em "Disparar divulgação" abre nova aba do WhatsApp com mensagem pre-preenchida', async ({ page, context }, testInfo) => {
     await loginAsMasterViaCookie(context)
+
+    // Stub window.open ANTES do goto: captura URL em variavel global em vez
+    // de abrir aba real. Evita carregamento de wa.me externo (que falharia
+    // ou ficaria pendente) e preserva a URL para validacao.
+    await context.addInitScript(() => {
+      ;(window as unknown as { __e2eOpenedUrl: string | null }).__e2eOpenedUrl = null
+      const orig = window.open
+      window.open = (url?: string | URL | null) => {
+        ;(window as unknown as { __e2eOpenedUrl: string | null }).__e2eOpenedUrl =
+          typeof url === 'string' ? url : (url?.toString() ?? null)
+        return null
+      }
+      void orig
+    })
+
     await page.goto('/console')
     await page.waitForLoadState('networkidle')
 
@@ -76,29 +91,30 @@ test.describe('console divulgacao (admin sidebar)', () => {
     const broadcastBtn = page.getByRole('button', { name: /disparar divulgação/i }).first()
     await expect(broadcastBtn).toBeVisible({ timeout: 10_000 })
     await expect(broadcastBtn).toBeEnabled()
-
-    // Evita carregamento do site externo (wa.me) — interceptamos antes do click
-    // marcando popup como bloqueada apos capturar a URL.
-    await context.route('https://wa.me/**', (route) => route.abort())
-
-    // window.open('_blank') eh capturado por context.waitForEvent('page')
-    const popupPromise = context.waitForEvent('page', { timeout: 10_000 })
     await broadcastBtn.click()
-    const popup = await popupPromise
 
-    const popupUrl = popup.url()
-    expect(popupUrl).toContain('wa.me')
-    // Query string `text=` precisa estar presente com mensagem URL-encoded
-    expect(popupUrl).toMatch(/[?&]text=/)
-    // A mensagem padrao embute "Anamnese IA" — verifica presenca apos decode
-    const textParam = new URL(popupUrl).searchParams.get('text') ?? ''
+    const openedUrl = await page.evaluate(
+      () => (window as unknown as { __e2eOpenedUrl: string | null }).__e2eOpenedUrl,
+    )
+    expect(openedUrl).not.toBeNull()
+    expect(openedUrl).toContain('wa.me')
+    expect(openedUrl).toMatch(/[?&]text=/)
+    const textParam = new URL(openedUrl as string).searchParams.get('text') ?? ''
     expect(textParam).toContain('Anamnese IA')
-
-    await popup.close().catch(() => {})
   })
 
   test('mensagem de divulgacao contem link do app e contato do responsavel', async ({ page, context }, testInfo) => {
     await loginAsMasterViaCookie(context)
+
+    await context.addInitScript(() => {
+      ;(window as unknown as { __e2eOpenedUrl: string | null }).__e2eOpenedUrl = null
+      window.open = (url?: string | URL | null) => {
+        ;(window as unknown as { __e2eOpenedUrl: string | null }).__e2eOpenedUrl =
+          typeof url === 'string' ? url : (url?.toString() ?? null)
+        return null
+      }
+    })
+
     await page.goto('/console')
     await page.waitForLoadState('networkidle')
 
@@ -106,20 +122,15 @@ test.describe('console divulgacao (admin sidebar)', () => {
 
     const broadcastBtn = page.getByRole('button', { name: /disparar divulgação/i }).first()
     await expect(broadcastBtn).toBeEnabled()
-
-    await context.route('https://wa.me/**', (route) => route.abort())
-
-    const popupPromise = context.waitForEvent('page', { timeout: 10_000 })
     await broadcastBtn.click()
-    const popup = await popupPromise
 
-    const textParam = new URL(popup.url()).searchParams.get('text') ?? ''
-    // Link para o app (NEXT_PUBLIC_SITE_URL ou fallback hostinger)
+    const openedUrl = await page.evaluate(
+      () => (window as unknown as { __e2eOpenedUrl: string | null }).__e2eOpenedUrl,
+    )
+    expect(openedUrl).not.toBeNull()
+    const textParam = new URL(openedUrl as string).searchParams.get('text') ?? ''
     expect(textParam).toMatch(/https?:\/\//)
-    // Contato Leonardo (responsavel) no rodape da mensagem
     expect(textParam).toContain('Leonardo Oliveira')
     expect(textParam).toContain('wa.me/5532999447711')
-
-    await popup.close().catch(() => {})
   })
 })
