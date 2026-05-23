@@ -54,11 +54,13 @@ export function SettingsClient({
   const clinicRef = useRef<ClinicHandle>(null)
 
   // Calcula tab inicial considerando progresso ja salvo no servidor.
-  // Em onboarding: pula tabs ja completadas (resistente a F5).
+  // Em onboarding/passwordReset: pula tabs ja completadas (resistente a F5).
+  // Se algum dado essencial estiver vazio, prioriza o tab correspondente
+  // mesmo que isPasswordReset=true — evita "pular" para seguranca quando o
+  // perfil/clinica ainda nao foram preenchidos (estado inconsistente).
   const computeInitialTab = (): TabId => {
     if (forceClinic) return 'clinica'
-    if (isPasswordReset) return 'seguranca'
-    if (isOnboarding) {
+    if (isOnboarding || isPasswordReset) {
       if (!profileCompleted) return 'perfil'
       if (!clinicCompleted) return 'clinica'
       return 'seguranca'
@@ -73,9 +75,12 @@ export function SettingsClient({
   const [saving, setSaving] = useState(false)
   const [clinicSavedDialogOpen, setClinicSavedDialogOpen] = useState(false)
 
-  // Locking logic
-  const clinicLocked = isOnboarding && !isPasswordReset && !profileValidated
-  const securityLocked = isOnboarding && !isPasswordReset && (!profileValidated || !clinicValidated)
+  // Locking logic — em onboarding/passwordReset, libera a tab que ainda
+  // precisa ser completada. So bloqueia tabs cuja dependencia ainda nao
+  // foi cumprida.
+  const perfilLocked = isPasswordReset && profileValidated
+  const clinicLocked = (isOnboarding || isPasswordReset) && !profileValidated
+  const securityLocked = (isOnboarding || isPasswordReset) && (!profileValidated || !clinicValidated)
 
   const TABS: { id: TabId; label: string; icon: typeof User; locked: boolean }[] = forceClinic
     ? [
@@ -84,7 +89,7 @@ export function SettingsClient({
         { id: 'seguranca', label: 'Segurança', icon: Lock,      locked: true },
       ]
     : [
-        { id: 'perfil',    label: 'Perfil',    icon: User,      locked: isPasswordReset },
+        { id: 'perfil',    label: 'Perfil',    icon: User,      locked: perfilLocked },
         { id: 'clinica',   label: 'Clínica',   icon: Building2, locked: clinicLocked },
         { id: 'seguranca', label: 'Segurança', icon: Lock,      locked: securityLocked },
       ]
