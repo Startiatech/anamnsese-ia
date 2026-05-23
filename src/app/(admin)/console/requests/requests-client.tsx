@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useConsoleNotification } from '@/context/console-notification-context'
-import { ClipboardX, MessageSquare, MoreHorizontal, CheckCircle, XCircle } from 'lucide-react'
+import { ClipboardX, MessageSquare, MoreHorizontal, CheckCircle, XCircle, RotateCw } from 'lucide-react'
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription } from '@/components/ui/empty'
 import type { AccessRequest } from '@/lib/types'
 import { PageHeader } from '@/components/console/page-header'
@@ -19,6 +19,14 @@ import {
 import {
   Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
 } from '@/components/ui/tooltip'
+import { CredentialsDialog } from './credentials-dialog'
+
+interface Credentials {
+  name: string
+  email: string
+  phone: string
+  password: string
+}
 
 type Filter = 'all' | 'pending' | 'approved' | 'rejected'
 
@@ -34,6 +42,7 @@ export function RequestsClient(_: { initialRequests: AccessRequest[] }) {
   const { requests, setRequests } = useConsoleNotification()
   const [filter, setFilter] = useState<Filter>('all')
   const [processingId, setProcessingId] = useState<string | null>(null)
+  const [credentials, setCredentials] = useState<Credentials | null>(null)
 
   async function handleReject(request: AccessRequest) {
     setProcessingId(request.id)
@@ -64,41 +73,54 @@ export function RequestsClient(_: { initialRequests: AccessRequest[] }) {
     setProcessingId(request.id)
     const tempPassword = Math.random().toString(36).slice(2, 10)
 
-    // Monta a URL do WhatsApp antes do fetch — window.open só funciona no contexto do clique
-    const lines = [
-      '✅ *Anamnese IA — Bem-vindo(a)!*', '',
-      `Olá, ${request.name.split(' ')[0]}! É com satisfação que informamos que seu acesso à plataforma Anamnese IA foi aprovado.`, '',
-      'Abaixo estão suas credenciais de acesso:',
-      `📧 *E-mail:* ${request.email}`,
-      `🔒 *Senha provisória:* ${tempPassword}`, '',
-      '*Para acessar a plataforma, siga os passos abaixo:*',
-      `1️⃣ Acesse a página principal pelo link: 🔗 ${process.env.NEXT_PUBLIC_SITE_URL}`,
-      '2️⃣ Clique no botão *Entrar* no canto superior direito da página',
-      '3️⃣ Insira seu e-mail e senha provisória para realizar o login', '',
-      'Por segurança, recomendamos que você altere sua senha no primeiro acesso.', '',
-      'Qualquer dúvida, estamos à disposição. Bom trabalho! 🩺',
-    ]
-    const phone = request.phone.replace(/\D/g, '')
-    const waUrl = `https://wa.me/${phone.startsWith('55') ? phone : `55${phone}`}?text=${encodeURIComponent(lines.join('\n'))}`
-    const waWindow = window.open(waUrl, '_blank')
-
     const promise = fetch('/api/admin/create-user', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: request.name, email: request.email, specialty: request.specialty, phone: request.phone, password: tempPassword }),
     }).then(async (res) => {
-      if (!res.ok) {
-        waWindow?.close()
-        throw new Error('Erro ao criar usuário')
-      }
+      if (!res.ok) throw new Error('Erro ao criar usuário')
       await fetch(API.requestId(request.id), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'approved' }),
       })
       setRequests((prev) => prev.map((r) => r.id === request.id ? { ...r, status: 'approved' as const } : r))
+      // Senha provisoria ja foi persistida (hash) — abre modal com a senha
+      // para o master copiar e enviar via WhatsApp.
+      setCredentials({
+        name: request.name,
+        email: request.email,
+        phone: request.phone,
+        password: tempPassword,
+      })
     })
     toast.promise(promise, { loading: 'Aguarde...', success: 'Acesso liberado!', error: 'Erro ao aprovar.' })
+    await promise.catch(() => {})
+    setProcessingId(null)
+  }
+
+  async function handleResendCredentials(request: AccessRequest) {
+    setProcessingId(request.id)
+    const promise = fetch(`/api/admin/requests/${request.id}/resend-credentials`, {
+      method: 'POST',
+    }).then(async (res) => {
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({ error: 'Erro ao reenviar credenciais' }))
+        throw new Error(body.error ?? 'Erro ao reenviar credenciais')
+      }
+      const data = (await res.json()) as Credentials & { ok: boolean }
+      setCredentials({
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        password: data.password,
+      })
+    })
+    toast.promise(promise, {
+      loading: 'Gerando nova senha...',
+      success: 'Nova senha gerada!',
+      error: 'Erro ao gerar credenciais.',
+    })
     await promise.catch(() => {})
     setProcessingId(null)
   }
@@ -229,6 +251,18 @@ export function RequestsClient(_: { initialRequests: AccessRequest[] }) {
                             </DropdownMenuContent>
                           </DropdownMenu>
                         )}
+                        {r.status === 'approved' && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            disabled={processing}
+                            onClick={() => handleResendCredentials(r)}
+                            className="gap-1.5 h-8"
+                          >
+                            <RotateCw className="h-3.5 w-3.5" />
+                            {processing ? 'Aguarde...' : 'Reenviar'}
+                          </Button>
+                        )}
                       </TableCell>
                     </TableRow>
                   )
@@ -237,6 +271,17 @@ export function RequestsClient(_: { initialRequests: AccessRequest[] }) {
             </Table>
           </div>
         </TooltipProvider>
+      )}
+
+      {credentials && (
+        <CredentialsDialog
+          open
+          onOpenChange={(open) => !open && setCredentials(null)}
+          name={credentials.name}
+          email={credentials.email}
+          phone={credentials.phone}
+          password={credentials.password}
+        />
       )}
     </div>
   )
