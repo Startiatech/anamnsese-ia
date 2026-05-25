@@ -59,6 +59,14 @@ export const accessibilityPrefsSchema = z.object({
 
 export type AccessibilityPrefsFormData = z.infer<typeof accessibilityPrefsSchema>
 
+export const accessibilityRequestSchema = z.object({
+  message: z.string().trim()
+    .min(10, 'Conte um pouco mais sobre sua necessidade (mínimo 10 caracteres)')
+    .max(500, 'Máximo 500 caracteres'),
+})
+
+export type AccessibilityRequestFormData = z.infer<typeof accessibilityRequestSchema>
+
 function isValidCpf(cpf: string): boolean {
   const digits = cpf.replace(/\D/g, '')
   if (digits.length !== 11 || /^(\d)\1{10}$/.test(digits)) return false
