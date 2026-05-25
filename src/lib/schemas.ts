@@ -42,10 +42,18 @@ export const createUserSchema = z.object({
 export type CreateUserFormData = z.infer<typeof createUserSchema>
 
 export const accessibilityPrefsSchema = z.object({
-  fontSize:     z.enum(['normal', 'large', 'xlarge']).optional(),
-  highContrast: z.boolean().optional(),
+  fontSize:            z.enum(['normal', 'large', 'xlarge']).optional(),
+  highContrast:        z.boolean().optional(),
+  spacingIncreased:    z.boolean().optional(),
+  focusHighlight:      z.boolean().optional(),
+  extraReducedMotion:  z.boolean().optional(),
 }).refine(
-  (d) => d.fontSize !== undefined || d.highContrast !== undefined,
+  (d) =>
+    d.fontSize !== undefined ||
+    d.highContrast !== undefined ||
+    d.spacingIncreased !== undefined ||
+    d.focusHighlight !== undefined ||
+    d.extraReducedMotion !== undefined,
   { message: 'Informe pelo menos uma preferência' }
 )
 

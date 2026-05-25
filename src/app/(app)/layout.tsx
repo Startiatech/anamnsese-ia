@@ -80,6 +80,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         pinIsTemp={!isMasterOrAdmin && storedUser.pinIsTemp}
         initialFontSize={storedUser.prefFontSize}
         initialHighContrast={storedUser.prefHighContrast}
+        initialSpacingIncreased={storedUser.prefSpacingIncreased}
+        initialFocusHighlight={storedUser.prefFocusHighlight}
+        initialExtraReducedMotion={storedUser.prefExtraReducedMotion}
+        initialBetaA11yV2={storedUser.betaA11yV2}
         initialNotifications={initialNotifications}
         initialNotificationsUnread={initialNotificationsUnread}
       >

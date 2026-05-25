@@ -224,6 +224,34 @@ html[data-high-contrast="true"] *:focus-visible {
   box-shadow: none !important;
 }
 
+/* ── Fase 3: Espaçamento aumentado para leitura ────────────────────────── */
+html[data-spacing-increased="true"] body {
+  letter-spacing: 0.04em;
+  word-spacing: 0.08em;
+  line-height: 1.7;
+}
+html[data-spacing-increased="true"] p,
+html[data-spacing-increased="true"] li {
+  line-height: 1.8;
+}
+
+/* ── Fase 3: Destacar elemento atualmente focado ──────────────────────── */
+html[data-focus-highlight="true"] *:focus-visible {
+  outline: 3px solid oklch(0.82 0.20 95) !important;  /* amarelo solido */
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 6px oklch(0.82 0.20 95 / 0.25) !important;
+}
+
+/* ── Fase 3: Reduzir movimento (além do prefers-reduced-motion do SO) ─── */
+html[data-extra-reduced-motion="true"] *,
+html[data-extra-reduced-motion="true"] *::before,
+html[data-extra-reduced-motion="true"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

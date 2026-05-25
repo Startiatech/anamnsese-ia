@@ -4,15 +4,26 @@ import userEvent from '@testing-library/user-event'
 import { AccessibilityProvider, useAccessibility } from './accessibility-context'
 
 function HookProbe() {
-  const { fontSize, highContrast, setFontSize, setHighContrast } = useAccessibility()
+  const {
+    fontSize, highContrast, spacingIncreased, focusHighlight, extraReducedMotion,
+    saveStatus,
+    setFontSize, setHighContrast, setSpacingIncreased, setFocusHighlight, setExtraReducedMotion,
+  } = useAccessibility()
   return (
     <div>
       <span data-testid="font">{fontSize}</span>
       <span data-testid="contrast">{String(highContrast)}</span>
+      <span data-testid="spacing">{String(spacingIncreased)}</span>
+      <span data-testid="focus">{String(focusHighlight)}</span>
+      <span data-testid="motion">{String(extraReducedMotion)}</span>
+      <span data-testid="status">{saveStatus}</span>
       <button onClick={() => setFontSize('large')}>set-large</button>
       <button onClick={() => setFontSize('xlarge')}>set-xlarge</button>
       <button onClick={() => setHighContrast(true)}>set-contrast-on</button>
       <button onClick={() => setHighContrast(false)}>set-contrast-off</button>
+      <button onClick={() => setSpacingIncreased(true)}>set-spacing-on</button>
+      <button onClick={() => setFocusHighlight(true)}>set-focus-on</button>
+      <button onClick={() => setExtraReducedMotion(true)}>set-motion-on</button>
     </div>
   )
 }
@@ -140,5 +151,121 @@ describe('AccessibilityProvider', () => {
 
     expect(document.documentElement.getAttribute('data-font-size')).toBe('large')
     expect(localStorage.getItem('a11y:fontSize')).toBe('large')
+  })
+
+  // ─── Fase 3: novos toggles ──────────────────────────────────────────────
+
+  it('setSpacingIncreased aplica data-spacing-increased no <html>, localStorage e PATCH', async () => {
+    const user = userEvent.setup()
+    render(
+      <AccessibilityProvider initialFontSize="normal" initialHighContrast={false}>
+        <HookProbe />
+      </AccessibilityProvider>
+    )
+
+    await user.click(screen.getByText('set-spacing-on'))
+
+    expect(document.documentElement.getAttribute('data-spacing-increased')).toBe('true')
+    expect(localStorage.getItem('a11y:spacingIncreased')).toBe('true')
+    expect(global.fetch).toHaveBeenCalledWith('/api/users/me', expect.objectContaining({
+      body: JSON.stringify({ prefSpacingIncreased: true }),
+    }))
+  })
+
+  it('setFocusHighlight aplica data-focus-highlight no <html> e dispara PATCH', async () => {
+    const user = userEvent.setup()
+    render(
+      <AccessibilityProvider initialFontSize="normal" initialHighContrast={false}>
+        <HookProbe />
+      </AccessibilityProvider>
+    )
+
+    await user.click(screen.getByText('set-focus-on'))
+
+    expect(document.documentElement.getAttribute('data-focus-highlight')).toBe('true')
+    expect(global.fetch).toHaveBeenCalledWith('/api/users/me', expect.objectContaining({
+      body: JSON.stringify({ prefFocusHighlight: true }),
+    }))
+  })
+
+  it('setExtraReducedMotion aplica data-extra-reduced-motion e dispara PATCH', async () => {
+    const user = userEvent.setup()
+    render(
+      <AccessibilityProvider initialFontSize="normal" initialHighContrast={false}>
+        <HookProbe />
+      </AccessibilityProvider>
+    )
+
+    await user.click(screen.getByText('set-motion-on'))
+
+    expect(document.documentElement.getAttribute('data-extra-reduced-motion')).toBe('true')
+    expect(global.fetch).toHaveBeenCalledWith('/api/users/me', expect.objectContaining({
+      body: JSON.stringify({ prefExtraReducedMotion: true }),
+    }))
+  })
+
+  it('expoe valores iniciais dos 3 novos toggles via hook', () => {
+    render(
+      <AccessibilityProvider
+        initialFontSize="normal"
+        initialHighContrast={false}
+        initialSpacingIncreased={true}
+        initialFocusHighlight={true}
+        initialExtraReducedMotion={true}
+      >
+        <HookProbe />
+      </AccessibilityProvider>
+    )
+
+    expect(screen.getByTestId('spacing').textContent).toBe('true')
+    expect(screen.getByTestId('focus').textContent).toBe('true')
+    expect(screen.getByTestId('motion').textContent).toBe('true')
+  })
+
+  // ─── Fase 3: status indicator ────────────────────────────────────────────
+
+  it('saveStatus comeca em "idle"', () => {
+    render(
+      <AccessibilityProvider initialFontSize="normal" initialHighContrast={false}>
+        <HookProbe />
+      </AccessibilityProvider>
+    )
+    expect(screen.getByTestId('status').textContent).toBe('idle')
+  })
+
+  it('saveStatus transiciona idle -> saving -> saved apos PATCH bem-sucedido', async () => {
+    let resolveFetch!: (v: Response) => void
+    vi.spyOn(global, 'fetch').mockReturnValueOnce(new Promise<Response>((res) => { resolveFetch = res }))
+    const user = userEvent.setup()
+    render(
+      <AccessibilityProvider initialFontSize="normal" initialHighContrast={false}>
+        <HookProbe />
+      </AccessibilityProvider>
+    )
+
+    await user.click(screen.getByText('set-large'))
+    expect(screen.getByTestId('status').textContent).toBe('saving')
+
+    await act(async () => {
+      resolveFetch({ ok: true, json: async () => ({ ok: true }) } as Response)
+      await Promise.resolve()
+    })
+    expect(screen.getByTestId('status').textContent).toBe('saved')
+  })
+
+  it('saveStatus vira "error" quando fetch falha', async () => {
+    vi.spyOn(global, 'fetch').mockRejectedValueOnce(new Error('network down'))
+    const user = userEvent.setup()
+    render(
+      <AccessibilityProvider initialFontSize="normal" initialHighContrast={false}>
+        <HookProbe />
+      </AccessibilityProvider>
+    )
+
+    await act(async () => {
+      await user.click(screen.getByText('set-large'))
+    })
+
+    expect(screen.getByTestId('status').textContent).toBe('error')
   })
 })

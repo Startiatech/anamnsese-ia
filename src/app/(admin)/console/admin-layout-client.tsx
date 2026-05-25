@@ -95,6 +95,10 @@ export function AdminLayoutClient({
   interestCount = 0,
   initialFontSize = 'normal',
   initialHighContrast = false,
+  initialSpacingIncreased = false,
+  initialFocusHighlight = false,
+  initialExtraReducedMotion = false,
+  initialBetaA11yV2 = false,
   initialNotifications = [],
   initialNotificationsUnread = 0,
   children,
@@ -105,13 +109,24 @@ export function AdminLayoutClient({
   interestCount?: number
   initialFontSize?: FontSize
   initialHighContrast?: boolean
+  initialSpacingIncreased?: boolean
+  initialFocusHighlight?: boolean
+  initialExtraReducedMotion?: boolean
+  initialBetaA11yV2?: boolean
   initialNotifications?: Notification[]
   initialNotificationsUnread?: number
   children: React.ReactNode
 }) {
   return (
     <AppProvider initialUser={initialUser} initialCredits={initialCredits}>
-      <AccessibilityProvider initialFontSize={initialFontSize} initialHighContrast={initialHighContrast}>
+      <AccessibilityProvider
+        initialFontSize={initialFontSize}
+        initialHighContrast={initialHighContrast}
+        initialSpacingIncreased={initialSpacingIncreased}
+        initialFocusHighlight={initialFocusHighlight}
+        initialExtraReducedMotion={initialExtraReducedMotion}
+        initialBetaA11yV2={initialBetaA11yV2}
+      >
         <KeyboardShortcutsProvider>
           <ConsoleNotificationProvider initialRequests={initialRequests}>
             <AdminShell

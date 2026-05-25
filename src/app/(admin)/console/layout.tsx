@@ -20,6 +20,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   let initialCredits = 0
   let initialFontSize: 'normal' | 'large' | 'xlarge' = 'normal'
   let initialHighContrast = false
+  let initialSpacingIncreased = false
+  let initialFocusHighlight = false
+  let initialExtraReducedMotion = false
+  let initialBetaA11yV2 = false
   let initialNotifications: Notification[] = []
   let initialNotificationsUnread = 0
 
@@ -33,6 +37,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     initialCredits = credits
     initialFontSize = storedUser?.prefFontSize ?? 'normal'
     initialHighContrast = storedUser?.prefHighContrast ?? false
+    initialSpacingIncreased = storedUser?.prefSpacingIncreased ?? false
+    initialFocusHighlight = storedUser?.prefFocusHighlight ?? false
+    initialExtraReducedMotion = storedUser?.prefExtraReducedMotion ?? false
+    initialBetaA11yV2 = storedUser?.betaA11yV2 ?? false
     initialNotifications = notifications
     initialNotificationsUnread = unread
     initialUser = {
@@ -53,6 +61,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       interestCount={interests.length}
       initialFontSize={initialFontSize}
       initialHighContrast={initialHighContrast}
+      initialSpacingIncreased={initialSpacingIncreased}
+      initialFocusHighlight={initialFocusHighlight}
+      initialExtraReducedMotion={initialExtraReducedMotion}
+      initialBetaA11yV2={initialBetaA11yV2}
       initialNotifications={initialNotifications}
       initialNotificationsUnread={initialNotificationsUnread}
     >

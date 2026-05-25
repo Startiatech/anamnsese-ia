@@ -24,12 +24,16 @@ export async function PATCH(req: NextRequest) {
   }
 
   // ─── Preferências de acessibilidade ───────────────────────────────────────
-  const hasAccessibilityFields = body.prefFontSize !== undefined || body.prefHighContrast !== undefined
+  const PREF_KEYS = ['prefFontSize', 'prefHighContrast', 'prefSpacingIncreased', 'prefFocusHighlight', 'prefExtraReducedMotion'] as const
+  const hasAccessibilityFields = PREF_KEYS.some((k) => body[k] !== undefined)
 
   if (hasAccessibilityFields) {
     const prefsInput: Record<string, unknown> = {}
-    if (body.prefFontSize !== undefined)     prefsInput.fontSize     = body.prefFontSize
-    if (body.prefHighContrast !== undefined) prefsInput.highContrast = body.prefHighContrast
+    if (body.prefFontSize !== undefined)            prefsInput.fontSize            = body.prefFontSize
+    if (body.prefHighContrast !== undefined)        prefsInput.highContrast        = body.prefHighContrast
+    if (body.prefSpacingIncreased !== undefined)    prefsInput.spacingIncreased    = body.prefSpacingIncreased
+    if (body.prefFocusHighlight !== undefined)      prefsInput.focusHighlight      = body.prefFocusHighlight
+    if (body.prefExtraReducedMotion !== undefined)  prefsInput.extraReducedMotion  = body.prefExtraReducedMotion
 
     const parsed = accessibilityPrefsSchema.safeParse(prefsInput)
     if (!parsed.success) {
@@ -39,7 +43,7 @@ export async function PATCH(req: NextRequest) {
     await updateAccessibilityPrefs(payload.sub, parsed.data)
 
     // Se só prefs vieram, encerra sem mexer em perfil
-    const otherFields = Object.keys(body).filter((k) => k !== 'prefFontSize' && k !== 'prefHighContrast')
+    const otherFields = Object.keys(body).filter((k) => !PREF_KEYS.includes(k as typeof PREF_KEYS[number]))
     if (otherFields.length === 0) {
       return NextResponse.json({ ok: true })
     }
