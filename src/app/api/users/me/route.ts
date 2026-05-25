@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerUser } from '@/server/services/session'
 import { supabase } from '@/server/supabase'
 import { comparePassword, hashPassword } from '@/server/services/auth'
-import { findUserById, updateClinicData } from '@/server/repositories/users'
-import { clinicSchema } from '@/lib/schemas'
+import { findUserById, updateClinicData, updateAccessibilityPrefs } from '@/server/repositories/users'
+import { clinicSchema, accessibilityPrefsSchema } from '@/lib/schemas'
 
 export async function PATCH(req: NextRequest) {
   const payload = await getServerUser()
@@ -23,9 +23,31 @@ export async function PATCH(req: NextRequest) {
     await updateClinicData(payload.sub, parsed.data)
   }
 
-  // Remove chaves clinic* do body para não interferir no processamento de perfil/senha
+  // ─── Preferências de acessibilidade ───────────────────────────────────────
+  const hasAccessibilityFields = body.prefFontSize !== undefined || body.prefHighContrast !== undefined
+
+  if (hasAccessibilityFields) {
+    const prefsInput: Record<string, unknown> = {}
+    if (body.prefFontSize !== undefined)     prefsInput.fontSize     = body.prefFontSize
+    if (body.prefHighContrast !== undefined) prefsInput.highContrast = body.prefHighContrast
+
+    const parsed = accessibilityPrefsSchema.safeParse(prefsInput)
+    if (!parsed.success) {
+      const message = parsed.error.issues[0]?.message ?? 'Preferências inválidas'
+      return NextResponse.json({ error: message }, { status: 400 })
+    }
+    await updateAccessibilityPrefs(payload.sub, parsed.data)
+
+    // Se só prefs vieram, encerra sem mexer em perfil
+    const otherFields = Object.keys(body).filter((k) => k !== 'prefFontSize' && k !== 'prefHighContrast')
+    if (otherFields.length === 0) {
+      return NextResponse.json({ ok: true })
+    }
+  }
+
+  // Remove chaves clinic* e pref* do body para não interferir no processamento de perfil/senha
   const profileBody = Object.fromEntries(
-    Object.entries(body).filter(([k]) => !k.startsWith('clinic'))
+    Object.entries(body).filter(([k]) => !k.startsWith('clinic') && !k.startsWith('pref'))
   )
 
   // ─── Atualização de senha ─────────────────────────────────────────────────

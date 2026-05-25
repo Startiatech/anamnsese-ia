@@ -41,6 +41,16 @@ export const createUserSchema = z.object({
 
 export type CreateUserFormData = z.infer<typeof createUserSchema>
 
+export const accessibilityPrefsSchema = z.object({
+  fontSize:     z.enum(['normal', 'large', 'xlarge']).optional(),
+  highContrast: z.boolean().optional(),
+}).refine(
+  (d) => d.fontSize !== undefined || d.highContrast !== undefined,
+  { message: 'Informe pelo menos uma preferência' }
+)
+
+export type AccessibilityPrefsFormData = z.infer<typeof accessibilityPrefsSchema>
+
 function isValidCpf(cpf: string): boolean {
   const digits = cpf.replace(/\D/g, '')
   if (digits.length !== 11 || /^(\d)\1{10}$/.test(digits)) return false

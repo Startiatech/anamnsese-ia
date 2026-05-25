@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 // ─── Hoisted mocks ────────────────────────────────────────────────────────────
 
-const { mockUpdate, mockEq, mockFrom, mockGetServerUser, mockComparePassword, mockHashPassword, mockFindUserById } =
+const { mockUpdate, mockEq, mockFrom, mockGetServerUser, mockComparePassword, mockHashPassword, mockFindUserById, mockUpdateAccessibilityPrefs } =
   vi.hoisted(() => ({
     mockUpdate: vi.fn(),
     mockEq: vi.fn(),
@@ -12,6 +12,7 @@ const { mockUpdate, mockEq, mockFrom, mockGetServerUser, mockComparePassword, mo
     mockComparePassword: vi.fn(),
     mockHashPassword: vi.fn(),
     mockFindUserById: vi.fn(),
+    mockUpdateAccessibilityPrefs: vi.fn(),
   }))
 
 vi.mock('next/server', () => ({
@@ -39,7 +40,10 @@ vi.mock('@/server/supabase', () => ({
 
 vi.mock('@/server/services/session', () => ({ getServerUser: mockGetServerUser }))
 vi.mock('@/server/services/auth', () => ({ comparePassword: mockComparePassword, hashPassword: mockHashPassword }))
-vi.mock('@/server/repositories/users', () => ({ findUserById: mockFindUserById }))
+vi.mock('@/server/repositories/users', () => ({
+  findUserById: mockFindUserById,
+  updateAccessibilityPrefs: mockUpdateAccessibilityPrefs,
+}))
 
 import { PATCH } from './route'
 
@@ -105,6 +109,49 @@ describe('PATCH /api/users/me', () => {
 
       expect(mockUpdate.mock.calls[0][0]).not.toHaveProperty('onboarding_completed')
       expect(json).toEqual({ ok: true, onboardingCompleted: false })
+    })
+  })
+
+  describe('accessibility preferences', () => {
+    it('chama updateAccessibilityPrefs e retorna ok quando recebe prefFontSize', async () => {
+      mockUpdateAccessibilityPrefs.mockResolvedValue(undefined)
+
+      const res = await PATCH(makeRequest({ prefFontSize: 'large' }))
+      const json = await res.json()
+
+      expect(mockUpdateAccessibilityPrefs).toHaveBeenCalledWith('user-1', { fontSize: 'large' })
+      expect(json).toEqual({ ok: true })
+    })
+
+    it('aceita prefHighContrast booleano', async () => {
+      mockUpdateAccessibilityPrefs.mockResolvedValue(undefined)
+
+      const res = await PATCH(makeRequest({ prefHighContrast: true }))
+      const json = await res.json()
+
+      expect(mockUpdateAccessibilityPrefs).toHaveBeenCalledWith('user-1', { highContrast: true })
+      expect(json).toEqual({ ok: true })
+    })
+
+    it('aceita ambos os campos no mesmo PATCH', async () => {
+      mockUpdateAccessibilityPrefs.mockResolvedValue(undefined)
+
+      await PATCH(makeRequest({ prefFontSize: 'xlarge', prefHighContrast: true }))
+
+      expect(mockUpdateAccessibilityPrefs).toHaveBeenCalledWith('user-1', { fontSize: 'xlarge', highContrast: true })
+    })
+
+    it('rejeita prefFontSize fora do enum', async () => {
+      const res = await PATCH(makeRequest({ prefFontSize: 'huge' }))
+
+      expect(mockUpdateAccessibilityPrefs).not.toHaveBeenCalled()
+      expect(res.status).toBe(400)
+    })
+
+    it('nao chama prefs quando body nao tem campos pref*', async () => {
+      await PATCH(makeRequest({ name: 'Dr. Ana' }))
+
+      expect(mockUpdateAccessibilityPrefs).not.toHaveBeenCalled()
     })
   })
 })
