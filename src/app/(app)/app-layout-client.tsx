@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom'
 import { toast } from 'sonner'
 import { LogOut } from 'lucide-react'
 import { AppProvider, useApp } from '@/context/app-context'
+import { AccessibilityProvider, type FontSize } from '@/context/accessibility-context'
 import { AppSidebar } from '@/components/layout/sidebar'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { SidebarCredits } from '@/components/layout/sidebar-credits'
@@ -128,6 +129,8 @@ export function AppLayoutClient({
   deletionScheduledAt,
   bonusCredits,
   pinIsTemp = false,
+  initialFontSize = 'normal',
+  initialHighContrast = false,
   children,
 }: {
   initialUser: User | null
@@ -137,11 +140,15 @@ export function AppLayoutClient({
   deletionScheduledAt: string | null
   bonusCredits: number
   pinIsTemp?: boolean
+  initialFontSize?: FontSize
+  initialHighContrast?: boolean
   children: React.ReactNode
 }) {
   return (
     <AppProvider initialUser={initialUser} initialCredits={initialCredits} initialPlanQuota={initialPlanQuota}>
-      <AppShell isOnboarding={isOnboarding} deletionScheduledAt={deletionScheduledAt} bonusCredits={bonusCredits} pinIsTemp={pinIsTemp}>{children}</AppShell>
+      <AccessibilityProvider initialFontSize={initialFontSize} initialHighContrast={initialHighContrast}>
+        <AppShell isOnboarding={isOnboarding} deletionScheduledAt={deletionScheduledAt} bonusCredits={bonusCredits} pinIsTemp={pinIsTemp}>{children}</AppShell>
+      </AccessibilityProvider>
     </AppProvider>
   )
 }

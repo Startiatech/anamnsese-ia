@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { AppProvider, useApp } from '@/context/app-context'
+import { AccessibilityProvider, type FontSize } from '@/context/accessibility-context'
 import { ConsoleNotificationProvider, useConsoleNotification } from '@/context/console-notification-context'
 import { AppSidebar } from '@/components/layout/sidebar'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
@@ -92,19 +93,25 @@ export function AdminLayoutClient({
   initialCredits,
   initialRequests,
   interestCount = 0,
+  initialFontSize = 'normal',
+  initialHighContrast = false,
   children,
 }: {
   initialUser: User | null
   initialCredits: number
   initialRequests: AccessRequest[]
   interestCount?: number
+  initialFontSize?: FontSize
+  initialHighContrast?: boolean
   children: React.ReactNode
 }) {
   return (
     <AppProvider initialUser={initialUser} initialCredits={initialCredits}>
-      <ConsoleNotificationProvider initialRequests={initialRequests}>
-        <AdminShell interestCount={interestCount}>{children}</AdminShell>
-      </ConsoleNotificationProvider>
+      <AccessibilityProvider initialFontSize={initialFontSize} initialHighContrast={initialHighContrast}>
+        <ConsoleNotificationProvider initialRequests={initialRequests}>
+          <AdminShell interestCount={interestCount}>{children}</AdminShell>
+        </ConsoleNotificationProvider>
+      </AccessibilityProvider>
     </AppProvider>
   )
 }

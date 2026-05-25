@@ -73,6 +73,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         deletionScheduledAt={storedUser.deletionScheduledAt}
         bonusCredits={storedUser.bonusCredits}
         pinIsTemp={!isMasterOrAdmin && storedUser.pinIsTemp}
+        initialFontSize={storedUser.prefFontSize}
+        initialHighContrast={storedUser.prefHighContrast}
       >
         {children}
       </AppLayoutClient>
