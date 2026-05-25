@@ -2,12 +2,13 @@
 
 import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { User, Lock, ArrowRight, Save, Building2 } from 'lucide-react'
+import { User, Lock, ArrowRight, Save, Building2, Accessibility } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import { TabProfile, type ProfileHandle } from './tabs/tab-profile'
 import { TabSecurity, type SecurityHandle } from './tabs/tab-security'
 import { TabClinic, type ClinicHandle } from './tabs/tab-clinic'
+import { TabAccessibility } from './tabs/tab-accessibility'
 import { OnboardingIntroModal } from '@/components/dashboard/onboarding-intro-modal'
 import type { StoredUser } from '@/server/repositories/users'
 import { ROUTES } from '@/lib/routes'
@@ -24,7 +25,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Logo } from '@/components/ui/logo'
 
-type TabId = 'perfil' | 'clinica' | 'seguranca'
+type TabId = 'perfil' | 'clinica' | 'seguranca' | 'acessibilidade'
 
 interface SettingsClientProps {
   user: StoredUser
@@ -84,15 +85,23 @@ export function SettingsClient({
 
   const TABS: { id: TabId; label: string; icon: typeof User; locked: boolean }[] = forceClinic
     ? [
-        { id: 'perfil',    label: 'Perfil',    icon: User,      locked: true },
-        { id: 'clinica',   label: 'Clínica',   icon: Building2, locked: false },
-        { id: 'seguranca', label: 'Segurança', icon: Lock,      locked: true },
+        { id: 'perfil',         label: 'Perfil',         icon: User,          locked: true },
+        { id: 'clinica',        label: 'Clínica',        icon: Building2,     locked: false },
+        { id: 'seguranca',      label: 'Segurança',      icon: Lock,          locked: true },
+        { id: 'acessibilidade', label: 'Acessibilidade', icon: Accessibility, locked: true },
       ]
-    : [
-        { id: 'perfil',    label: 'Perfil',    icon: User,      locked: perfilLocked },
-        { id: 'clinica',   label: 'Clínica',   icon: Building2, locked: clinicLocked },
-        { id: 'seguranca', label: 'Segurança', icon: Lock,      locked: securityLocked },
-      ]
+    : isOnboarding || isPasswordReset
+      ? [
+          { id: 'perfil',    label: 'Perfil',    icon: User,      locked: perfilLocked },
+          { id: 'clinica',   label: 'Clínica',   icon: Building2, locked: clinicLocked },
+          { id: 'seguranca', label: 'Segurança', icon: Lock,      locked: securityLocked },
+        ]
+      : [
+          { id: 'perfil',         label: 'Perfil',         icon: User,          locked: perfilLocked },
+          { id: 'clinica',        label: 'Clínica',        icon: Building2,     locked: clinicLocked },
+          { id: 'seguranca',      label: 'Segurança',      icon: Lock,          locked: securityLocked },
+          { id: 'acessibilidade', label: 'Acessibilidade', icon: Accessibility, locked: false },
+        ]
 
   // Button label: forceClinic salva e fica em settings; onboarding avança/salva
   const buttonLabel = forceClinic
@@ -281,6 +290,11 @@ export function SettingsClient({
       <div className={active === 'seguranca' ? '' : 'hidden'}>
         <TabSecurity ref={securityRef} userId={user.id} isOnboarding={isOnboarding} isPasswordReset={isPasswordReset} isPinReset={isPinReset} deletionScheduledAt={deletionScheduledAt} hasPin={!!user.pinHash} />
       </div>
+      {active === 'acessibilidade' && (
+        <div>
+          <TabAccessibility />
+        </div>
+      )}
 
       <OnboardingIntroModal show={showIntro} userName={user.name} />
 
