@@ -17,6 +17,8 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { ROUTES } from '@/lib/routes'
 import { cn } from '@/lib/utils'
+import { NotificationBell } from './notification-bell'
+import type { Notification } from '@/server/repositories/notifications'
 
 function useScrolled(threshold = 60) {
   const [scrolled, setScrolled] = useState(false)
@@ -49,6 +51,8 @@ interface TopbarUserProps {
   isOnboarding?: boolean
   credits?: number
   planQuota?: number
+  notifications?: Notification[]
+  notificationsUnread?: number
 }
 
 interface TopbarAdminProps {
@@ -56,6 +60,8 @@ interface TopbarAdminProps {
   user: TopbarUser | null
   onLogout: () => void
   pendingCount?: number
+  notifications?: Notification[]
+  notificationsUnread?: number
 }
 
 type TopbarProps = TopbarPublicProps | TopbarUserProps | TopbarAdminProps
@@ -257,6 +263,12 @@ export function Topbar(props: TopbarProps) {
           )}
           {variant === 'admin' && (
             <PendingBell count={props.pendingCount ?? 0} />
+          )}
+          {!isOnboarding && (variant === 'user' || variant === 'admin') && (
+            <NotificationBell
+              initialItems={props.notifications ?? []}
+              initialUnreadCount={props.notificationsUnread ?? 0}
+            />
           )}
           <ThemeToggle />
           {!isOnboarding && (

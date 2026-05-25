@@ -3,6 +3,7 @@ import { headers } from 'next/headers'
 import { getServerUser } from '@/server/services/session'
 import { CreditRepository } from '@/server/repositories/credits'
 import { findUserById } from '@/server/repositories/users'
+import { listForUser as listNotifications, countUnread } from '@/server/repositories/notifications'
 import { PlanRepository } from '@/server/repositories/plans'
 import { deriveInitials } from '@/lib/utils'
 import { ROUTES } from '@/lib/routes'
@@ -64,6 +65,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
     const isOnboarding = !isMasterOrAdmin && !!(storedUser.passwordIsTemp || !storedUser.onboardingCompleted)
 
+    const [initialNotifications, initialNotificationsUnread] = isOnboarding
+      ? [[], 0] as const
+      : await Promise.all([listNotifications(payload.sub), countUnread(payload.sub)])
+
     return (
       <AppLayoutClient
         initialUser={initialUser}
@@ -75,6 +80,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         pinIsTemp={!isMasterOrAdmin && storedUser.pinIsTemp}
         initialFontSize={storedUser.prefFontSize}
         initialHighContrast={storedUser.prefHighContrast}
+        initialNotifications={initialNotifications}
+        initialNotificationsUnread={initialNotificationsUnread}
       >
         {children}
       </AppLayoutClient>

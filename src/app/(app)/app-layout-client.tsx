@@ -6,6 +6,7 @@ import { toast } from 'sonner'
 import { LogOut } from 'lucide-react'
 import { AppProvider, useApp } from '@/context/app-context'
 import { AccessibilityProvider, type FontSize } from '@/context/accessibility-context'
+import type { Notification } from '@/server/repositories/notifications'
 import { KeyboardShortcutsProvider } from '@/components/ui/keyboard-shortcuts-modal'
 import { SkipLink } from '@/components/ui/skip-link'
 import { AppSidebar } from '@/components/layout/sidebar'
@@ -28,7 +29,7 @@ const NAV_ITEMS = [
   { href: '/plans',        label: 'Planos',      icon: CreditCard },
 ]
 
-function AppShell({ children, isOnboarding, deletionScheduledAt, bonusCredits, pinIsTemp }: { children: React.ReactNode; isOnboarding: boolean; deletionScheduledAt: string | null; bonusCredits: number; pinIsTemp: boolean }) {
+function AppShell({ children, isOnboarding, deletionScheduledAt, bonusCredits, pinIsTemp, initialNotifications, initialNotificationsUnread }: { children: React.ReactNode; isOnboarding: boolean; deletionScheduledAt: string | null; bonusCredits: number; pinIsTemp: boolean; initialNotifications: Notification[]; initialNotificationsUnread: number }) {
   const { user, credits, planQuota, logout } = useApp()
   const [confirmOpen, setConfirmOpen] = useState(false)
 
@@ -105,6 +106,8 @@ function AppShell({ children, isOnboarding, deletionScheduledAt, bonusCredits, p
             isOnboarding={isOnboarding}
             credits={credits}
             planQuota={planQuota}
+            notifications={initialNotifications}
+            notificationsUnread={initialNotificationsUnread}
           />
           <DeletionBanner deletionScheduledAt={deletionScheduledAt} />
           <PinTempBanner pinIsTemp={pinIsTemp} />
@@ -128,6 +131,8 @@ export function AppLayoutClient({
   pinIsTemp = false,
   initialFontSize = 'normal',
   initialHighContrast = false,
+  initialNotifications = [],
+  initialNotificationsUnread = 0,
   children,
 }: {
   initialUser: User | null
@@ -139,13 +144,24 @@ export function AppLayoutClient({
   pinIsTemp?: boolean
   initialFontSize?: FontSize
   initialHighContrast?: boolean
+  initialNotifications?: Notification[]
+  initialNotificationsUnread?: number
   children: React.ReactNode
 }) {
   return (
     <AppProvider initialUser={initialUser} initialCredits={initialCredits} initialPlanQuota={initialPlanQuota}>
       <AccessibilityProvider initialFontSize={initialFontSize} initialHighContrast={initialHighContrast}>
         <KeyboardShortcutsProvider>
-          <AppShell isOnboarding={isOnboarding} deletionScheduledAt={deletionScheduledAt} bonusCredits={bonusCredits} pinIsTemp={pinIsTemp}>{children}</AppShell>
+          <AppShell
+            isOnboarding={isOnboarding}
+            deletionScheduledAt={deletionScheduledAt}
+            bonusCredits={bonusCredits}
+            pinIsTemp={pinIsTemp}
+            initialNotifications={initialNotifications}
+            initialNotificationsUnread={initialNotificationsUnread}
+          >
+            {children}
+          </AppShell>
         </KeyboardShortcutsProvider>
       </AccessibilityProvider>
     </AppProvider>

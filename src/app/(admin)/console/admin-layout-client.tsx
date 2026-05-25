@@ -14,8 +14,9 @@ import { LayoutDashboard, Users, ClipboardList, CreditCard, Settings, MessageSqu
 import { ROUTES } from '@/lib/routes'
 import type { AccessRequest } from '@/lib/types'
 import type { User } from '@/types'
+import type { Notification } from '@/server/repositories/notifications'
 
-function AdminShell({ children, interestCount }: { children: React.ReactNode; interestCount: number }) {
+function AdminShell({ children, interestCount, initialNotifications, initialNotificationsUnread }: { children: React.ReactNode; interestCount: number; initialNotifications: Notification[]; initialNotificationsUnread: number }) {
   const { user, logout } = useApp()
   const { pendingCount } = useConsoleNotification()
   const router = useRouter()
@@ -74,6 +75,8 @@ function AdminShell({ children, interestCount }: { children: React.ReactNode; in
           user={user}
           onLogout={handleLogout}
           pendingCount={pendingCount}
+          notifications={initialNotifications}
+          notificationsUnread={initialNotificationsUnread}
         />
         <main id="main-content" tabIndex={-1} className="container max-w-5xl mx-auto px-4 py-10">
           {children}
@@ -92,6 +95,8 @@ export function AdminLayoutClient({
   interestCount = 0,
   initialFontSize = 'normal',
   initialHighContrast = false,
+  initialNotifications = [],
+  initialNotificationsUnread = 0,
   children,
 }: {
   initialUser: User | null
@@ -100,6 +105,8 @@ export function AdminLayoutClient({
   interestCount?: number
   initialFontSize?: FontSize
   initialHighContrast?: boolean
+  initialNotifications?: Notification[]
+  initialNotificationsUnread?: number
   children: React.ReactNode
 }) {
   return (
@@ -107,7 +114,13 @@ export function AdminLayoutClient({
       <AccessibilityProvider initialFontSize={initialFontSize} initialHighContrast={initialHighContrast}>
         <KeyboardShortcutsProvider>
           <ConsoleNotificationProvider initialRequests={initialRequests}>
-            <AdminShell interestCount={interestCount}>{children}</AdminShell>
+            <AdminShell
+              interestCount={interestCount}
+              initialNotifications={initialNotifications}
+              initialNotificationsUnread={initialNotificationsUnread}
+            >
+              {children}
+            </AdminShell>
           </ConsoleNotificationProvider>
         </KeyboardShortcutsProvider>
       </AccessibilityProvider>
