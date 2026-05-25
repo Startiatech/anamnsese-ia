@@ -1,12 +1,28 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { TabAccessibility } from './tab-accessibility'
 import { AccessibilityProvider } from '@/context/accessibility-context'
 
-function renderWithProvider(initialFontSize: 'normal' | 'large' | 'xlarge' = 'normal', initialHighContrast = false) {
+interface ProviderOpts {
+  fontSize?: 'normal' | 'large' | 'xlarge'
+  highContrast?: boolean
+  spacingIncreased?: boolean
+  focusHighlight?: boolean
+  extraReducedMotion?: boolean
+  betaA11yV2?: boolean
+}
+
+function renderWithProvider(opts: ProviderOpts = {}) {
   return render(
-    <AccessibilityProvider initialFontSize={initialFontSize} initialHighContrast={initialHighContrast}>
+    <AccessibilityProvider
+      initialFontSize={opts.fontSize ?? 'normal'}
+      initialHighContrast={opts.highContrast ?? false}
+      initialSpacingIncreased={opts.spacingIncreased ?? false}
+      initialFocusHighlight={opts.focusHighlight ?? false}
+      initialExtraReducedMotion={opts.extraReducedMotion ?? false}
+      initialBetaA11yV2={opts.betaA11yV2 ?? false}
+    >
       <TabAccessibility />
     </AccessibilityProvider>
   )
@@ -15,13 +31,14 @@ function renderWithProvider(initialFontSize: 'normal' | 'large' | 'xlarge' = 'no
 beforeEach(() => {
   vi.spyOn(global, 'fetch').mockResolvedValue({ ok: true, json: async () => ({ ok: true }) } as Response)
   localStorage.clear()
-  document.documentElement.removeAttribute('data-font-size')
-  document.documentElement.removeAttribute('data-high-contrast')
+  for (const a of ['data-font-size', 'data-high-contrast', 'data-spacing-increased', 'data-focus-highlight', 'data-extra-reduced-motion']) {
+    document.documentElement.removeAttribute(a)
+  }
 })
 
 afterEach(() => vi.restoreAllMocks())
 
-describe('TabAccessibility', () => {
+describe('TabAccessibility — base (sempre visivel)', () => {
   it('renderiza 3 opcoes de tamanho de fonte', () => {
     renderWithProvider()
     expect(screen.getByRole('radio', { name: /normal/i })).toBeTruthy()
@@ -30,14 +47,14 @@ describe('TabAccessibility', () => {
   })
 
   it('marca a opcao de fonte atual como selecionada', () => {
-    renderWithProvider('large')
+    renderWithProvider({ fontSize: 'large' })
     const grande = screen.getByRole('radio', { name: /^grande$/i }) as HTMLInputElement
     expect(grande.checked).toBe(true)
   })
 
   it('selecionar "Extra grande" muda o data-font-size no <html>', async () => {
     const user = userEvent.setup()
-    renderWithProvider('normal')
+    renderWithProvider()
 
     await user.click(screen.getByRole('radio', { name: /extra grande/i }))
 
@@ -45,14 +62,14 @@ describe('TabAccessibility', () => {
   })
 
   it('renderiza toggle de alto contraste refletindo o estado atual', () => {
-    renderWithProvider('normal', true)
+    renderWithProvider({ highContrast: true })
     const toggle = screen.getByRole('switch', { name: /alto contraste/i }) as HTMLInputElement
     expect(toggle.getAttribute('aria-checked')).toBe('true')
   })
 
   it('clicar no toggle de alto contraste muda data-high-contrast', async () => {
     const user = userEvent.setup()
-    renderWithProvider('normal', false)
+    renderWithProvider()
 
     await user.click(screen.getByRole('switch', { name: /alto contraste/i }))
 
@@ -61,7 +78,7 @@ describe('TabAccessibility', () => {
 
   it('mudancas disparam PATCH no servidor', async () => {
     const user = userEvent.setup()
-    renderWithProvider('normal', false)
+    renderWithProvider()
 
     await user.click(screen.getByRole('radio', { name: /^grande$/i }))
 
@@ -69,5 +86,88 @@ describe('TabAccessibility', () => {
       method: 'PATCH',
       body: JSON.stringify({ prefFontSize: 'large' }),
     }))
+  })
+})
+
+describe('TabAccessibility — Fase 3 (gated por betaA11yV2)', () => {
+  it('NAO renderiza os 3 novos toggles quando beta esta desativado', () => {
+    renderWithProvider({ betaA11yV2: false })
+    expect(screen.queryByRole('switch', { name: /espa.amento/i })).toBeNull()
+    expect(screen.queryByRole('switch', { name: /destacar foco/i })).toBeNull()
+    expect(screen.queryByRole('switch', { name: /reduzir movimento/i })).toBeNull()
+  })
+
+  it('renderiza os 3 novos toggles quando beta esta ativado', () => {
+    renderWithProvider({ betaA11yV2: true })
+    expect(screen.getByRole('switch', { name: /espa.amento/i })).toBeTruthy()
+    expect(screen.getByRole('switch', { name: /destacar foco/i })).toBeTruthy()
+    expect(screen.getByRole('switch', { name: /reduzir movimento/i })).toBeTruthy()
+  })
+
+  it('clicar no toggle de espacamento aplica data-spacing-increased', async () => {
+    const user = userEvent.setup()
+    renderWithProvider({ betaA11yV2: true })
+
+    await user.click(screen.getByRole('switch', { name: /espa.amento/i }))
+
+    expect(document.documentElement.getAttribute('data-spacing-increased')).toBe('true')
+  })
+
+  it('clicar no toggle de foco aplica data-focus-highlight', async () => {
+    const user = userEvent.setup()
+    renderWithProvider({ betaA11yV2: true })
+
+    await user.click(screen.getByRole('switch', { name: /destacar foco/i }))
+
+    expect(document.documentElement.getAttribute('data-focus-highlight')).toBe('true')
+  })
+
+  it('clicar no toggle de movimento aplica data-extra-reduced-motion', async () => {
+    const user = userEvent.setup()
+    renderWithProvider({ betaA11yV2: true })
+
+    await user.click(screen.getByRole('switch', { name: /reduzir movimento/i }))
+
+    expect(document.documentElement.getAttribute('data-extra-reduced-motion')).toBe('true')
+  })
+})
+
+describe('TabAccessibility — status indicator', () => {
+  it('exibe "Salvando..." durante o PATCH', async () => {
+    let resolveFetch!: (v: Response) => void
+    vi.spyOn(global, 'fetch').mockReturnValueOnce(new Promise<Response>((res) => { resolveFetch = res }))
+    const user = userEvent.setup()
+    renderWithProvider()
+
+    await user.click(screen.getByRole('radio', { name: /^grande$/i }))
+    expect(screen.getByText(/salvando/i)).toBeTruthy()
+
+    await act(async () => {
+      resolveFetch({ ok: true, json: async () => ({}) } as Response)
+      await Promise.resolve()
+    })
+  })
+
+  it('exibe "Salvo" apos PATCH bem-sucedido', async () => {
+    const user = userEvent.setup()
+    renderWithProvider()
+
+    await act(async () => {
+      await user.click(screen.getByRole('radio', { name: /^grande$/i }))
+    })
+
+    expect(screen.getByText(/^salvo$/i)).toBeTruthy()
+  })
+
+  it('exibe mensagem de erro quando PATCH falha', async () => {
+    vi.spyOn(global, 'fetch').mockRejectedValueOnce(new Error('network'))
+    const user = userEvent.setup()
+    renderWithProvider()
+
+    await act(async () => {
+      await user.click(screen.getByRole('radio', { name: /^grande$/i }))
+    })
+
+    expect(screen.getByText(/n.o foi poss.vel salvar/i)).toBeTruthy()
   })
 })

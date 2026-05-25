@@ -1,7 +1,8 @@
 'use client'
 
-import { Type, Contrast } from 'lucide-react'
-import { useAccessibility, type FontSize } from '@/context/accessibility-context'
+import { Type, Contrast, AlignJustify, Focus, Wind, Check, AlertTriangle, Loader2 } from 'lucide-react'
+import { Card, CardContent } from '@/components/ui/card'
+import { useAccessibility, type FontSize, type SaveStatus } from '@/context/accessibility-context'
 
 const FONT_OPTIONS: { value: FontSize; label: string; description: string }[] = [
   { value: 'normal', label: 'Normal',       description: 'Tamanho padrão (16px)' },
@@ -9,24 +10,108 @@ const FONT_OPTIONS: { value: FontSize; label: string; description: string }[] = 
   { value: 'xlarge', label: 'Extra grande', description: '25% maior (~20px)' },
 ]
 
+interface SectionCardProps {
+  icon: React.ComponentType<{ className?: string }>
+  title: string
+  description: string
+  children: React.ReactNode
+}
+
+function SectionCard({ icon: Icon, title, description, children }: SectionCardProps) {
+  return (
+    <Card>
+      <CardContent className="pt-5 pb-5">
+        <div className="flex gap-4 mb-5">
+          <div className="shrink-0">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-violet-500/15 dark:bg-violet-500/10 border border-violet-500/25 dark:border-violet-500/20">
+              <Icon className="h-5 w-5 text-violet-600 dark:text-violet-400" />
+            </div>
+          </div>
+          <div className="flex-1 space-y-1 pt-1">
+            <p className="text-sm font-semibold text-foreground uppercase tracking-wide">{title}</p>
+            <p className="text-xs text-muted-foreground">{description}</p>
+          </div>
+        </div>
+        {children}
+      </CardContent>
+    </Card>
+  )
+}
+
+interface ToggleSwitchProps {
+  label: string
+  checked: boolean
+  onChange: (v: boolean) => void
+}
+
+function ToggleSwitch({ label, checked, onChange }: ToggleSwitchProps) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      aria-label={label}
+      onClick={() => onChange(!checked)}
+      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
+        checked ? 'bg-primary' : 'bg-muted'
+      }`}
+    >
+      <span
+        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+          checked ? 'translate-x-6' : 'translate-x-1'
+        }`}
+      />
+    </button>
+  )
+}
+
+function StatusIndicator({ status }: { status: SaveStatus }) {
+  if (status === 'idle') {
+    return (
+      <p className="text-xs text-muted-foreground">
+        As preferências são salvas automaticamente e sincronizadas entre seus dispositivos.
+      </p>
+    )
+  }
+  if (status === 'saving') {
+    return (
+      <p className="flex items-center gap-1.5 text-xs text-muted-foreground" role="status">
+        <Loader2 className="h-3 w-3 animate-spin" />
+        Salvando...
+      </p>
+    )
+  }
+  if (status === 'saved') {
+    return (
+      <p className="flex items-center gap-1.5 text-xs text-emerald-500 dark:text-emerald-400" role="status">
+        <Check className="h-3 w-3" />
+        Salvo
+      </p>
+    )
+  }
+  return (
+    <p className="flex items-center gap-1.5 text-xs text-destructive" role="status">
+      <AlertTriangle className="h-3 w-3" />
+      Não foi possível salvar — verifique sua conexão e tente novamente.
+    </p>
+  )
+}
+
 export function TabAccessibility() {
-  const { fontSize, highContrast, setFontSize, setHighContrast } = useAccessibility()
+  const {
+    fontSize, highContrast, spacingIncreased, focusHighlight, extraReducedMotion,
+    betaA11yV2, saveStatus,
+    setFontSize, setHighContrast, setSpacingIncreased, setFocusHighlight, setExtraReducedMotion,
+  } = useAccessibility()
 
   return (
-    <div className="space-y-8">
-      {/* ── Tamanho da fonte ──────────────────────────────────────────────── */}
-      <section aria-labelledby="a11y-font-size-heading">
-        <div className="flex items-center gap-2 mb-1">
-          <Type className="h-4 w-4 text-muted-foreground" />
-          <h2 id="a11y-font-size-heading" className="text-sm font-medium text-foreground">
-            Tamanho da fonte
-          </h2>
-        </div>
-        <p className="text-xs text-muted-foreground mb-4">
-          Ajusta proporcionalmente todos os textos da plataforma.
-        </p>
-
-        <div role="radiogroup" aria-labelledby="a11y-font-size-heading" className="grid gap-2 sm:grid-cols-3">
+    <div className="space-y-4">
+      <SectionCard
+        icon={Type}
+        title="Tamanho da fonte"
+        description="Ajusta proporcionalmente todos os textos da plataforma."
+      >
+        <div role="radiogroup" aria-label="Tamanho da fonte" className="grid gap-2 sm:grid-cols-3">
           {FONT_OPTIONS.map((opt) => {
             const active = fontSize === opt.value
             return (
@@ -53,41 +138,47 @@ export function TabAccessibility() {
             )
           })}
         </div>
-      </section>
+      </SectionCard>
 
-      {/* ── Alto contraste ────────────────────────────────────────────────── */}
-      <section aria-labelledby="a11y-contrast-heading">
-        <div className="flex items-center gap-2 mb-1">
-          <Contrast className="h-4 w-4 text-muted-foreground" />
-          <h2 id="a11y-contrast-heading" className="text-sm font-medium text-foreground">
-            Alto contraste
-          </h2>
-        </div>
-        <p className="text-xs text-muted-foreground mb-4">
-          Aumenta o contraste entre texto, fundo e bordas para melhor legibilidade.
-        </p>
+      <SectionCard
+        icon={Contrast}
+        title="Alto contraste"
+        description="Aumenta o contraste entre texto, fundo e bordas para melhor legibilidade."
+      >
+        <ToggleSwitch label="Alto contraste" checked={highContrast} onChange={setHighContrast} />
+      </SectionCard>
 
-        <button
-          type="button"
-          role="switch"
-          aria-checked={highContrast}
-          aria-label="Alto contraste"
-          onClick={() => setHighContrast(!highContrast)}
-          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
-            highContrast ? 'bg-primary' : 'bg-muted'
-          }`}
-        >
-          <span
-            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-              highContrast ? 'translate-x-6' : 'translate-x-1'
-            }`}
-          />
-        </button>
-      </section>
+      {betaA11yV2 && (
+        <>
+          <SectionCard
+            icon={AlignJustify}
+            title="Espaçamento de leitura"
+            description="Aumenta espaço entre linhas, palavras e letras para reduzir fadiga visual."
+          >
+            <ToggleSwitch label="Espaçamento aumentado" checked={spacingIncreased} onChange={setSpacingIncreased} />
+          </SectionCard>
 
-      <p className="text-xs text-muted-foreground">
-        As preferências são salvas automaticamente e sincronizadas entre seus dispositivos.
-      </p>
+          <SectionCard
+            icon={Focus}
+            title="Destacar elemento em foco"
+            description="Realça com cor amarela e moldura espessa o elemento atualmente focado."
+          >
+            <ToggleSwitch label="Destacar foco atual" checked={focusHighlight} onChange={setFocusHighlight} />
+          </SectionCard>
+
+          <SectionCard
+            icon={Wind}
+            title="Reduzir movimento e animações"
+            description="Desativa animações e transições da plataforma além das preferências do sistema."
+          >
+            <ToggleSwitch label="Reduzir movimento" checked={extraReducedMotion} onChange={setExtraReducedMotion} />
+          </SectionCard>
+        </>
+      )}
+
+      <div className="px-2">
+        <StatusIndicator status={saveStatus} />
+      </div>
     </div>
   )
 }
