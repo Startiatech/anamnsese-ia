@@ -73,7 +73,20 @@ Auditoria executada pelo agente `ui-reviewer` cobrindo as rotas autenticadas `(a
 
 ---
 
-## 4. Itens de futuras fases (não bloqueantes)
+## 4. Atalhos de teclado
+
+Modal global acionado por `Shift + ?` em qualquer rota autenticada. Documentado em `src/components/ui/keyboard-shortcuts-modal.tsx`.
+
+| Atalho | Ação |
+|---|---|
+| `Shift + ?` | Abrir modal de atalhos |
+| `Esc` | Fechar diálogo aberto |
+| `Tab` / `Shift + Tab` | Navegar entre elementos |
+| `Enter` | Ativar elemento focado |
+
+O atalho não dispara quando o foco está em `<input>`, `<textarea>`, `<select>` ou elementos `contentEditable`, evitando interferência com formulários.
+
+## 5. Itens de futuras fases (não bloqueantes)
 
 ### Fase 2 — Boas práticas de mercado
 - Seletor de tamanho de fonte (padrão / grande / extra grande) na página de Configurações

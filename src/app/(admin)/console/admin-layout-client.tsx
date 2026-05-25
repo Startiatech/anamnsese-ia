@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { AppProvider, useApp } from '@/context/app-context'
 import { AccessibilityProvider, type FontSize } from '@/context/accessibility-context'
+import { KeyboardShortcutsProvider } from '@/components/ui/keyboard-shortcuts-modal'
 import { ConsoleNotificationProvider, useConsoleNotification } from '@/context/console-notification-context'
 import { AppSidebar } from '@/components/layout/sidebar'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
@@ -108,9 +109,11 @@ export function AdminLayoutClient({
   return (
     <AppProvider initialUser={initialUser} initialCredits={initialCredits}>
       <AccessibilityProvider initialFontSize={initialFontSize} initialHighContrast={initialHighContrast}>
-        <ConsoleNotificationProvider initialRequests={initialRequests}>
-          <AdminShell interestCount={interestCount}>{children}</AdminShell>
-        </ConsoleNotificationProvider>
+        <KeyboardShortcutsProvider>
+          <ConsoleNotificationProvider initialRequests={initialRequests}>
+            <AdminShell interestCount={interestCount}>{children}</AdminShell>
+          </ConsoleNotificationProvider>
+        </KeyboardShortcutsProvider>
       </AccessibilityProvider>
     </AppProvider>
   )

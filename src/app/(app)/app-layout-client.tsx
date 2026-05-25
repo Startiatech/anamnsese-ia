@@ -6,6 +6,7 @@ import { toast } from 'sonner'
 import { LogOut } from 'lucide-react'
 import { AppProvider, useApp } from '@/context/app-context'
 import { AccessibilityProvider, type FontSize } from '@/context/accessibility-context'
+import { KeyboardShortcutsProvider } from '@/components/ui/keyboard-shortcuts-modal'
 import { AppSidebar } from '@/components/layout/sidebar'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { SidebarCredits } from '@/components/layout/sidebar-credits'
@@ -147,7 +148,9 @@ export function AppLayoutClient({
   return (
     <AppProvider initialUser={initialUser} initialCredits={initialCredits} initialPlanQuota={initialPlanQuota}>
       <AccessibilityProvider initialFontSize={initialFontSize} initialHighContrast={initialHighContrast}>
-        <AppShell isOnboarding={isOnboarding} deletionScheduledAt={deletionScheduledAt} bonusCredits={bonusCredits} pinIsTemp={pinIsTemp}>{children}</AppShell>
+        <KeyboardShortcutsProvider>
+          <AppShell isOnboarding={isOnboarding} deletionScheduledAt={deletionScheduledAt} bonusCredits={bonusCredits} pinIsTemp={pinIsTemp}>{children}</AppShell>
+        </KeyboardShortcutsProvider>
       </AccessibilityProvider>
     </AppProvider>
   )
