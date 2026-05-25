@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import { AppProvider, useApp } from '@/context/app-context'
 import { AccessibilityProvider, type FontSize } from '@/context/accessibility-context'
 import { KeyboardShortcutsProvider } from '@/components/ui/keyboard-shortcuts-modal'
+import { SkipLink } from '@/components/ui/skip-link'
 import { ConsoleNotificationProvider, useConsoleNotification } from '@/context/console-notification-context'
 import { AppSidebar } from '@/components/layout/sidebar'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
@@ -63,12 +64,7 @@ function AdminShell({ children, interestCount }: { children: React.ReactNode; in
 
   return (
     <>
-    <a
-      href="#main-content"
-      className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[300] focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-    >
-      Pular para o conteúdo principal
-    </a>
+    <SkipLink />
     <SidebarProvider>
       <AppSidebar navItems={navItems} actionItems={actionItems} />
 

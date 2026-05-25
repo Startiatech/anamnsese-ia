@@ -28,6 +28,7 @@ import type { ClinicData } from '@/lib/clinic'
 import { Logo } from '@/components/ui/logo'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { TrialEndModal } from '@/components/trial/trial-end-modal'
+import { CompleteConfirmDialog } from './complete-confirm-dialog'
 import type { Patient } from '@/types'
 
 interface PlanFeatures {
@@ -186,26 +187,11 @@ function AtendimentoFlow({
 
   return (
     <>
-      <AlertDialog open={completeConfirmOpen} onOpenChange={setCompleteConfirmOpen}>
-        <AlertDialogContent className="max-w-md">
-          <AlertDialogHeader>
-            <div className="flex flex-col items-center gap-4 mb-4">
-              <Logo size="sm" id="complete-modal" />
-              <div className="w-full h-px bg-gradient-to-r from-transparent via-primary/25 to-transparent" />
-            </div>
-            <AlertDialogTitle>Finalizar atendimento?</AlertDialogTitle>
-            <AlertDialogDescription>
-              A anamnese será salva no histórico do paciente e o atendimento será encerrado. Esta ação não pode ser desfeita.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Revisar antes</AlertDialogCancel>
-            <AlertDialogAction onClick={handleCompleteConfirmed}>
-              Finalizar
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <CompleteConfirmDialog
+        open={completeConfirmOpen}
+        onOpenChange={setCompleteConfirmOpen}
+        onConfirm={handleCompleteConfirmed}
+      />
 
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <AlertDialogContent className="max-w-md">

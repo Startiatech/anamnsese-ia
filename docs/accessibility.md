@@ -102,7 +102,22 @@ O atalho não dispara quando o foco está em `<input>`, `<textarea>`, `<select>`
 
 ---
 
-## 5. Processo contínuo
+## 5. Cobertura de testes (Fases 1 + 2)
+
+| Camada | Arquivo | Testes |
+|---|---|---|
+| Repository | `src/server/repositories/users-accessibility.test.ts` | 6 |
+| Server Action | `src/server/actions/accessibility.test.ts` | 7 |
+| API route | `src/app/api/users/me/route.test.ts` (cases pref*) | 5 |
+| Context/hook | `src/context/accessibility-context.test.tsx` | 8 |
+| UI: aba | `src/app/(app)/settings/tabs/tab-accessibility.test.tsx` | 6 |
+| UI: atalhos | `src/components/ui/keyboard-shortcuts-modal.test.tsx` | 5 |
+| UI: skip link (Fase 1) | `src/components/ui/skip-link.test.tsx` | 5 |
+| UI: confirmação finalizar (Fase 1) | `src/app/(session)/consultation/[id]/complete-confirm-dialog.test.tsx` | 4 |
+
+Total: **46 testes** dedicados a acessibilidade, executando em &lt;10s.
+
+## 6. Processo contínuo
 
 - **Toda nova feature** deve passar pelo agente `@ui-reviewer` com checklist de acessibilidade
 - **Componentes novos** devem ser criados a partir de shadcn/ui (Radix) — primitivo já acessível
