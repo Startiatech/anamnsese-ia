@@ -66,6 +66,13 @@ interface TopbarAdminProps {
 
 type TopbarProps = TopbarPublicProps | TopbarUserProps | TopbarAdminProps
 
+function shortenName(name: string | undefined): string | undefined {
+  if (!name) return undefined
+  const parts = name.trim().split(/\s+/).filter(Boolean)
+  if (parts.length <= 1) return parts[0]
+  return `${parts[0]} ${parts[parts.length - 1]}`
+}
+
 // ─── Credits chip (user mobile) ───────────────────────────────────────────────
 
 function CreditsChip({ credits, planQuota }: { credits: number; planQuota: number }) {
@@ -115,6 +122,7 @@ function AvatarMenu({
   onLogout: () => void
 }) {
   const subtitle = variant === 'user' ? user?.specialty : user?.email
+  const displayName = shortenName(user?.name)
 
   return (
     <DropdownMenu>
@@ -129,7 +137,7 @@ function AvatarMenu({
             </AvatarFallback>
           </Avatar>
           <div className="hidden sm:flex flex-col text-left leading-tight max-w-[140px]">
-            <span className="text-sm font-medium text-foreground truncate">{user?.name ?? '—'}</span>
+            <span className="text-sm font-medium text-foreground truncate">{displayName ?? '—'}</span>
             {subtitle && (
               <span className="text-xs truncate" style={{ color: 'var(--subtitle-color)', opacity: 0.9 }}>{subtitle}</span>
             )}
@@ -140,7 +148,7 @@ function AvatarMenu({
 
       <DropdownMenuContent align="end" className="w-52">
         <DropdownMenuLabel className="font-normal py-2.5">
-          <p className="text-sm font-semibold text-foreground truncate">{user?.name ?? '—'}</p>
+          <p className="text-sm font-semibold text-foreground truncate">{displayName ?? '—'}</p>
           {subtitle && (
             <p className="text-xs text-muted-foreground truncate">{subtitle}</p>
           )}
