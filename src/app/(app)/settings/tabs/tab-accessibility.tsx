@@ -3,6 +3,7 @@
 import { Type, Contrast, AlignJustify, Focus, Wind, Check, AlertTriangle, Loader2 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { useAccessibility, type FontSize, type SaveStatus } from '@/context/accessibility-context'
+import { RequestFeedbackCard } from './request-feedback-card'
 
 const FONT_OPTIONS: { value: FontSize; label: string; description: string }[] = [
   { value: 'normal', label: 'Normal',       description: 'Tamanho padrão (16px)' },
@@ -179,6 +180,8 @@ export function TabAccessibility() {
       <div className="px-2">
         <StatusIndicator status={saveStatus} />
       </div>
+
+      <RequestFeedbackCard />
     </div>
   )
 }

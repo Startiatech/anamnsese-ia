@@ -75,6 +75,10 @@ vi.mock('./tabs/tab-security', () => ({
   }),
 }))
 
+vi.mock('./tabs/tab-accessibility', () => ({
+  TabAccessibility: () => <div data-testid="tab-accessibility-mock" />,
+}))
+
 vi.mock('./tabs/tab-clinic', () => ({
   TabClinic: forwardRef<
     { validate: () => Promise<boolean>; getValues: () => Record<string, unknown>; hasLogo: () => boolean },

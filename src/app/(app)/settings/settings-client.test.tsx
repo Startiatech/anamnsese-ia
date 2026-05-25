@@ -56,6 +56,10 @@ vi.mock('@/components/dashboard/onboarding-intro-modal', () => ({
   OnboardingIntroModal: () => null,
 }))
 
+vi.mock('./tabs/tab-accessibility', () => ({
+  TabAccessibility: () => <div data-testid="tab-accessibility-mock" />,
+}))
+
 vi.mock('./tabs/tab-clinic', () => ({
   TabClinic: React.forwardRef<
     { validate: () => Promise<boolean>; getValues: () => Record<string, unknown>; hasLogo: () => boolean },

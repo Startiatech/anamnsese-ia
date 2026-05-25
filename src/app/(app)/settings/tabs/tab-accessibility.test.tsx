@@ -4,6 +4,11 @@ import userEvent from '@testing-library/user-event'
 import { TabAccessibility } from './tab-accessibility'
 import { AccessibilityProvider } from '@/context/accessibility-context'
 
+// Isola a aba do card de pedido (que importa Server Action com supabase)
+vi.mock('./request-feedback-card', () => ({
+  RequestFeedbackCard: () => <div data-testid="request-feedback-card-mock" />,
+}))
+
 interface ProviderOpts {
   fontSize?: 'normal' | 'large' | 'xlarge'
   highContrast?: boolean
