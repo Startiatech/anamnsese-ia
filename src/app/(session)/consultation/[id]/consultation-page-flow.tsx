@@ -76,6 +76,7 @@ function AtendimentoFlow({
   const { state, isTranscribing } = useConsultationFlow()
   const router = useRouter()
   const [confirmOpen, setConfirmOpen] = useState(false)
+  const [completeConfirmOpen, setCompleteConfirmOpen] = useState(false)
   const [showTrialEndModal, setShowTrialEndModal] = useState(false)
   const [isLastCredit, setIsLastCredit] = useState(false)
   const [creditDebited, setCreditDebited] = useState(false)
@@ -94,7 +95,11 @@ function AtendimentoFlow({
     return () => window.removeEventListener('beforeunload', handler)
   }, [creditDebited])
 
-  async function handleComplete() {
+  function handleComplete() {
+    setCompleteConfirmOpen(true)
+  }
+
+  async function handleCompleteConfirmed() {
     await completeConsultation(patient.id)
     if (isLastCredit) {
       setShowTrialEndModal(true)
@@ -181,6 +186,27 @@ function AtendimentoFlow({
 
   return (
     <>
+      <AlertDialog open={completeConfirmOpen} onOpenChange={setCompleteConfirmOpen}>
+        <AlertDialogContent className="max-w-md">
+          <AlertDialogHeader>
+            <div className="flex flex-col items-center gap-4 mb-4">
+              <Logo size="sm" id="complete-modal" />
+              <div className="w-full h-px bg-gradient-to-r from-transparent via-primary/25 to-transparent" />
+            </div>
+            <AlertDialogTitle>Finalizar atendimento?</AlertDialogTitle>
+            <AlertDialogDescription>
+              A anamnese será salva no histórico do paciente e o atendimento será encerrado. Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Revisar antes</AlertDialogCancel>
+            <AlertDialogAction onClick={handleCompleteConfirmed}>
+              Finalizar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <AlertDialogContent className="max-w-md">
           <AlertDialogHeader>
