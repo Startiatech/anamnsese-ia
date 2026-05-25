@@ -9,6 +9,7 @@ import type { SecurityHandle } from './tabs/tab-security'
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn(), replace: vi.fn(), refresh: vi.fn() }),
+  useSearchParams: () => new URLSearchParams(),
 }))
 
 const { mockToast } = vi.hoisted(() => ({

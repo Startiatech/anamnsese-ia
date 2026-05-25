@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { User, Lock, ArrowRight, Save, Building2, Accessibility } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
@@ -54,17 +54,25 @@ export function SettingsClient({
   const securityRef = useRef<SecurityHandle>(null)
   const clinicRef = useRef<ClinicHandle>(null)
 
+  const searchParams = useSearchParams()
+  const tabFromQuery = searchParams.get('tab')
+
   // Calcula tab inicial considerando progresso ja salvo no servidor.
   // Em onboarding/passwordReset: pula tabs ja completadas (resistente a F5).
   // Se algum dado essencial estiver vazio, prioriza o tab correspondente
   // mesmo que isPasswordReset=true — evita "pular" para seguranca quando o
   // perfil/clinica ainda nao foram preenchidos (estado inconsistente).
+  // Query param `?tab=` so e respeitado quando NAO esta em onboarding/reset
+  // — fluxo de cadastro tem prioridade absoluta para nao deixar usuario perdido.
   const computeInitialTab = (): TabId => {
     if (forceClinic) return 'clinica'
     if (isOnboarding || isPasswordReset) {
       if (!profileCompleted) return 'perfil'
       if (!clinicCompleted) return 'clinica'
       return 'seguranca'
+    }
+    if (tabFromQuery === 'perfil' || tabFromQuery === 'clinica' || tabFromQuery === 'seguranca' || tabFromQuery === 'acessibilidade') {
+      return tabFromQuery
     }
     return 'perfil'
   }

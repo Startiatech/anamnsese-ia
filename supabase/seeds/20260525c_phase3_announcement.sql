@@ -20,7 +20,7 @@ select
   'feature',
   'Acessibilidade ampliada',
   'Agora voce pode ajustar espacamento de leitura, destacar o elemento em foco e reduzir animacoes. Disponivel em Configuracoes > Acessibilidade.',
-  '/configuracoes',
+  '/settings?tab=acessibilidade',
   'Conhecer'
 from target
 where not exists (
