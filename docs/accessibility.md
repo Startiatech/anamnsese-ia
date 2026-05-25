@@ -86,38 +86,65 @@ Modal global acionado por `Shift + ?` em qualquer rota autenticada. Documentado 
 
 O atalho não dispara quando o foco está em `<input>`, `<textarea>`, `<select>` ou elementos `contentEditable`, evitando interferência com formulários.
 
-## 5. Itens de futuras fases (não bloqueantes)
+## 5. Fase 3 — Ajustes adicionais (filosofia híbrida)
 
-### Fase 2 — Boas práticas de mercado
-- Seletor de tamanho de fonte (padrão / grande / extra grande) na página de Configurações
-- Tema de alto contraste como opção explícita (distinto do dark padrão)
-- `<Toaster />` com `aria-live="polite"` confirmado explicitamente
-- Skip links adicionais para sidebar e topbar
-- Documentação de atalhos de teclado
+Filosofia explícita: **rotular por efeito, não por condição.** Nenhum toggle é nomeado "Modo TEA / TDAH / Dislexia". Cada ajuste descreve o que faz; o usuário combina os que ajudam. Padrão alinhado com Apple/iOS, GOV.UK e Microsoft — evita o accessibility theater dos overlays comerciais.
 
-### Fase 3 — Diferencial competitivo (acessibilidade cognitiva)
-- Perfis de preferência: TEA (autismo), TDAH, dislexia, sensibilidade à luz
-- Toggle de redução de elementos visuais competindo por atenção
-- Fonte para dislexia (Atkinson Hyperlegible / OpenDyslexic) opcional
+### Toggles disponíveis (gated por `users.beta_a11y_v2`)
+
+| Toggle | `data-attr` no `<html>` | Efeito CSS |
+|---|---|---|
+| Espaçamento de leitura | `data-spacing-increased="true"` | `letter-spacing 0.04em`, `word-spacing 0.08em`, `line-height 1.7-1.8` |
+| Destacar elemento em foco | `data-focus-highlight="true"` | `outline 3px solid amarelo` + box-shadow expandido em `*:focus-visible` |
+| Reduzir movimento (extra) | `data-extra-reduced-motion="true"` | Todas animações/transições reduzidas a `0.01ms` |
+
+Todos persistidos em colunas booleanas em `public.users` e sincronizados via PATCH `/api/users/me`.
+
+### Feature flag
+
+A coluna `users.beta_a11y_v2` controla a visibilidade dos 3 toggles na aba Configurações → Acessibilidade. Ativação ad-hoc via `supabase/seeds/20260525c_phase3_announcement.sql`. Quando estável, a flag será removida e os toggles ficam visíveis para todos.
+
+### Sino de notificações (`NotificationBell`)
+
+Sistema reutilizável de comunicação in-app pareado com a Fase 3:
+- Tabela `notifications` com tipos `info | feature | warning`
+- Sino na topbar com badge de não lidas (até `99+`)
+- Click-outside e `Esc` fecham
+- Atualização otimista local + sincronização via Server Action
+
+Importante: **banners críticos (PinTempBanner, DeletionBanner) NÃO migram para o sino.** A regra é:
+- **Banner** = comunicação bloqueante/acionável crítica (sem dispensar até resolver)
+- **Sino** = comunicação informacional (dispensável a qualquer momento)
+
+### Itens deferidos para futuras fases
+
+- Fonte para dislexia (Atkinson Hyperlegible) — só implementar quando houver pedido real
+- Reduzir saturação de cores — risco de efeito colateral em gradientes/logos
+- Modo "Reduzir distrações" — requer redesign de várias telas
+- Presets ("Sugerir combinação") por questionário neutro
+- Migrar PinTempBanner/DeletionBanner para infraestrutura compartilhada com notifications
 
 ---
 
-## 5. Cobertura de testes (Fases 1 + 2)
+## 6. Cobertura de testes (Fases 1, 2 e 3)
 
 | Camada | Arquivo | Testes |
 |---|---|---|
-| Repository | `src/server/repositories/users-accessibility.test.ts` | 6 |
-| Server Action | `src/server/actions/accessibility.test.ts` | 7 |
-| API route | `src/app/api/users/me/route.test.ts` (cases pref*) | 5 |
-| Context/hook | `src/context/accessibility-context.test.tsx` | 8 |
-| UI: aba | `src/app/(app)/settings/tabs/tab-accessibility.test.tsx` | 6 |
+| Repository a11y | `src/server/repositories/users-accessibility.test.ts` | 9 |
+| Repository notifications | `src/server/repositories/notifications.test.ts` | 10 |
+| Server Action a11y | `src/server/actions/accessibility.test.ts` | 7 |
+| Server Action notifications | `src/server/actions/notifications.test.ts` | 8 |
+| API route a11y (cases pref*) | `src/app/api/users/me/route.test.ts` | 5 |
+| Context/hook | `src/context/accessibility-context.test.tsx` | 15 |
+| UI: aba Acessibilidade | `src/app/(app)/settings/tabs/tab-accessibility.test.tsx` | 14 |
+| UI: NotificationBell | `src/components/layout/notification-bell.test.tsx` | 11 |
 | UI: atalhos | `src/components/ui/keyboard-shortcuts-modal.test.tsx` | 5 |
 | UI: skip link (Fase 1) | `src/components/ui/skip-link.test.tsx` | 5 |
 | UI: confirmação finalizar (Fase 1) | `src/app/(session)/consultation/[id]/complete-confirm-dialog.test.tsx` | 4 |
 
-Total: **46 testes** dedicados a acessibilidade, executando em &lt;10s.
+Total: **93 testes** dedicados a acessibilidade + notificações.
 
-## 6. Processo contínuo
+## 7. Processo contínuo
 
 - **Toda nova feature** deve passar pelo agente `@ui-reviewer` com checklist de acessibilidade
 - **Componentes novos** devem ser criados a partir de shadcn/ui (Radix) — primitivo já acessível
