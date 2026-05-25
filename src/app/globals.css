@@ -196,6 +196,34 @@
 .animate-pulse-glow  { animation: pulse-glow 2s ease-in-out infinite; }
 .animate-cursor      { animation: typing-cursor 1s step-end infinite; }
 
+/* ── Preferências de acessibilidade (data-font-size / data-high-contrast) ── */
+html[data-font-size="large"]  { font-size: 112.5%; }  /* 18px base */
+html[data-font-size="xlarge"] { font-size: 125%;   }  /* 20px base */
+
+html[data-high-contrast="true"].dark {
+  --background:          oklch(0.06 0.005 260);
+  --foreground:          oklch(1 0 0);
+  --card:                oklch(0.10 0.010 260);
+  --card-foreground:     oklch(1 0 0);
+  --popover:             oklch(0.10 0.010 260);
+  --popover-foreground:  oklch(1 0 0);
+  --muted-foreground:    oklch(0.92 0 0);
+  --border:              oklch(1 0 0 / 50%);
+  --input:               oklch(1 0 0 / 25%);
+  --ring:                oklch(0.95 0.20 250);
+  --primary:             oklch(0.78 0.20 250);
+  --primary-foreground:  oklch(0 0 0);
+  --destructive:         oklch(0.72 0.25 25);
+  --destructive-foreground: oklch(0 0 0);
+}
+
+/* Reforço de foco no modo alto contraste — anel mais espesso e cor sólida */
+html[data-high-contrast="true"] *:focus-visible {
+  outline: 3px solid var(--ring) !important;
+  outline-offset: 2px !important;
+  box-shadow: none !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
