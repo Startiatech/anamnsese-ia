@@ -43,7 +43,7 @@ function CrmTypeSelect({ value, onChange }: { value: string; onChange: (v: strin
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center justify-between border-0 border-b border-border text-sm py-2 focus:outline-none focus:border-violet-500/60 transition-colors bg-transparent text-foreground"
+        className="w-full flex items-center justify-between border-0 border-b border-border text-sm py-2 focus:outline-none focus:border-violet-500/60 focus-visible:ring-1 focus-visible:ring-violet-500/40 focus-visible:rounded-sm transition-colors bg-transparent text-foreground"
       >
         <span>{value}</span>
         <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${open ? 'rotate-180' : ''}`} />
@@ -88,7 +88,7 @@ function UfSelect({ value, onChange, error }: { value: string; onChange: (v: str
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center justify-between border-0 border-b border-border text-sm py-2 focus:outline-none focus:border-violet-500/60 transition-colors"
+        className="w-full flex items-center justify-between border-0 border-b border-border text-sm py-2 focus:outline-none focus:border-violet-500/60 focus-visible:ring-1 focus-visible:ring-violet-500/40 focus-visible:rounded-sm transition-colors"
         style={{ background: 'transparent', color: value ? 'var(--foreground)' : 'var(--muted-foreground)' }}
       >
         <span>{value || '—'}</span>

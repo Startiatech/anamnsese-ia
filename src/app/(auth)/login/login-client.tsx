@@ -170,7 +170,7 @@ export function LoginClient() {
                 <div className="space-y-1">
                   <label className="text-xs text-muted-foreground/60 uppercase tracking-widest" htmlFor="email">Email</label>
                   <input id="email" type="email" placeholder="seu@email.com" {...register('email')}
-                    className="w-full bg-transparent border-0 border-b border-black/10 dark:border-white/10 focus:border-violet-500/60 outline-none px-2 pb-2 text-foreground placeholder:text-muted-foreground/30 text-sm transition-colors" />
+                    className="w-full bg-transparent border-0 border-b border-black/10 dark:border-white/10 focus:border-violet-500/60 outline-none focus-visible:border-violet-500 focus-visible:ring-1 focus-visible:ring-violet-500/40 focus-visible:ring-offset-0 rounded-sm px-2 pb-2 text-foreground placeholder:text-muted-foreground/60 text-sm transition-colors" />
                   {errors.email && <p className="text-xs text-destructive pt-1">{errors.email.message}</p>}
                 </div>
 
@@ -178,7 +178,7 @@ export function LoginClient() {
                   <label className="text-xs text-muted-foreground/60 uppercase tracking-widest" htmlFor="password">Senha</label>
                   <div className="relative">
                     <input id="password" type={showPassword ? 'text' : 'password'} placeholder="••••••••" {...register('password')}
-                      className="w-full bg-transparent border-0 border-b border-black/10 dark:border-white/10 focus:border-violet-500/60 outline-none px-2 pb-2 text-foreground placeholder:text-muted-foreground/30 text-sm transition-colors pr-7" />
+                      className="w-full bg-transparent border-0 border-b border-black/10 dark:border-white/10 focus:border-violet-500/60 outline-none focus-visible:border-violet-500 focus-visible:ring-1 focus-visible:ring-violet-500/40 focus-visible:ring-offset-0 rounded-sm px-2 pb-2 text-foreground placeholder:text-muted-foreground/60 text-sm transition-colors pr-7" />
                     <Button type="button" variant="ghost" size="icon" onClick={() => setShowPassword(p => !p)}
                       className="absolute right-0 bottom-2 z-10 h-6 w-6 text-muted-foreground/40 hover:text-muted-foreground">
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -248,14 +248,14 @@ export function LoginClient() {
                 <div className="space-y-1">
                   <label className="text-xs text-muted-foreground/60 uppercase tracking-widest" htmlFor="forgot-email">Email</label>
                   <input id="forgot-email" type="email" placeholder="seu@email.com" {...registerForgot('email')}
-                    className="w-full bg-transparent border-0 border-b border-black/10 dark:border-white/10 focus:border-violet-500/60 outline-none px-2 pb-2 text-foreground placeholder:text-muted-foreground/30 text-sm transition-colors" />
+                    className="w-full bg-transparent border-0 border-b border-black/10 dark:border-white/10 focus:border-violet-500/60 outline-none focus-visible:border-violet-500 focus-visible:ring-1 focus-visible:ring-violet-500/40 focus-visible:ring-offset-0 rounded-sm px-2 pb-2 text-foreground placeholder:text-muted-foreground/60 text-sm transition-colors" />
                   {forgotErrors.email && <p className="text-xs text-destructive pt-1">{forgotErrors.email.message}</p>}
                 </div>
 
                 <div className="space-y-1">
                   <label className="text-xs text-muted-foreground/60 uppercase tracking-widest" htmlFor="forgot-pin">PIN (6 dígitos)</label>
                   <input id="forgot-pin" type="password" inputMode="numeric" maxLength={6} placeholder="••••••" {...registerForgot('pin')}
-                    className="w-full bg-transparent border-0 border-b border-black/10 dark:border-white/10 focus:border-violet-500/60 outline-none px-2 pb-2 text-foreground placeholder:text-muted-foreground/30 text-sm transition-colors tracking-[0.5em]" />
+                    className="w-full bg-transparent border-0 border-b border-black/10 dark:border-white/10 focus:border-violet-500/60 outline-none focus-visible:border-violet-500 focus-visible:ring-1 focus-visible:ring-violet-500/40 focus-visible:ring-offset-0 rounded-sm px-2 pb-2 text-foreground placeholder:text-muted-foreground/60 text-sm transition-colors tracking-[0.5em]" />
                   {forgotErrors.pin && <p className="text-xs text-destructive pt-1">{forgotErrors.pin.message}</p>}
                 </div>
 

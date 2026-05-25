@@ -79,47 +79,51 @@ export function AddUserModal({ open, onClose, onSuccess }: AddUserModalProps) {
     >
       <form id="add-user-form" onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="space-y-1">
-          <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+          <label htmlFor="add-user-name" className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
             <User className="h-3.5 w-3.5" /> Nome completo
           </label>
           <input
+            id="add-user-name"
             {...register('name')}
             placeholder="Dr. João Silva"
-            className="w-full bg-transparent border-b border-border pb-1.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-highlight transition-colors"
+            className="w-full bg-transparent border-b border-border pb-1.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-highlight focus-visible:ring-1 focus-visible:ring-ring focus-visible:rounded-sm transition-colors"
           />
           {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
         </div>
         <div className="space-y-1">
-          <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+          <label htmlFor="add-user-email" className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
             <Mail className="h-3.5 w-3.5" /> Email
           </label>
           <input
+            id="add-user-email"
             {...register('email')}
             type="email"
             placeholder="joao@clinica.com"
-            className="w-full bg-transparent border-b border-border pb-1.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-highlight transition-colors"
+            className="w-full bg-transparent border-b border-border pb-1.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-highlight focus-visible:ring-1 focus-visible:ring-ring focus-visible:rounded-sm transition-colors"
           />
           {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
         </div>
         <div className="space-y-1">
-          <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+          <label htmlFor="add-user-specialty" className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
             <Stethoscope className="h-3.5 w-3.5" /> Especialidade
           </label>
           <input
+            id="add-user-specialty"
             {...register('specialty')}
             placeholder="Clínica Geral, Cardiologia..."
-            className="w-full bg-transparent border-b border-border pb-1.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-highlight transition-colors"
+            className="w-full bg-transparent border-b border-border pb-1.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-highlight focus-visible:ring-1 focus-visible:ring-ring focus-visible:rounded-sm transition-colors"
           />
           {errors.specialty && <p className="text-xs text-destructive">{errors.specialty.message}</p>}
         </div>
         <div className="space-y-1">
-          <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+          <label htmlFor="add-user-phone" className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
             <Phone className="h-3.5 w-3.5" /> WhatsApp
           </label>
           <input
+            id="add-user-phone"
             {...register('phone')}
             placeholder="(11) 99999-9999"
-            className="w-full bg-transparent border-b border-border pb-1.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-highlight transition-colors"
+            className="w-full bg-transparent border-b border-border pb-1.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-highlight focus-visible:ring-1 focus-visible:ring-ring focus-visible:rounded-sm transition-colors"
           />
           {errors.phone && <p className="text-xs text-destructive">{errors.phone.message}</p>}
         </div>

@@ -438,6 +438,7 @@ export function AccessRequestChat({ onBack }: AccessRequestChatProps) {
             {inputError && <p className="text-xs text-destructive mb-2">{inputError}</p>}
             <div className="flex items-center gap-3 border-b border-border pb-3 focus-within:border-violet-500/60 transition-colors">
               <input ref={chatInputRef} value={chatInput}
+                aria-label={STEPS[currentStep]?.placeholder || 'Campo de entrada'}
                 inputMode={STEPS[currentStep]?.key === 'phone' ? 'tel' : undefined}
                 onChange={(e) => {
                   const raw = e.target.value
@@ -447,7 +448,7 @@ export function AccessRequestChat({ onBack }: AccessRequestChatProps) {
                 onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleChatSend() } }}
                 placeholder={isTyping ? '...' : (STEPS[currentStep]?.optional ? `${STEPS[currentStep].placeholder} (opcional — Enter para pular)` : STEPS[currentStep]?.placeholder)}
                 disabled={isTyping || messages.length === 0}
-                className="flex-1 bg-transparent outline-none text-sm text-foreground placeholder:text-muted-foreground/30 disabled:opacity-40"
+                className="flex-1 bg-transparent outline-none focus-visible:outline-none text-sm text-foreground placeholder:text-muted-foreground/60 disabled:opacity-40"
               />
               <Button variant="ghost" size="icon" onClick={handleChatSend} disabled={isTyping || messages.length === 0}
                 className="h-6 w-6 text-violet-400 hover:text-violet-300">
