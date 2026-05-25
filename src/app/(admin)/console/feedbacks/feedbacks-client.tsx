@@ -2,18 +2,25 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Star, Mail, MessageCircle, TrendingUp, TrendingDown, ArrowUpRight, MessageSquare, Loader2, RefreshCw } from 'lucide-react'
+import { Star, Mail, MessageCircle, TrendingUp, TrendingDown, ArrowUpRight, MessageSquare, Loader2, RefreshCw, XCircle, Accessibility } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Button } from '@/components/ui/button'
 import { Empty, EmptyMedia, EmptyHeader, EmptyTitle, EmptyDescription, EmptyContent } from '@/components/ui/empty'
 import { PageHeader } from '@/components/console/page-header'
+import { UnderlineTabs } from '@/components/ui/underline-tabs'
+import { A11yRequestsList } from './a11y-requests-list'
 import type { FeedbackWithUser, FeedbackMetrics } from '@/server/repositories/feedbacks'
+import type { AccessibilityRequestWithUser } from '@/server/repositories/accessibility-requests'
+
+type TabId = 'cancelamento' | 'acessibilidade'
 
 interface FeedbacksClientProps {
   metrics: FeedbackMetrics
   feedbacks: FeedbackWithUser[]
+  a11yRequests: AccessibilityRequestWithUser[]
+  a11yPendingCount: number
 }
 
 const ACTION_BADGE: Record<string, { label: string; variant: 'default' | 'destructive' | 'secondary' | 'outline' }> = {
@@ -38,9 +45,10 @@ function StarRow({ rating }: { rating: number }) {
   )
 }
 
-export function FeedbacksClient({ metrics, feedbacks }: FeedbacksClientProps) {
+export function FeedbacksClient({ metrics, feedbacks, a11yRequests, a11yPendingCount }: FeedbacksClientProps) {
   const router = useRouter()
   const [isRefreshing, setIsRefreshing] = useState(false)
+  const [active, setActive] = useState<TabId>('cancelamento')
 
   async function handleRefresh() {
     setIsRefreshing(true)
@@ -49,9 +57,23 @@ export function FeedbacksClient({ metrics, feedbacks }: FeedbacksClientProps) {
     setIsRefreshing(false)
   }
 
+  const tabs = [
+    { id: 'cancelamento' as TabId,    label: 'Cancelamento',  icon: XCircle },
+    { id: 'acessibilidade' as TabId,  label: a11yPendingCount > 0 ? `Acessibilidade (${a11yPendingCount})` : 'Acessibilidade', icon: Accessibility },
+  ]
+
   return (
     <div className="space-y-6">
-      <PageHeader title="Feedback Intelligence" description="Analise o sentimento dos usuários e otimize a conversão." />
+      <PageHeader title="Feedbacks dos usuários" description="Comentários, pedidos e sentimento dos profissionais." />
+
+      <UnderlineTabs<TabId> tabs={tabs} active={active} onChange={setActive} />
+
+      {active === 'acessibilidade' && (
+        <A11yRequestsList items={a11yRequests} />
+      )}
+
+      {active === 'cancelamento' && (
+        <div className="space-y-6">
 
       {/* Métricas */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -147,6 +169,8 @@ export function FeedbacksClient({ metrics, feedbacks }: FeedbacksClientProps) {
             })
           )}
       </div>
+        </div>
+      )}
     </div>
   )
 }
