@@ -4,6 +4,7 @@ import { CreditRepository } from '@/server/repositories/credits'
 import { PlanInterestRepository } from '@/server/repositories/plan-interest'
 import { findUserById } from '@/server/repositories/users'
 import { listForUser as listNotifications, countUnread } from '@/server/repositories/notifications'
+import { countPending as countA11yPending } from '@/server/repositories/accessibility-requests'
 import { deriveInitials } from '@/lib/utils'
 import { AdminLayoutClient } from './admin-layout-client'
 import type { User } from '@/types'
@@ -26,13 +27,15 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   let initialBetaA11yV2 = false
   let initialNotifications: Notification[] = []
   let initialNotificationsUnread = 0
+  let initialA11yPendingCount = 0
 
   if (payload) {
-    const [credits, storedUser, notifications, unread] = await Promise.all([
+    const [credits, storedUser, notifications, unread, a11yPending] = await Promise.all([
       CreditRepository.getCredits(payload.sub),
       findUserById(payload.sub),
       listNotifications(payload.sub),
       countUnread(payload.sub),
+      countA11yPending(),
     ])
     initialCredits = credits
     initialFontSize = storedUser?.prefFontSize ?? 'normal'
@@ -43,6 +46,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     initialBetaA11yV2 = storedUser?.betaA11yV2 ?? false
     initialNotifications = notifications
     initialNotificationsUnread = unread
+    initialA11yPendingCount = a11yPending
     initialUser = {
       id: payload.sub,
       name: payload.name,
@@ -67,6 +71,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       initialBetaA11yV2={initialBetaA11yV2}
       initialNotifications={initialNotifications}
       initialNotificationsUnread={initialNotificationsUnread}
+      initialA11yPendingCount={initialA11yPendingCount}
     >
       {children}
     </AdminLayoutClient>

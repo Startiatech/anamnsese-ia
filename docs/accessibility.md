@@ -125,6 +125,7 @@ Card de pedido livre no rodapé da aba Acessibilidade. Usuário escreve em texto
 - Nome + email do solicitante
 - Ações: Marcar como lido / Arquivar
 - Badge com contagem de pendentes no título da aba
+- **Badge no sidebar** do console (item "Feedbacks") seguindo padrão de "Solicitações" — polling 30s + toast `ℹ N novo(s) pedido(s) de acessibilidade` quando incrementa
 
 Princípio adotado: **escutar antes de adivinhar.** Em vez de implementar toggles especulativos ("modo TEA", "fonte dislexia") sem dados, deixamos o usuário definir o roadmap pela voz dele. Quando um pedido aparece com frequência, vira candidato a feature.
 

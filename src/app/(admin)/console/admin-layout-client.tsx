@@ -18,7 +18,7 @@ import type { Notification } from '@/server/repositories/notifications'
 
 function AdminShell({ children, interestCount, initialNotifications, initialNotificationsUnread }: { children: React.ReactNode; interestCount: number; initialNotifications: Notification[]; initialNotificationsUnread: number }) {
   const { user, logout } = useApp()
-  const { pendingCount } = useConsoleNotification()
+  const { pendingCount, a11yPendingCount } = useConsoleNotification()
   const router = useRouter()
 
   async function handleLogout() {
@@ -32,7 +32,7 @@ function AdminShell({ children, interestCount, initialNotifications, initialNoti
     { href: '/console/users',        label: 'Usuários',      icon: Users },
     { href: '/console/plans',        label: 'Planos',        icon: CreditCard },
     { href: ROUTES.consoleSettings,  label: 'Configurações', icon: Settings },
-    { href: ROUTES.consoleFeedbacks,  label: 'Feedbacks',   icon: MessageSquare },
+    { href: ROUTES.consoleFeedbacks,  label: 'Feedbacks',   icon: MessageSquare, badge: a11yPendingCount > 0 ? a11yPendingCount : undefined },
     { href: ROUTES.consoleInteresses, label: 'Interesses',  icon: Bell, badge: interestCount > 0 ? interestCount : undefined },
   ]
 
@@ -101,6 +101,7 @@ export function AdminLayoutClient({
   initialBetaA11yV2 = false,
   initialNotifications = [],
   initialNotificationsUnread = 0,
+  initialA11yPendingCount = 0,
   children,
 }: {
   initialUser: User | null
@@ -115,6 +116,7 @@ export function AdminLayoutClient({
   initialBetaA11yV2?: boolean
   initialNotifications?: Notification[]
   initialNotificationsUnread?: number
+  initialA11yPendingCount?: number
   children: React.ReactNode
 }) {
   return (
@@ -128,7 +130,7 @@ export function AdminLayoutClient({
         initialBetaA11yV2={initialBetaA11yV2}
       >
         <KeyboardShortcutsProvider>
-          <ConsoleNotificationProvider initialRequests={initialRequests}>
+          <ConsoleNotificationProvider initialRequests={initialRequests} initialA11yPendingCount={initialA11yPendingCount}>
             <AdminShell
               interestCount={interestCount}
               initialNotifications={initialNotifications}

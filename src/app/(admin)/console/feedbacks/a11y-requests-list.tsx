@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Empty, EmptyMedia, EmptyHeader, EmptyTitle, EmptyDescription } from '@/components/ui/empty'
 import { markRequestAsRead, archiveRequest } from '@/server/actions/accessibility-requests'
+import { useConsoleNotification } from '@/context/console-notification-context'
 import type { AccessibilityRequestWithUser, AccessibilityRequestStatus } from '@/server/repositories/accessibility-requests'
 
 interface A11yRequestsListProps {
@@ -27,6 +28,7 @@ function formatDate(iso: string): string {
 
 export function A11yRequestsList({ items }: A11yRequestsListProps) {
   const router = useRouter()
+  const { a11yPendingCount, syncA11yCount } = useConsoleNotification()
   const [processingId, setProcessingId] = useState<string | null>(null)
 
   if (items.length === 0) {
@@ -56,7 +58,11 @@ export function A11yRequestsList({ items }: A11yRequestsListProps) {
       success: 'Marcado como lido.',
       error: (e: Error) => e.message,
     })
-    try { await promise; router.refresh() } catch { /* toast */ }
+    try {
+      await promise
+      syncA11yCount(Math.max(0, a11yPendingCount - 1))
+      router.refresh()
+    } catch { /* toast */ }
     finally { setProcessingId(null) }
   }
 
@@ -71,7 +77,11 @@ export function A11yRequestsList({ items }: A11yRequestsListProps) {
       success: 'Pedido arquivado.',
       error: (e: Error) => e.message,
     })
-    try { await promise; router.refresh() } catch { /* toast */ }
+    try {
+      await promise
+      syncA11yCount(Math.max(0, a11yPendingCount - 1))
+      router.refresh()
+    } catch { /* toast */ }
     finally { setProcessingId(null) }
   }
 
