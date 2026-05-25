@@ -200,6 +200,7 @@
 html[data-font-size="large"]  { font-size: 112.5%; }  /* 18px base */
 html[data-font-size="xlarge"] { font-size: 125%;   }  /* 20px base */
 
+/* Alto contraste — dark theme (fundo near-black, texto branco) */
 html[data-high-contrast="true"].dark {
   --background:          oklch(0.06 0.005 260);
   --foreground:          oklch(1 0 0);
@@ -215,6 +216,29 @@ html[data-high-contrast="true"].dark {
   --primary-foreground:  oklch(0 0 0);
   --destructive:         oklch(0.72 0.25 25);
   --destructive-foreground: oklch(0 0 0);
+}
+
+/* Alto contraste — light theme (fundo branco puro, texto preto) */
+html[data-high-contrast="true"]:not(.dark) {
+  --background:          oklch(1 0 0);
+  --foreground:          oklch(0 0 0);
+  --card:                oklch(1 0 0);
+  --card-foreground:     oklch(0 0 0);
+  --popover:             oklch(1 0 0);
+  --popover-foreground:  oklch(0 0 0);
+  --muted:               oklch(0.94 0 0);
+  --muted-foreground:    oklch(0.20 0 0);
+  --secondary:           oklch(0.94 0 0);
+  --secondary-foreground: oklch(0 0 0);
+  --accent:              oklch(0.94 0 0);
+  --accent-foreground:   oklch(0 0 0);
+  --border:              oklch(0 0 0 / 65%);
+  --input:               oklch(0 0 0 / 35%);
+  --ring:                oklch(0.30 0.18 250);
+  --primary:             oklch(0.30 0.18 250);
+  --primary-foreground:  oklch(1 0 0);
+  --destructive:         oklch(0.45 0.22 25);
+  --destructive-foreground: oklch(1 0 0);
 }
 
 /* Reforço de foco no modo alto contraste — anel mais espesso e cor sólida */
@@ -236,10 +260,17 @@ html[data-spacing-increased="true"] li {
 }
 
 /* ── Fase 3: Destacar elemento atualmente focado ──────────────────────── */
+/* Sobrescreve as variaveis usadas por Tailwind (focus-visible:ring-*) e
+   shadcn (--ring) para garantir que qualquer indicador de foco vire amarelo. */
+html[data-focus-highlight="true"] {
+  --ring: oklch(0.82 0.20 95);
+  --tw-ring-color: oklch(0.82 0.20 95);
+}
+
 html[data-focus-highlight="true"] *:focus-visible {
-  outline: 3px solid oklch(0.82 0.20 95) !important;  /* amarelo solido */
+  outline: 3px solid oklch(0.82 0.20 95) !important;
   outline-offset: 2px !important;
-  box-shadow: 0 0 0 6px oklch(0.82 0.20 95 / 0.25) !important;
+  box-shadow: 0 0 0 6px oklch(0.82 0.20 95 / 0.30) !important;
 }
 
 /* ── Fase 3: Reduzir movimento (além do prefers-reduced-motion do SO) ─── */
