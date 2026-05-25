@@ -116,9 +116,21 @@ Importante: **banners críticos (PinTempBanner, DeletionBanner) NÃO migram para
 - **Banner** = comunicação bloqueante/acionável crítica (sem dispensar até resolver)
 - **Sino** = comunicação informacional (dispensável a qualquer momento)
 
+### Canal aberto: "Falta algum ajuste?"
+
+Card de pedido livre no rodapé da aba Acessibilidade. Usuário escreve em texto livre (10-500 chars) o que ajudaria sua experiência. Persistido em `accessibility_requests` com status `pending | read | archived`.
+
+**Visualização admin** em `/console/feedbacks` (aba "Acessibilidade"), com:
+- Lista ordenada por data desc
+- Nome + email do solicitante
+- Ações: Marcar como lido / Arquivar
+- Badge com contagem de pendentes no título da aba
+
+Princípio adotado: **escutar antes de adivinhar.** Em vez de implementar toggles especulativos ("modo TEA", "fonte dislexia") sem dados, deixamos o usuário definir o roadmap pela voz dele. Quando um pedido aparece com frequência, vira candidato a feature.
+
 ### Itens deferidos para futuras fases
 
-- Fonte para dislexia (Atkinson Hyperlegible) — só implementar quando houver pedido real
+- Fonte para dislexia (Atkinson Hyperlegible) — só implementar quando vier pelo canal aberto
 - Reduzir saturação de cores — risco de efeito colateral em gradientes/logos
 - Modo "Reduzir distrações" — requer redesign de várias telas
 - Presets ("Sugerir combinação") por questionário neutro
@@ -141,8 +153,11 @@ Importante: **banners críticos (PinTempBanner, DeletionBanner) NÃO migram para
 | UI: atalhos | `src/components/ui/keyboard-shortcuts-modal.test.tsx` | 5 |
 | UI: skip link (Fase 1) | `src/components/ui/skip-link.test.tsx` | 5 |
 | UI: confirmação finalizar (Fase 1) | `src/app/(session)/consultation/[id]/complete-confirm-dialog.test.tsx` | 4 |
+| Repository: accessibility_requests | `src/server/repositories/accessibility-requests.test.ts` | 9 |
+| Server Actions: accessibility_requests | `src/server/actions/accessibility-requests.test.ts` | 12 |
+| UI: RequestFeedbackCard | `src/app/(app)/settings/tabs/request-feedback-card.test.tsx` | 9 |
 
-Total: **93 testes** dedicados a acessibilidade + notificações.
+Total: **123 testes** dedicados a acessibilidade + notificações + pedidos abertos.
 
 ## 7. Processo contínuo
 
