@@ -216,6 +216,21 @@ html[data-high-contrast="true"].dark {
   --primary-foreground:  oklch(0 0 0);
   --destructive:         oklch(0.72 0.25 25);
   --destructive-foreground: oklch(0 0 0);
+  /* Sidebar */
+  --sidebar-background:          oklch(0.06 0.005 260);
+  --sidebar-foreground:          oklch(1 0 0);
+  --sidebar-primary:             oklch(0.78 0.20 250);
+  --sidebar-primary-foreground:  oklch(0 0 0);
+  --sidebar-accent:              oklch(0.20 0.010 260);
+  --sidebar-accent-foreground:   oklch(1 0 0);
+  --sidebar-border:              oklch(1 0 0 / 50%);
+  --sidebar-ring:                oklch(0.95 0.20 250);
+  /* Topbar / Logo */
+  --topbar-initial-border:  oklch(1 0 0 / 60%);
+  --topbar-scrolled-bg:     oklch(0.06 0.005 260 / 0.98);
+  --topbar-scrolled-border: oklch(1 0 0 / 70%);
+  --logo-text-color:        oklch(1 0 0);
+  --subtitle-color:         oklch(0.92 0 0);
 }
 
 /* Alto contraste — light theme (fundo branco puro, texto preto) */
@@ -239,6 +254,21 @@ html[data-high-contrast="true"]:not(.dark) {
   --primary-foreground:  oklch(1 0 0);
   --destructive:         oklch(0.45 0.22 25);
   --destructive-foreground: oklch(1 0 0);
+  /* Sidebar */
+  --sidebar-background:          oklch(1 0 0);
+  --sidebar-foreground:          oklch(0 0 0);
+  --sidebar-primary:             oklch(0.30 0.18 250);
+  --sidebar-primary-foreground:  oklch(1 0 0);
+  --sidebar-accent:              oklch(0.94 0 0);
+  --sidebar-accent-foreground:   oklch(0 0 0);
+  --sidebar-border:              oklch(0 0 0 / 65%);
+  --sidebar-ring:                oklch(0.30 0.18 250);
+  /* Topbar / Logo */
+  --topbar-initial-border:  oklch(0 0 0 / 60%);
+  --topbar-scrolled-bg:     oklch(1 0 0 / 0.98);
+  --topbar-scrolled-border: oklch(0 0 0 / 70%);
+  --logo-text-color:        oklch(0 0 0);
+  --subtitle-color:         oklch(0.20 0 0);
 }
 
 /* Reforço de foco no modo alto contraste — anel mais espesso e cor sólida */
