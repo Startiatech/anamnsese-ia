@@ -106,6 +106,9 @@ const baseUser: StoredUser = {
   bonusCredits: 0,
   minutesPerConsultation: 30,
   pinIsTemp: false,
+  clinicRtIsSelf: true,
+  prefFontSize: 'normal',
+  prefHighContrast: false,
 }
 
 function renderSettings(props: Partial<React.ComponentProps<typeof SettingsClient>> = {}) {

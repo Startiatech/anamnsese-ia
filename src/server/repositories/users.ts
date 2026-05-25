@@ -3,6 +3,13 @@ import type { ClinicFormData } from '@/lib/schemas'
 
 export type UserRole = 'user' | 'admin' | 'master'
 
+export type FontSizePref = 'normal' | 'large' | 'xlarge'
+
+export interface AccessibilityPrefs {
+  fontSize?: FontSizePref
+  highContrast?: boolean
+}
+
 export interface StoredUser {
   id: string
   name: string
@@ -41,6 +48,9 @@ export interface StoredUser {
   clinicRtName?: string
   clinicRtRegistry?: string
   clinicBusinessHours?: string
+  // ─── accessibility ───
+  prefFontSize: FontSizePref
+  prefHighContrast: boolean
 }
 
 function toStoredUser(row: Record<string, unknown>): StoredUser {
@@ -81,6 +91,8 @@ function toStoredUser(row: Record<string, unknown>): StoredUser {
     clinicRtName: (row.clinic_rt_name as string | null) ?? undefined,
     clinicRtRegistry: (row.clinic_rt_registry as string | null) ?? undefined,
     clinicBusinessHours: (row.clinic_business_hours as string | null) ?? undefined,
+    prefFontSize: ((row.pref_font_size as FontSizePref | null) ?? 'normal'),
+    prefHighContrast: (row.pref_high_contrast as boolean | null) ?? false,
   }
 }
 
@@ -177,6 +189,14 @@ export async function updateClinicLogo(id: string, logo: { url: string; path: st
     clinic_logo_path: logo.path,
   }).eq('id', id)
   if (error) throw new Error(`updateClinicLogo failed: ${error.message}`)
+}
+
+export async function updateAccessibilityPrefs(id: string, prefs: AccessibilityPrefs): Promise<void> {
+  const update: Record<string, unknown> = {}
+  if (prefs.fontSize !== undefined)     update.pref_font_size      = prefs.fontSize
+  if (prefs.highContrast !== undefined) update.pref_high_contrast  = prefs.highContrast
+  const { error } = await supabase.from('users').update(update).eq('id', id)
+  if (error) throw new Error(`updateAccessibilityPrefs failed: ${error.message}`)
 }
 
 export async function clearClinicLogo(id: string): Promise<void> {

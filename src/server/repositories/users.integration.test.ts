@@ -55,6 +55,9 @@ describe('users repository (integration)', () => {
       bonusCredits: 0,
       minutesPerConsultation: 45,
       pinIsTemp: false,
+      clinicRtIsSelf: true,
+      prefFontSize: 'normal',
+      prefHighContrast: false,
     }
     await addUser(newUser)
     const found = await findUserById(id)
