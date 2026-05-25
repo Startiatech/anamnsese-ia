@@ -8,6 +8,9 @@ export type FontSizePref = 'normal' | 'large' | 'xlarge'
 export interface AccessibilityPrefs {
   fontSize?: FontSizePref
   highContrast?: boolean
+  spacingIncreased?: boolean
+  focusHighlight?: boolean
+  extraReducedMotion?: boolean
 }
 
 export interface StoredUser {
@@ -51,6 +54,10 @@ export interface StoredUser {
   // ─── accessibility ───
   prefFontSize: FontSizePref
   prefHighContrast: boolean
+  prefSpacingIncreased: boolean
+  prefFocusHighlight: boolean
+  prefExtraReducedMotion: boolean
+  betaA11yV2: boolean
 }
 
 function toStoredUser(row: Record<string, unknown>): StoredUser {
@@ -93,6 +100,10 @@ function toStoredUser(row: Record<string, unknown>): StoredUser {
     clinicBusinessHours: (row.clinic_business_hours as string | null) ?? undefined,
     prefFontSize: ((row.pref_font_size as FontSizePref | null) ?? 'normal'),
     prefHighContrast: (row.pref_high_contrast as boolean | null) ?? false,
+    prefSpacingIncreased: (row.pref_spacing_increased as boolean | null) ?? false,
+    prefFocusHighlight: (row.pref_focus_highlight as boolean | null) ?? false,
+    prefExtraReducedMotion: (row.pref_extra_reduced_motion as boolean | null) ?? false,
+    betaA11yV2: (row.beta_a11y_v2 as boolean | null) ?? false,
   }
 }
 
@@ -193,8 +204,11 @@ export async function updateClinicLogo(id: string, logo: { url: string; path: st
 
 export async function updateAccessibilityPrefs(id: string, prefs: AccessibilityPrefs): Promise<void> {
   const update: Record<string, unknown> = {}
-  if (prefs.fontSize !== undefined)     update.pref_font_size      = prefs.fontSize
-  if (prefs.highContrast !== undefined) update.pref_high_contrast  = prefs.highContrast
+  if (prefs.fontSize !== undefined)            update.pref_font_size            = prefs.fontSize
+  if (prefs.highContrast !== undefined)        update.pref_high_contrast        = prefs.highContrast
+  if (prefs.spacingIncreased !== undefined)    update.pref_spacing_increased    = prefs.spacingIncreased
+  if (prefs.focusHighlight !== undefined)      update.pref_focus_highlight      = prefs.focusHighlight
+  if (prefs.extraReducedMotion !== undefined)  update.pref_extra_reduced_motion = prefs.extraReducedMotion
   const { error } = await supabase.from('users').update(update).eq('id', id)
   if (error) throw new Error(`updateAccessibilityPrefs failed: ${error.message}`)
 }

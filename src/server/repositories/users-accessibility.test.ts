@@ -45,6 +45,30 @@ describe('updateAccessibilityPrefs', () => {
     expect(mockSupabase.update).toHaveBeenCalledWith({ pref_high_contrast: false })
   })
 
+  it('mapeia os 3 novos toggles (Fase 3): spacing, focus, motion', async () => {
+    mockSupabase.update.mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) })
+
+    await updateAccessibilityPrefs('u1', {
+      spacingIncreased: true,
+      focusHighlight: true,
+      extraReducedMotion: true,
+    })
+
+    expect(mockSupabase.update).toHaveBeenCalledWith({
+      pref_spacing_increased: true,
+      pref_focus_highlight: true,
+      pref_extra_reduced_motion: true,
+    })
+  })
+
+  it('atualizacao parcial apenas focusHighlight', async () => {
+    mockSupabase.update.mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) })
+
+    await updateAccessibilityPrefs('u1', { focusHighlight: false })
+
+    expect(mockSupabase.update).toHaveBeenCalledWith({ pref_focus_highlight: false })
+  })
+
   it('lanca erro quando supabase retorna error', async () => {
     mockSupabase.update.mockReturnValue({
       eq: vi.fn().mockResolvedValue({ error: { message: 'permission denied' } }),
@@ -99,5 +123,34 @@ describe('findUserById mapping — accessibility prefs', () => {
 
     expect(user?.prefFontSize).toBe('normal')
     expect(user?.prefHighContrast).toBe(false)
+    expect(user?.prefSpacingIncreased).toBe(false)
+    expect(user?.prefFocusHighlight).toBe(false)
+    expect(user?.prefExtraReducedMotion).toBe(false)
+    expect(user?.betaA11yV2).toBe(false)
+  })
+
+  it('mapeia novos campos Fase 3 quando presentes no row', async () => {
+    mockSupabase.single.mockResolvedValueOnce({
+      data: {
+        id: 'u1',
+        name: 'Test',
+        email: 't@e.com',
+        password_hash: 'h',
+        role: 'user',
+        created_at: '2026-01-01',
+        pref_spacing_increased: true,
+        pref_focus_highlight: true,
+        pref_extra_reduced_motion: true,
+        beta_a11y_v2: true,
+      },
+      error: null,
+    })
+
+    const user = await findUserById('u1')
+
+    expect(user?.prefSpacingIncreased).toBe(true)
+    expect(user?.prefFocusHighlight).toBe(true)
+    expect(user?.prefExtraReducedMotion).toBe(true)
+    expect(user?.betaA11yV2).toBe(true)
   })
 })

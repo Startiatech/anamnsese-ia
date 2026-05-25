@@ -58,6 +58,10 @@ describe('users repository (integration)', () => {
       clinicRtIsSelf: true,
       prefFontSize: 'normal',
       prefHighContrast: false,
+      prefSpacingIncreased: false,
+      prefFocusHighlight: false,
+      prefExtraReducedMotion: false,
+      betaA11yV2: false,
     }
     await addUser(newUser)
     const found = await findUserById(id)

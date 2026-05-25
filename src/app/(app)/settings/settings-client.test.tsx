@@ -102,6 +102,10 @@ const baseUser: StoredUser = {
   clinicRtIsSelf: true,
   prefFontSize: 'normal',
   prefHighContrast: false,
+  prefSpacingIncreased: false,
+  prefFocusHighlight: false,
+  prefExtraReducedMotion: false,
+  betaA11yV2: false,
 }
 
 function renderSettings(props: Partial<React.ComponentProps<typeof SettingsClient>> = {}) {
