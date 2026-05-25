@@ -66,35 +66,41 @@ function ToggleSwitch({ label, checked, onChange }: ToggleSwitchProps) {
   )
 }
 
-function StatusIndicator({ status }: { status: SaveStatus }) {
-  if (status === 'idle') {
-    return (
-      <p className="text-xs text-muted-foreground">
-        As preferências são salvas automaticamente e sincronizadas entre seus dispositivos.
-      </p>
-    )
-  }
-  if (status === 'saving') {
-    return (
-      <p className="flex items-center gap-1.5 text-xs text-muted-foreground" role="status">
-        <Loader2 className="h-3 w-3 animate-spin" />
-        Salvando...
-      </p>
-    )
-  }
-  if (status === 'saved') {
-    return (
-      <p className="flex items-center gap-1.5 text-xs text-emerald-500 dark:text-emerald-400" role="status">
-        <Check className="h-3 w-3" />
-        Salvo
-      </p>
-    )
-  }
+function StickyStatusIndicator({ status }: { status: SaveStatus }) {
+  // Reserva sempre um slot fixo para evitar layout shift quando status some/aparece.
+  // Sticky para acompanhar o scroll da pagina dentro de Configuracoes.
   return (
-    <p className="flex items-center gap-1.5 text-xs text-destructive" role="status">
-      <AlertTriangle className="h-3 w-3" />
-      Não foi possível salvar — verifique sua conexão e tente novamente.
-    </p>
+    <div className="sticky top-2 z-10 -mx-1 px-1">
+      <div className="h-7 flex items-center">
+        {status === 'saving' && (
+          <span
+            role="status"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-card border border-border text-xs text-muted-foreground shadow-sm"
+          >
+            <Loader2 className="h-3 w-3 animate-spin" />
+            Salvando...
+          </span>
+        )}
+        {status === 'saved' && (
+          <span
+            role="status"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-xs text-emerald-600 dark:text-emerald-400 shadow-sm"
+          >
+            <Check className="h-3 w-3" />
+            Salvo
+          </span>
+        )}
+        {status === 'error' && (
+          <span
+            role="status"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-destructive/10 border border-destructive/40 text-xs text-destructive shadow-sm"
+          >
+            <AlertTriangle className="h-3 w-3" />
+            Não foi possível salvar — verifique sua conexão.
+          </span>
+        )}
+      </div>
+    </div>
   )
 }
 
@@ -107,6 +113,8 @@ export function TabAccessibility() {
 
   return (
     <div className="space-y-4">
+      <StickyStatusIndicator status={saveStatus} />
+
       <SectionCard
         icon={Type}
         title="Tamanho da fonte"
@@ -176,10 +184,6 @@ export function TabAccessibility() {
           </SectionCard>
         </>
       )}
-
-      <div className="px-2">
-        <StatusIndicator status={saveStatus} />
-      </div>
 
       <RequestFeedbackCard />
     </div>
