@@ -156,7 +156,15 @@ test.describe('fluxo de consulta com IA mockada', () => {
     await finalizarAtendimento.click()
 
     // Modal -> botao "Finalizar"
-    const confirmFinalizar = page.getByRole('button', { name: /^finalizar$/i })
+    // Re-aplica supressao de toasts pois novos podem ter surgido apos o click anterior
+    await page.evaluate(() => {
+      document.querySelectorAll('[data-sonner-toaster], [data-sonner-toast]').forEach((el) => {
+        ;(el as HTMLElement).style.pointerEvents = 'none'
+      })
+    })
+    // Escopo: o botao "Finalizar" dentro do AlertDialog (evita ambiguidade com o trigger)
+    const dialog = page.getByRole('alertdialog')
+    const confirmFinalizar = dialog.getByRole('button', { name: /^finalizar$/i })
     await expect(confirmFinalizar).toBeVisible({ timeout: 10_000 })
     await confirmFinalizar.click()
 
