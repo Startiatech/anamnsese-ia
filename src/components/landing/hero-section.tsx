@@ -51,10 +51,7 @@ export function HeroSection() {
         >
           <span className="text-foreground">Anamnese clínica</span>
           <br />
-          <span
-            className="bg-clip-text text-transparent"
-            style={{ backgroundImage: 'linear-gradient(110deg, #A78BFA 0%, #38BDF8 60%, #34D399 100%)', WebkitBackgroundClip: 'text' }}
-          >
+          <span className="text-primary">
             gerada por IA
           </span>
         </motion.h1>

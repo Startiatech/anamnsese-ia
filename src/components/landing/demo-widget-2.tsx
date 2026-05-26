@@ -96,7 +96,7 @@ export function DemoWidget2() {
 
         {/* Header */}
         <div className="text-center mb-12 space-y-2">
-          <p className="text-xs font-semibold text-violet-400 tracking-widest uppercase">
+          <p className="text-xs font-semibold text-primary tracking-widest uppercase">
             Demo gerada por IA
           </p>
           <h2 className="text-2xl lg:text-3xl font-bold text-foreground">

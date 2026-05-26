@@ -22,8 +22,7 @@ export function CTASection() {
           transition={{ duration: 0.5 }}
           className="flex items-center gap-3 mb-8"
         >
-          <span className="w-8 h-px bg-violet-500/40" />
-          <span className="text-xs text-violet-600/80 dark:text-violet-400/70 tracking-widest uppercase font-medium">fase beta · acesso por solicitação</span>
+          <span className="text-xs text-primary tracking-widest uppercase font-medium">fase beta · acesso por solicitação</span>
         </motion.div>
 
         {/* Giant headline */}
@@ -38,10 +37,7 @@ export function CTASection() {
           <br />
           <span className="text-foreground">transformar seus</span>
           <br />
-          <span
-            className="bg-clip-text text-transparent"
-            style={{ backgroundImage: 'linear-gradient(110deg, #A78BFA 0%, #38BDF8 60%, #34D399 100%)', WebkitBackgroundClip: 'text' }}
-          >
+          <span className="text-primary">
             atendimentos?
           </span>
         </motion.h2>

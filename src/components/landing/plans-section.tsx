@@ -57,8 +57,7 @@ export function PlansSection() {
           transition={{ duration: 0.5 }}
           className="flex items-center gap-3 mb-8"
         >
-          <span className="w-8 h-px bg-violet-500/40" />
-          <span className="text-xs text-violet-600/80 dark:text-violet-400/70 tracking-widest uppercase font-medium">
+          <span className="text-xs text-primary tracking-widest uppercase font-medium">
             planos
           </span>
         </motion.div>
@@ -70,13 +69,7 @@ export function PlansSection() {
         >
           <span className="text-foreground">Comece grátis,</span>
           <br />
-          <span
-            className="bg-clip-text text-transparent"
-            style={{
-              backgroundImage: 'linear-gradient(110deg, #A78BFA 0%, #38BDF8 60%, #34D399 100%)',
-              WebkitBackgroundClip: 'text',
-            }}
-          >
+          <span className="text-primary">
             cresça quando quiser
           </span>
         </motion.h2>

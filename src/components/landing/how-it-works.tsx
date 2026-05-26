@@ -53,13 +53,10 @@ export function HowItWorks() {
           transition={{ duration: 0.5 }}
           className="text-center mb-20 space-y-3"
         >
-          <p className="text-xs font-semibold text-violet-600 dark:text-violet-400 tracking-widest uppercase">Como funciona</p>
+          <p className="text-xs font-semibold text-primary tracking-widest uppercase">Como funciona</p>
           <h2 className="text-3xl lg:text-4xl font-bold text-foreground">
             Do atendimento à anamnese{' '}
-            <span
-              className="bg-clip-text text-transparent"
-              style={{ backgroundImage: 'linear-gradient(135deg, #8B5CF6 0%, #06B6D4 100%)' }}
-            >
+            <span className="text-primary">
               em 3 passos
             </span>
           </h2>
