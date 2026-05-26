@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import { Bell, Check, CheckCheck, Sparkles, Info, AlertTriangle } from 'lucide-react'
+import { Bell, Check, CheckCheck, Sparkles, Info, AlertTriangle, Gift } from 'lucide-react'
 import { markNotificationAsRead, markAllNotificationsAsRead } from '@/server/actions/notifications'
 import type { Notification, NotificationType } from '@/server/repositories/notifications'
 import { cn } from '@/lib/utils'
@@ -11,12 +11,14 @@ const TYPE_ICON: Record<NotificationType, React.ComponentType<{ className?: stri
   info: Info,
   feature: Sparkles,
   warning: AlertTriangle,
+  credit_injected: Gift,
 }
 
 const TYPE_COLOR: Record<NotificationType, string> = {
   info: 'text-sky-400',
   feature: 'text-violet-400',
   warning: 'text-amber-400',
+  credit_injected: 'text-emerald-400',
 }
 
 function formatRelative(iso: string): string {
