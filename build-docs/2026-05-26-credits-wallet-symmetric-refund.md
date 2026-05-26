@@ -82,10 +82,52 @@ Bug crítico em produção: créditos eram debitados prioritariamente da carteir
 - `handleAbandonConfirmed` aguarda `refreshCredits()` dentro do `then` de `abandonConsultation`.
 - TDD: 11 testes (2 novos cobrindo o refresh) em [consultation-page-flow.test.tsx](src/app/(session)/app/consultation/[id]/consultation-page-flow.test.tsx).
 
+## Follow-ups entregues na mesma sessão
+
+### Task 11 — Modal de notificação quando master injeta crédito
+
+- **Schema:** expande `notifications.type` CHECK constraint para incluir `'credit_injected'` ([supabase/migrations/20260526b_notifications_type_credit_injected.sql](supabase/migrations/20260526b_notifications_type_credit_injected.sql)).
+- **Action:** `injectCredits` ([src/server/actions/credits.ts](src/server/actions/credits.ts)) cria notification do tipo `credit_injected` após `addBonusCredits` (título com emoji 🎁 e quantidade).
+- **Action nova:** `acknowledgeNotification` ([src/server/actions/notifications.ts](src/server/actions/notifications.ts)) — marca como lida.
+- **Repo:** `findLatestUnreadByType` em [src/server/repositories/notifications.ts](src/server/repositories/notifications.ts).
+- **UI:** [src/components/notifications/credit-injected-modal.tsx](src/components/notifications/credit-injected-modal.tsx) — `AppDialog` com botão "Entendi" que dispara acknowledgeNotification + refreshCredits.
+- **Layout integration:** `(app)/layout.tsx` busca notification não-lida do tipo credit_injected e passa para AppLayoutClient, que renderiza o modal.
+- **Bell:** [src/components/layout/notification-bell.tsx](src/components/layout/notification-bell.tsx) — ícone `Gift` cor emerald-400 para o novo tipo.
+- **TDD:** 22 testes em 3 suites (credits, notifications, modal).
+
+### Task 12a — Refresh automático ao voltar à aba
+
+- **Componente:** [src/components/system/visibility-refresh.tsx](src/components/system/visibility-refresh.tsx) — listener `visibilitychange` que dispara `router.refresh()` quando aba volta a ficar visível.
+- **Montado em:** AppLayoutClient.
+- **Resultado:** após master injetar crédito, user não precisa de F5 — basta tirar e voltar à aba.
+- **TDD:** 3 testes ([src/components/system/visibility-refresh.test.tsx](src/components/system/visibility-refresh.test.tsx)).
+
+### Task 12b — Padronização de modais via AppAlertDialog
+
+- **Componente novo:** [src/components/ui/app-alert-dialog.tsx](src/components/ui/app-alert-dialog.tsx) — irmão de `AppDialog` para confirmações via primitivas `AlertDialog*`. Mesmo header (logo + separador gradiente).
+- **Refatorados (eliminação de ~150 linhas de duplicação de Logo+gradient inline):**
+  - complete-confirm-dialog
+  - delete-patient-dialog
+  - delete-user-modal
+  - credit-info-modal
+  - consultation-page-flow (dialog de abandonar)
+  - consultation-page-client (dialog de clínica obrigatória)
+  - settings-client (dialog de clínica salva)
+  - step-anamnesis (dialog de finalizar)
+- **Mantidos custom (separator interno):** trial-end-modal (multi-step com 3 steps) e delete-account-modal (createPortal com identidade visual LGPD).
+
+### Fix — `useApp` em route group sem AppProvider
+
+- Tentei usar `useApp().refreshCredits()` em `consultation-page-flow` (route group `(session)`), mas esse grupo não tem AppProvider (layout fullscreen sem sidebar). Troquei por `router.refresh()` que re-roda os RSC e busca créditos fresh do server — mesmo efeito sem dependência do contexto.
+
+### Cleanup
+
+- `CreditRepository.addCredits` removido (sem callers após Task 5).
+- Mock de `plans.test.ts` corrigido para cobrir o novo fetch de quota antes do update.
+
 ## Não entregue / out-of-scope desta sessão
 
 - **Estorno retroativo** (Task 9 do plano): pulada por concordância do usuário — não havia consultas órfãs no banco para estornar.
-- **Notificação visual ao usuário quando master injeta crédito** (Task 11): adicionada como follow-up. Design alinhado: modal centrado (`AppDialog`) avisando da cortesia, botão "Entendi" dispara `refreshCredits()` + dismiss. Aproveitar infra existente de notifications (`listNotifications`, `countUnread` já no `(app)/layout.tsx`).
 
 ## TDD — totais
 
@@ -98,9 +140,17 @@ Bug crítico em produção: créditos eram debitados prioritariamente da carteir
 | `plans.test.ts` (repository) | 2 |
 | `app-context.test.tsx` | 3 |
 | `consultation-page-flow.test.tsx` | 11 |
-| **Total** | **65** |
+| `credits.test.ts` (actions, com Task 11) | 8 |
+| `notifications.test.ts` (actions) | 3 |
+| `credit-injected-modal.test.tsx` | 2 |
+| `visibility-refresh.test.tsx` | 3 |
+| **Total específico desta entrega** | **80+** |
 
-Todos passando.
+Suite completa (`pnpm run test:all`): **720+ testes** passando.
+
+E2E (`pnpm playwright test e2e/specs/app/consultation.spec.ts`): 8/8 passando.
+
+Build (`pnpm run build`): OK após limpar `.next` cache.
 
 ## Commits da entrega
 
@@ -114,3 +164,11 @@ Todos passando.
 8. `8796f53` — remove herança trial e reseta quota
 9. `f7c8259` — AppProvider sync de credits
 10. `182cc2c` — consultation-page-flow refreshCredits
+11. `9c6ea3b` — build-doc + diagrama de arquitetura
+12. `9428763` — modal de crédito bônus injetado (Task 11)
+13. `faded4d` — check constraint notifications.type
+14. `ed330a3` — ícone Gift para credit_injected
+15. `932d081` — VisibilityRefresh (Task 12a)
+16. `0350722` — AppAlertDialog padronização (Task 12b)
+17. `75a6086` — fix useApp em (session) → router.refresh
+18. `57c9a7d` — cleanup addCredits + fix mock plans.test
