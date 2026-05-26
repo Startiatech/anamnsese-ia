@@ -172,8 +172,10 @@ test.describe('fluxo de consulta com IA mockada', () => {
     await expect(confirmFinalizar).toBeVisible({ timeout: 10_000 })
     await confirmFinalizar.click()
 
-    // saveConsultation -> POST /api/consultations -> router.push(/consultation)
-    await page.waitForURL(/\/app\/consultation(\?|$|\/)$/, { timeout: 30_000 })
+    // saveConsultation -> POST /api/consultations + completeConsultation (Server Action)
+    // -> hardNavigate /app/consultation
+    // Timeout maior: hardNavigate forca recompile no dev server, lento em mobile/tablet.
+    await page.waitForURL(/\/app\/consultation(\?|$|\/)$/, { timeout: 90_000 })
     await expect(page).toHaveURL(/\/app\/consultation(\?|$|\/)$/)
   })
 
