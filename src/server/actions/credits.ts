@@ -10,6 +10,6 @@ export async function injectCredits(
     return { ok: false, error: 'Quantidade deve ser entre 1 e 500.' }
   }
 
-  const newTotal = await CreditRepository.addCredits(userId, amount)
+  const newTotal = await CreditRepository.addBonusCredits(userId, amount)
   return { ok: true, newTotal }
 }
