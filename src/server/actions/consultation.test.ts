@@ -8,6 +8,18 @@ const { mockGetServerUser, mockUpsert, mockRpc, mockSingle } = vi.hoisted(() => 
   mockSingle: vi.fn(),
 }))
 
+const { mockDebitReturningSource, mockGetCredits } = vi.hoisted(() => ({
+  mockDebitReturningSource: vi.fn(),
+  mockGetCredits: vi.fn(),
+}))
+
+vi.mock('@/server/repositories/credits', () => ({
+  CreditRepository: {
+    getCredits: mockGetCredits,
+    debitCreditReturningSource: mockDebitReturningSource,
+  },
+}))
+
 vi.mock('@/server/services/session', () => ({ getServerUser: mockGetServerUser }))
 
 // Build a self-referential deep chain. Every chainable method returns `chain` itself,
@@ -172,8 +184,8 @@ describe('debitConsultationCredit', () => {
     vi.clearAllMocks()
     buildChain()
     mockGetServerUser.mockResolvedValue({ sub: 'user-1' })
-    mockSingle.mockResolvedValue({ data: { credits_remaining: 5 }, error: null })
-    mockRpc.mockResolvedValue({ data: null, error: null })
+    mockGetCredits.mockResolvedValue(5)
+    mockDebitReturningSource.mockResolvedValue('bonus')
     mockUpsert.mockResolvedValue({ error: null })
   })
 
@@ -181,26 +193,39 @@ describe('debitConsultationCredit', () => {
     mockGetServerUser.mockResolvedValue(null)
     const result = await debitConsultationCredit('patient-1')
     expect(result).toEqual({ error: 'Não autenticado' })
-    expect(mockRpc).not.toHaveBeenCalled()
+    expect(mockGetCredits).not.toHaveBeenCalled()
   })
 
-  it('returns error when credits_remaining is 0', async () => {
-    mockSingle.mockResolvedValue({ data: { credits_remaining: 0 }, error: null })
+  it('returns error when getCredits returns 0', async () => {
+    mockGetCredits.mockResolvedValue(0)
     const result = await debitConsultationCredit('patient-1')
     expect(result).toEqual({ error: 'Créditos insuficientes' })
-    expect(mockRpc).not.toHaveBeenCalled()
+    expect(mockDebitReturningSource).not.toHaveBeenCalled()
   })
 
-  it('returns error when userData is null', async () => {
-    mockSingle.mockResolvedValue({ data: null, error: null })
+  it('returns error when debitCreditReturningSource returns null', async () => {
+    mockDebitReturningSource.mockResolvedValue(null)
     const result = await debitConsultationCredit('patient-1')
-    expect(result).toEqual({ error: 'Créditos insuficientes' })
-    expect(mockRpc).not.toHaveBeenCalled()
+    expect(result).toEqual({ error: 'Falha ao debitar crédito' })
+    expect(mockUpsert).not.toHaveBeenCalled()
   })
 
-  it('calls debit_user_credit RPC with correct user id', async () => {
+  it('persists debit_source from CreditRepository into consultations upsert', async () => {
+    mockDebitReturningSource.mockResolvedValue('bonus')
     await debitConsultationCredit('patient-1')
-    expect(mockRpc).toHaveBeenCalledWith('debit_user_credit', { p_user_id: 'user-1' })
+    expect(mockUpsert).toHaveBeenCalledWith(
+      expect.objectContaining({ debit_source: 'bonus' }),
+      expect.anything(),
+    )
+  })
+
+  it('persists debit_source paid when source is paid', async () => {
+    mockDebitReturningSource.mockResolvedValue('paid')
+    await debitConsultationCredit('patient-1')
+    expect(mockUpsert).toHaveBeenCalledWith(
+      expect.objectContaining({ debit_source: 'paid' }),
+      expect.anything(),
+    )
   })
 
   it('upserts consultation with status in_progress at step 2', async () => {

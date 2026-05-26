@@ -2,23 +2,22 @@
 
 import { supabase } from '@/server/supabase'
 import { getServerUser } from '@/server/services/session'
+import { CreditRepository } from '@/server/repositories/credits'
 import type { ConsultationStep } from '@/types'
 
 export async function debitConsultationCredit(patientId: string): Promise<{ error?: string }> {
   const user = await getServerUser()
   if (!user) return { error: 'Não autenticado' }
 
-  const { data: userData } = await supabase
-    .from('users')
-    .select('credits_remaining')
-    .eq('id', user.sub)
-    .single()
-
-  if (!userData || (userData.credits_remaining as number) < 1) {
+  const total = await CreditRepository.getCredits(user.sub)
+  if (total < 1) {
     return { error: 'Créditos insuficientes' }
   }
 
-  await supabase.rpc('debit_user_credit', { p_user_id: user.sub })
+  const source = await CreditRepository.debitCreditReturningSource(user.sub)
+  if (!source) {
+    return { error: 'Falha ao debitar crédito' }
+  }
 
   const now = new Date().toISOString()
   await supabase.from('consultations').upsert(
@@ -30,6 +29,7 @@ export async function debitConsultationCredit(patientId: string): Promise<{ erro
       audio_attempts: 0,
       refinement_attempts: 0,
       raw_transcript: null,
+      debit_source: source,
       created_at: now,
       updated_at: now,
     },
