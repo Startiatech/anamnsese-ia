@@ -6,8 +6,6 @@ import { supabase } from '@/server/supabase'
 import { getServerUser } from '@/server/services/session'
 import { PlanRepository } from '@/server/repositories/plans'
 import { ROUTES } from '@/lib/routes'
-import { findUserById } from '@/server/repositories/users'
-import { markFeedbackUpgrade } from '@/server/actions/feedback'
 
 interface PlanFeature {
   id: string
@@ -85,16 +83,6 @@ export async function deletePlan(planId: string): Promise<{ error?: string }> {
 export async function selectPlanAction(planId: string): Promise<void> {
   const user = await getServerUser()
   if (!user) redirect(ROUTES.login)
-
-  // Herdar créditos do plano experimental como bônus
-  const storedUser = await findUserById(user.sub)
-  if (storedUser?.planId === 'experimental' && (storedUser.creditsRemaining ?? 0) > 0) {
-    await supabase
-      .from('users')
-      .update({ bonus_credits: storedUser.creditsRemaining })
-      .eq('id', user.sub)
-    await markFeedbackUpgrade(undefined as unknown as string, 'upgrade_organic')
-  }
 
   await PlanRepository.selectPlan(user.sub, planId)
   redirect(ROUTES.configuracoes)

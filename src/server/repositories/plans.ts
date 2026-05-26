@@ -52,9 +52,16 @@ export const PlanRepository = {
   },
 
   async selectPlan(userId: string, planId: string): Promise<void> {
+    const { data: plan } = await supabase
+      .from('plans')
+      .select('quota')
+      .eq('id', planId)
+      .single()
+    const quota = (plan?.quota as number | null) ?? 0
+
     await supabase
       .from('users')
-      .update({ plan_id: planId, plan_selected: true })
+      .update({ plan_id: planId, plan_selected: true, credits_remaining: quota })
       .eq('id', userId)
   },
 }
