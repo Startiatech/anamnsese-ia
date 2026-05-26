@@ -10,21 +10,17 @@ const {
   mockAbandonConsultation,
   mockCompleteConsultation,
   mockPush,
+  mockRefresh,
   mockToastDismiss,
   mockToastPromise,
-  mockRefreshCredits,
 } = vi.hoisted(() => ({
   mockDebitConsultationCredit: vi.fn(),
   mockAbandonConsultation: vi.fn(),
   mockCompleteConsultation: vi.fn(),
   mockPush: vi.fn(),
+  mockRefresh: vi.fn(),
   mockToastDismiss: vi.fn(),
   mockToastPromise: vi.fn(),
-  mockRefreshCredits: vi.fn(),
-}))
-
-vi.mock('@/context/app-context', () => ({
-  useApp: () => ({ refreshCredits: mockRefreshCredits }),
 }))
 
 vi.mock('@/server/actions/consultation', () => ({
@@ -45,7 +41,7 @@ vi.mock('@/server/actions/feedback', () => ({
 }))
 
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: mockPush }),
+  useRouter: () => ({ push: mockPush, refresh: mockRefresh }),
 }))
 
 vi.mock('sonner', () => ({
@@ -229,19 +225,19 @@ describe('ConsultationPageFlow — credit refund logic', () => {
     expect(mockToastDismiss).toHaveBeenCalled()
   })
 
-  it('chama refreshCredits apos debit bem-sucedido', async () => {
+  it('chama router.refresh apos debit bem-sucedido', async () => {
     renderFlow()
     await confirmDebit()
-    await waitFor(() => expect(mockRefreshCredits).toHaveBeenCalled())
+    await waitFor(() => expect(mockRefresh).toHaveBeenCalled())
   })
 
-  it('chama refreshCredits apos abandono com estorno', async () => {
+  it('chama router.refresh apos abandono com estorno', async () => {
     renderFlow()
     await confirmDebit()
-    mockRefreshCredits.mockClear()
+    mockRefresh.mockClear()
     clickAbandon()
     confirmAbandon()
-    await waitFor(() => expect(mockRefreshCredits).toHaveBeenCalled())
+    await waitFor(() => expect(mockRefresh).toHaveBeenCalled())
   })
 })
 

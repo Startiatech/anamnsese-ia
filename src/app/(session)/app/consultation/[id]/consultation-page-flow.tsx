@@ -20,7 +20,6 @@ import { Logo } from '@/components/ui/logo'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { TrialEndModal } from '@/components/trial/trial-end-modal'
 import { CompleteConfirmDialog } from './complete-confirm-dialog'
-import { useApp } from '@/context/app-context'
 import type { Patient } from '@/types'
 
 interface PlanFeatures {
@@ -67,7 +66,6 @@ function AtendimentoFlow({
   planId,
 }: AtendimentoFlowProps) {
   const { state, isTranscribing } = useConsultationFlow()
-  const { refreshCredits } = useApp()
   const router = useRouter()
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [completeConfirmOpen, setCompleteConfirmOpen] = useState(false)
@@ -123,7 +121,7 @@ function AtendimentoFlow({
       if (creditsRemaining - 1 <= 0 && planId === 'experimental') {
         setIsLastCredit(true)
       }
-      await refreshCredits()
+      router.refresh()
     }
     return result
   }
@@ -147,7 +145,7 @@ function AtendimentoFlow({
 
     toast.promise(
       abandonConsultation(patient.id, state.step, aiWasUsed).then(async () => {
-        await refreshCredits()
+        router.refresh()
         if (isLastCredit && aiWasUsed) {
           setShowTrialEndModal(true)
         } else {
