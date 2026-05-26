@@ -13,17 +13,7 @@ import { OnboardingIntroModal } from '@/components/dashboard/onboarding-intro-mo
 import type { StoredUser } from '@/server/repositories/users'
 import { ROUTES } from '@/lib/routes'
 import { UnderlineTabs } from '@/components/ui/underline-tabs'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
-import { Logo } from '@/components/ui/logo'
+import { AppAlertDialog } from '@/components/ui/app-alert-dialog'
 
 type TabId = 'perfil' | 'clinica' | 'seguranca' | 'acessibilidade'
 
@@ -321,31 +311,23 @@ export function SettingsClient({
         </div>
       )}
 
-      <AlertDialog open={clinicSavedDialogOpen} onOpenChange={setClinicSavedDialogOpen}>
-        <AlertDialogContent className="max-w-md">
-          <AlertDialogHeader>
-            <div className="flex flex-col items-center gap-4 mb-4">
-              <Logo size="sm" id="clinic-saved-modal" />
-              <div className="w-full h-px bg-gradient-to-r from-transparent via-primary/25 to-transparent" />
-            </div>
-            <AlertDialogTitle>Dados salvos com sucesso!</AlertDialogTitle>
-            <AlertDialogDescription asChild>
-              <div className="space-y-2 text-sm text-muted-foreground">
-                <p>
-                  Os dados da sua clínica foram atualizados. Agora você já pode iniciar
-                  um novo atendimento.
-                </p>
-              </div>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Continuar em Configurações</AlertDialogCancel>
-            <AlertDialogAction onClick={() => router.push(ROUTES.atendimento)}>
-              Ir para Atendimentos
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <AppAlertDialog
+        open={clinicSavedDialogOpen}
+        onOpenChange={setClinicSavedDialogOpen}
+        logoId="clinic-saved-modal"
+        title="Dados salvos com sucesso!"
+        description={
+          <div className="space-y-2 text-sm text-muted-foreground">
+            <p>
+              Os dados da sua clínica foram atualizados. Agora você já pode iniciar
+              um novo atendimento.
+            </p>
+          </div>
+        }
+        cancelLabel="Continuar em Configurações"
+        actionLabel="Ir para Atendimentos"
+        onConfirm={() => router.push(ROUTES.atendimento)}
+      />
     </div>
   )
 }

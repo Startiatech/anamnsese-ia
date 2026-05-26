@@ -12,16 +12,7 @@ import { StepSections } from '@/components/steps/step-sections'
 import { StepAnamnesis } from '@/components/steps/step-anamnesis'
 import { Button } from '@/components/ui/button'
 import { User } from 'lucide-react'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
+import { AppAlertDialog } from '@/components/ui/app-alert-dialog'
 import { debitConsultationCredit, abandonConsultation, completeConsultation } from '@/server/actions/consultation'
 import { ROUTES } from '@/lib/routes'
 import type { ClinicData } from '@/lib/clinic'
@@ -197,27 +188,17 @@ function AtendimentoFlow({
         onConfirm={handleCompleteConfirmed}
       />
 
-      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <AlertDialogContent className="max-w-md">
-          <AlertDialogHeader>
-            <div className="flex flex-col items-center gap-4 mb-4">
-              <Logo size="sm" id="abandon-modal" />
-              <div className="w-full h-px bg-gradient-to-r from-transparent via-primary/25 to-transparent" />
-            </div>
-            <AlertDialogTitle>{abandonTitle}</AlertDialogTitle>
-            <AlertDialogDescription>{abandonDescription}</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Continuar consulta</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-red-600 hover:bg-red-700 text-white"
-              onClick={handleAbandonConfirmed}
-            >
-              Abandonar
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <AppAlertDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        logoId="abandon-modal"
+        title={abandonTitle}
+        description={abandonDescription}
+        cancelLabel="Continuar consulta"
+        actionLabel="Abandonar"
+        actionVariant="destructive"
+        onConfirm={handleAbandonConfirmed}
+      />
 
       <div className="flex flex-col h-screen">
         {/* Topbar */}

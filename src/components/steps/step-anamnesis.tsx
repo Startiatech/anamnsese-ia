@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
-import { Logo } from '@/components/ui/logo'
 import {
   Select,
   SelectContent,
@@ -14,16 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
+import { AppAlertDialog } from '@/components/ui/app-alert-dialog'
 import { useConsultationFlow } from '@/context/consultation-context'
 import { useConsultation } from '@/hooks/use-consultation'
 import { API } from '@/lib/routes'
@@ -227,30 +217,16 @@ export function StepAnamnesis({
 
   return (
     <>
-    <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-      <AlertDialogContent className="max-w-md">
-        <AlertDialogHeader>
-          <div className="flex flex-col items-center gap-4 mb-4">
-            <Logo size="sm" id="finalize-modal" />
-            <div className="w-full h-px bg-gradient-to-r from-transparent via-primary/25 to-transparent" />
-          </div>
-          <AlertDialogTitle>Finalizar atendimento</AlertDialogTitle>
-          <AlertDialogDescription>
-            Esta anamnese ficará disponível no histórico do paciente, onde você poderá exportar PDF, DOCX ou copiar o texto a qualquer momento.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-
-        <AlertDialogFooter>
-          <AlertDialogCancel>Cancelar</AlertDialogCancel>
-          <AlertDialogAction
-            className="bg-primary hover:bg-primary/90 text-primary-foreground"
-            onClick={() => { setConfirmOpen(false); void doSave() }}
-          >
-            Finalizar
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+    <AppAlertDialog
+      open={confirmOpen}
+      onOpenChange={setConfirmOpen}
+      logoId="finalize-modal"
+      title="Finalizar atendimento"
+      description="Esta anamnese ficará disponível no histórico do paciente, onde você poderá exportar PDF, DOCX ou copiar o texto a qualquer momento."
+      cancelLabel="Cancelar"
+      actionLabel="Finalizar"
+      onConfirm={() => { setConfirmOpen(false); void doSave() }}
+    />
 
     <div className="flex flex-col md:flex-row md:gap-6 md:items-start">
 

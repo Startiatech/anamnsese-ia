@@ -11,17 +11,7 @@ import { ROUTES } from '@/lib/routes'
 import { NewPatientSheet } from './new-patient-sheet'
 import { PatientRowActions } from './patient-row-actions'
 import { Button } from '@/components/ui/button'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
-import { Logo } from '@/components/ui/logo'
+import { AppAlertDialog } from '@/components/ui/app-alert-dialog'
 import {
   Select,
   SelectContent,
@@ -283,33 +273,21 @@ export function ConsultationPageClient({ initialPatients, clinicComplete }: Cons
         onSuccess={handlePatientCreated}
       />
 
-      <AlertDialog open={clinicDialogOpen} onOpenChange={setClinicDialogOpen}>
-        <AlertDialogContent className="max-w-md">
-          <AlertDialogHeader>
-            <div className="flex flex-col items-center gap-4 mb-4">
-              <Logo size="sm" id="clinic-required-modal" />
-              <div className="w-full h-px bg-gradient-to-r from-transparent via-primary/25 to-transparent" />
-            </div>
-            <AlertDialogTitle>Complete os dados da sua clínica</AlertDialogTitle>
-            <AlertDialogDescription asChild>
-              <div className="space-y-2 text-sm text-muted-foreground">
-                <p>
-                  Para iniciar um atendimento é necessário preencher os dados da sua clínica.
-                </p>
-                <p>
-                  Eles serão usados no cabeçalho dos documentos gerados (PDF e DOCX).
-                </p>
-              </div>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={() => router.push(`${ROUTES.configuracoes}?force=clinica`)}>
-              Ir para Configurações
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <AppAlertDialog
+        open={clinicDialogOpen}
+        onOpenChange={setClinicDialogOpen}
+        logoId="clinic-required-modal"
+        title="Complete os dados da sua clínica"
+        description={
+          <div className="space-y-2 text-sm text-muted-foreground">
+            <p>Para iniciar um atendimento é necessário preencher os dados da sua clínica.</p>
+            <p>Eles serão usados no cabeçalho dos documentos gerados (PDF e DOCX).</p>
+          </div>
+        }
+        cancelLabel="Cancelar"
+        actionLabel="Ir para Configurações"
+        onConfirm={() => router.push(`${ROUTES.configuracoes}?force=clinica`)}
+      />
 
     </div>
   )

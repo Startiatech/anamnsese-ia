@@ -3,17 +3,7 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { API } from '@/lib/routes'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
-import { Logo } from '@/components/ui/logo'
+import { AppAlertDialog } from '@/components/ui/app-alert-dialog'
 import type { PatientWithStats } from '@/types'
 
 interface DeletePatientDialogProps {
@@ -51,44 +41,34 @@ export function DeletePatientDialog({ open, onOpenChange, patient, onSuccess }: 
   }
 
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="max-w-md">
-        <AlertDialogHeader>
-          <div className="flex flex-col items-center gap-4 mb-4">
-            <Logo size="sm" id="delete-patient-modal" />
-            <div className="w-full h-px bg-gradient-to-r from-transparent via-primary/25 to-transparent" />
-          </div>
-          <AlertDialogTitle>Excluir {patient.name}?</AlertDialogTitle>
-          <AlertDialogDescription asChild>
-            <div className="space-y-2 text-sm text-muted-foreground">
-              {hasConsultations ? (
-                <>
-                  <p>
-                    Este paciente possui{' '}
-                    <span className="font-semibold text-foreground">
-                      {count} consulta{count !== 1 ? 's' : ''} registrada{count !== 1 ? 's' : ''}
-                    </span>
-                    . Ao excluir, todos os registros vinculados serão perdidos permanentemente.
-                  </p>
-                  <p className="text-destructive font-medium">Esta ação não pode ser desfeita.</p>
-                </>
-              ) : (
-                <p>Esta ação não pode ser desfeita.</p>
-              )}
-            </div>
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
-          <AlertDialogAction
-            onClick={handleDelete}
-            disabled={isDeleting}
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-          >
-            Excluir
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+    <AppAlertDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={`Excluir ${patient.name}?`}
+      logoId="delete-patient-modal"
+      description={
+        <div className="space-y-2 text-sm text-muted-foreground">
+          {hasConsultations ? (
+            <>
+              <p>
+                Este paciente possui{' '}
+                <span className="font-semibold text-foreground">
+                  {count} consulta{count !== 1 ? 's' : ''} registrada{count !== 1 ? 's' : ''}
+                </span>
+                . Ao excluir, todos os registros vinculados serão perdidos permanentemente.
+              </p>
+              <p className="text-destructive font-medium">Esta ação não pode ser desfeita.</p>
+            </>
+          ) : (
+            <p>Esta ação não pode ser desfeita.</p>
+          )}
+        </div>
+      }
+      cancelLabel="Cancelar"
+      actionLabel="Excluir"
+      actionVariant="destructive"
+      actionDisabled={isDeleting}
+      onConfirm={handleDelete}
+    />
   )
 }
