@@ -32,7 +32,7 @@ test.describe('dashboard do usuario', () => {
   test('exibe saudacao com nome do usuario e creditos', async ({ page }, testInfo) => {
     const user = await createTestUser({ role: 'user' })
     await loginAsUser(page, user)
-    await page.waitForURL(/\/dashboard(\?|$|\/)/, { timeout: 60_000 })
+    await page.waitForURL(/\/app\/dashboard(\?|$|\/)/, { timeout: 60_000 })
     await page.waitForLoadState('networkidle')
 
     // Saudacao contem primeiro nome ("E2E" para usuarios e2e)
@@ -57,7 +57,7 @@ test.describe('dashboard do usuario', () => {
   test('navegacao expoe link "Atendimento" (sidebar desktop ou drawer mobile)', async ({ page }, testInfo) => {
     const user = await createTestUser({ role: 'user' })
     await loginAsUser(page, user)
-    await page.waitForURL(/\/dashboard(\?|$|\/)/, { timeout: 60_000 })
+    await page.waitForURL(/\/app\/dashboard(\?|$|\/)/, { timeout: 60_000 })
     await page.waitForLoadState('networkidle')
 
     const isMobile = testInfo.project.name === 'mobile'
@@ -73,7 +73,7 @@ test.describe('dashboard do usuario', () => {
     // Link de Atendimento visivel apos abertura (mobile) ou diretamente (>=768)
     const atendimentoLink = page.getByRole('link', { name: /^atendimento$/i }).first()
     await expect(atendimentoLink).toBeVisible({ timeout: 10_000 })
-    await expect(atendimentoLink).toHaveAttribute('href', '/consultation')
+    await expect(atendimentoLink).toHaveAttribute('href', '/app/consultation')
 
     // Outros itens de navegacao tambem devem estar acessiveis
     await expect(page.getByRole('link', { name: /^histórico$/i }).first()).toBeVisible()
@@ -85,7 +85,7 @@ test.describe('dashboard do usuario', () => {
     // o avatar ainda eh clicavel — mantemos teste em todos os viewports.
     const user = await createTestUser({ role: 'user' })
     await loginAsUser(page, user)
-    await page.waitForURL(/\/dashboard(\?|$|\/)/, { timeout: 60_000 })
+    await page.waitForURL(/\/app\/dashboard(\?|$|\/)/, { timeout: 60_000 })
     await page.waitForLoadState('networkidle')
 
     // Abre o dropdown do avatar — o trigger eh o unico botao com fallback

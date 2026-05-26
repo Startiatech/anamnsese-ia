@@ -253,7 +253,7 @@ export function SettingsClient({
         throw new Error(body.error ?? 'Erro ao atualizar senha')
       }
 
-      window.location.href = '/dashboard?welcome=1'
+      window.location.href = '/app/dashboard?welcome=1'
     })()
 
     toast.promise(promise, {

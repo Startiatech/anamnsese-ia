@@ -4,7 +4,7 @@ import { getServerUser } from '@/lib/auth-server'
 
 export default async function NotFound() {
   const user = await getServerUser()
-  const dashHref = user?.role === 'admin' || user?.role === 'master' ? '/console' : '/dashboard'
+  const dashHref = user?.role === 'admin' || user?.role === 'master' ? '/console' : '/app/dashboard'
   const dashLabel = user?.role === 'admin' || user?.role === 'master' ? 'Ir para o console' : 'Ir para o dashboard'
 
   return (

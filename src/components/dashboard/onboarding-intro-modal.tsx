@@ -51,7 +51,7 @@ export function OnboardingIntroModal({ show, userName }: OnboardingIntroModalPro
   function handleClose() {
     localStorage.setItem(DISMISSED_KEY, '1')
     setOpen(false)
-    router.replace('/settings')
+    router.replace('/app/settings')
   }
 
   if (!open) return null

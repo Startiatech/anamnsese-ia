@@ -20,6 +20,6 @@ describe('PinTempBanner', () => {
 
   it('link aponta para settings com param pin=1', () => {
     render(<PinTempBanner pinIsTemp={true} />)
-    expect(screen.getByRole('link', { name: /Atualizar PIN/i })).toHaveAttribute('href', '/settings?pin=1')
+    expect(screen.getByRole('link', { name: /Atualizar PIN/i })).toHaveAttribute('href', '/app/settings?pin=1')
   })
 })

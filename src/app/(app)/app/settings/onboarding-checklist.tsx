@@ -32,7 +32,7 @@ export function OnboardingChecklist({ passwordChanged, profileCompleted }: Onboa
         </div>
         {allDone && (
           <button
-            onClick={() => router.push('/dashboard')}
+            onClick={() => router.push('/app/dashboard')}
             className="shrink-0 flex items-center gap-1.5 h-8 px-4 rounded-lg text-xs font-medium text-white transition-all shadow-[0_0_20px_rgba(124,58,237,0.35)]"
             style={{ background: 'var(--gradient-brand)' }}
           >

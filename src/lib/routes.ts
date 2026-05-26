@@ -11,15 +11,15 @@ export const ROUTES = {
   requestAccess:   '/request-access',
 
   // ─── Área do profissional (app) ──────────────────────────────────────────
-  dashboard:       '/dashboard',
-  atendimento:     '/consultation',
-  atendimentoNovo: '/consultation/novo',
-  atendimentoId:   (id: string) => `/consultation/${id}`,
-  resultado:       (id: string) => `/result/${id}`,
-  historico:       '/history',
-  planos:          '/plans',
-  configuracoes:   '/settings',
-  onboarding:      '/onboarding',
+  dashboard:       '/app/dashboard',
+  atendimento:     '/app/consultation',
+  atendimentoNovo: '/app/consultation/novo',
+  atendimentoId:   (id: string) => `/app/consultation/${id}`,
+  resultado:       (id: string) => `/app/result/${id}`,
+  historico:       '/app/history',
+  planos:          '/app/plans',
+  configuracoes:   '/app/settings',
+  onboarding:      '/app/onboarding',
 
   // ─── Console admin ───────────────────────────────────────────────────────
   console:              '/console',

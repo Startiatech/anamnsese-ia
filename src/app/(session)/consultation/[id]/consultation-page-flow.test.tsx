@@ -249,6 +249,9 @@ describe('ConsultationPageFlow — TrialEndModal timing (experimental plan, last
     fireEvent.click(screen.getByTestId('btn-next-sections'))
     await waitFor(() => expect(screen.getByTestId('btn-complete')).toBeInTheDocument())
     fireEvent.click(screen.getByTestId('btn-complete'))
+    // CompleteConfirmDialog abre — confirmar "Finalizar"
+    await waitFor(() => expect(screen.getByRole('button', { name: /^finalizar$/i })).toBeInTheDocument())
+    fireEvent.click(screen.getByRole('button', { name: /^finalizar$/i }))
     await waitFor(() => expect(screen.getByTestId('trial-end-modal')).toBeInTheDocument())
     expect(mockPush).not.toHaveBeenCalled()
   })

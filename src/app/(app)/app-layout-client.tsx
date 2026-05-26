@@ -23,10 +23,10 @@ import { PinTempBanner } from '@/components/layout/pin-temp-banner'
 import type { User } from '@/types'
 
 const NAV_ITEMS = [
-  { href: '/dashboard',    label: 'Dashboard',  icon: LayoutDashboard, exact: true },
-  { href: '/consultation', label: 'Atendimento', icon: Stethoscope },
-  { href: '/history',      label: 'Histórico',   icon: ClipboardList },
-  { href: '/plans',        label: 'Planos',      icon: CreditCard },
+  { href: '/app/dashboard',    label: 'Dashboard',  icon: LayoutDashboard, exact: true },
+  { href: '/app/consultation', label: 'Atendimento', icon: Stethoscope },
+  { href: '/app/history',      label: 'Histórico',   icon: ClipboardList },
+  { href: '/app/plans',        label: 'Planos',      icon: CreditCard },
 ]
 
 function AppShell({ children, isOnboarding, deletionScheduledAt, bonusCredits, pinIsTemp, initialNotifications, initialNotificationsUnread }: { children: React.ReactNode; isOnboarding: boolean; deletionScheduledAt: string | null; bonusCredits: number; pinIsTemp: boolean; initialNotifications: Notification[]; initialNotificationsUnread: number }) {

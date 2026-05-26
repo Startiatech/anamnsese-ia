@@ -13,7 +13,7 @@ let mockCredits = 1
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: mockPush }),
-  usePathname: () => '/consultation',
+  usePathname: () => '/app/consultation',
 }))
 
 vi.mock('@/context/app-context', () => ({

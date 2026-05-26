@@ -69,7 +69,7 @@ export function WelcomeModal({ show, userName }: WelcomeModalProps) {
   function handleClose() {
     localStorage.setItem(DISMISSED_KEY, '1')
     setOpen(false)
-    router.replace('/dashboard')
+    router.replace('/app/dashboard')
   }
 
   if (!open || !mounted) return null

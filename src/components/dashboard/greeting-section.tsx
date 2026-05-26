@@ -30,7 +30,7 @@ export function GreetingSection({ weekCount }: GreetingSectionProps) {
 
   const action = (
     <Link
-      href="/consultation"
+      href="/app/consultation"
       aria-disabled={blocked}
       tabIndex={blocked ? -1 : undefined}
       className={blocked ? 'pointer-events-none' : ''}

@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
     hasPin: !!user.pinHash,
   })
 
-  const redirectTo = user.role === 'admin' || user.role === 'master' ? '/console' : '/dashboard'
+  const redirectTo = user.role === 'admin' || user.role === 'master' ? '/console' : '/app/dashboard'
   const response = NextResponse.json({ ok: true, redirectTo })
 
   response.cookies.set(COOKIE_NAME, token, {

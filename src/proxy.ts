@@ -4,8 +4,8 @@ import { verifyToken, COOKIE_NAME } from '@/lib/auth'
 
 const PUBLIC_PATHS = ['/', '/login', '/request-access']
 const ADMIN_PATHS = ['/console']
-const ONBOARDING_PATH = '/settings'
-const PLANS_PATH = '/plans'
+const ONBOARDING_PATH = '/app/settings'
+const PLANS_PATH = '/app/plans'
 
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl
@@ -38,7 +38,7 @@ export async function proxy(req: NextRequest) {
   // Rotas console — exige role admin ou master
   if (ADMIN_PATHS.some((p) => pathname === p || pathname.startsWith(p + '/'))) {
     if (payload.role !== 'admin' && payload.role !== 'master') {
-      return NextResponse.redirect(new URL('/dashboard', req.url))
+      return NextResponse.redirect(new URL('/app/dashboard', req.url))
     }
   }
 

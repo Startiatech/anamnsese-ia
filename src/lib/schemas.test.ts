@@ -308,11 +308,11 @@ describe('responsibilitySchema', () => {
 // ─── planInterestSchema ───────────────────────────────────────────────────────
 describe('planInterestSchema', () => {
   it('aceita dados válidos — profissional', () => {
-    expect(planInterestSchema.safeParse({ name: 'João Silva', email: 'joao@email.com', plan: 'profissional' }).success).toBe(true)
+    expect(planInterestSchema.safeParse({ name: 'João Silva', email: 'joao@email.com', phone: '(11) 98888-7777', plan: 'profissional' }).success).toBe(true)
   })
 
   it('aceita dados válidos — gestao-clinicas', () => {
-    expect(planInterestSchema.safeParse({ name: 'Maria Souza', email: 'maria@clinica.com', plan: 'gestao-clinicas' }).success).toBe(true)
+    expect(planInterestSchema.safeParse({ name: 'Maria Souza', email: 'maria@clinica.com', phone: '(11) 98888-7777', plan: 'gestao-clinicas' }).success).toBe(true)
   })
 
   it('rejeita nome com menos de 2 caracteres', () => {
@@ -340,7 +340,7 @@ describe('planInterestSchema', () => {
   })
 
   it('faz trim no nome', () => {
-    const result = planInterestSchema.safeParse({ name: '  João Silva  ', email: 'a@b.com', plan: 'profissional' })
+    const result = planInterestSchema.safeParse({ name: '  João Silva  ', email: 'a@b.com', phone: '(11) 98888-7777', plan: 'profissional' })
     expect(result.success && result.data.name).toBe('João Silva')
   })
 })

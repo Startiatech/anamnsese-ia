@@ -75,7 +75,7 @@ describe('TrialEndModal', () => {
     await waitFor(() => screen.getByText(/o que deseja fazer agora/i))
     fireEvent.click(screen.getByRole('button', { name: /ver planos/i }))
 
-    await waitFor(() => expect(mockPush).toHaveBeenCalledWith('/plans'))
+    await waitFor(() => expect(mockPush).toHaveBeenCalledWith('/app/plans'))
   })
 
   it('chama markFeedbackUpgrade e navega ao clicar Ver planos', async () => {
@@ -92,7 +92,7 @@ describe('TrialEndModal', () => {
 
     await waitFor(() => {
       expect(mockMarkFeedbackUpgrade).toHaveBeenCalledWith('fb-1', 'upgrade_modal')
-      expect(mockPush).toHaveBeenCalledWith('/plans')
+      expect(mockPush).toHaveBeenCalledWith('/app/plans')
     })
   })
 
@@ -127,7 +127,7 @@ describe('TrialEndModal', () => {
     fireEvent.click(screen.getByRole('button', { name: /confirmar encerramento/i }))
     await waitFor(() => {
       expect(mockScheduleAccountDeletion).toHaveBeenCalledWith('fb-1')
-      expect(mockHardNavigate).toHaveBeenCalledWith('/dashboard')
+      expect(mockHardNavigate).toHaveBeenCalledWith('/app/dashboard')
     })
   })
 

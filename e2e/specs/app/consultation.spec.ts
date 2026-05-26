@@ -56,7 +56,7 @@ test.describe('fluxo de consulta com IA mockada', () => {
     await loginAsUser(page, user)
 
     // Vai para /consultation (lista)
-    await page.goto('/consultation')
+    await page.goto('/app/consultation')
     await page.waitForLoadState('networkidle')
 
     // Encontra a linha do paciente e clica em "Iniciar atendimento"
@@ -67,7 +67,7 @@ test.describe('fluxo de consulta com IA mockada', () => {
     await startBtn.click()
 
     // ─── Step 1: Confirmar paciente ────────────────────────────────────────
-    await page.waitForURL(/\/consultation\/[^/]+$/, { timeout: 30_000 })
+    await page.waitForURL(/\/app\/consultation\/[^/]+$/, { timeout: 30_000 })
     await page.waitForLoadState('networkidle')
 
     await expect(page.getByRole('heading', { name: /confirmar paciente/i })).toBeVisible({
@@ -161,8 +161,8 @@ test.describe('fluxo de consulta com IA mockada', () => {
     await confirmFinalizar.click()
 
     // saveConsultation -> POST /api/consultations -> router.push(/consultation)
-    await page.waitForURL(/\/consultation(\?|$|\/)$/, { timeout: 30_000 })
-    await expect(page).toHaveURL(/\/consultation(\?|$|\/)$/)
+    await page.waitForURL(/\/app\/consultation(\?|$|\/)$/, { timeout: 30_000 })
+    await expect(page).toHaveURL(/\/app\/consultation(\?|$|\/)$/)
   })
 
   test('abandonar consulta no step 1 (antes de debitar) volta para /consultation', async ({
@@ -175,14 +175,14 @@ test.describe('fluxo de consulta com IA mockada', () => {
     const patient = await createPatient(user.id, { name: `E2E_Patient_${Date.now()}_abandon` })
     await loginAsUser(page, user)
 
-    await page.goto('/consultation')
+    await page.goto('/app/consultation')
     await page.waitForLoadState('networkidle')
 
     const row = page.getByRole('row').filter({ hasText: patient.name })
     await expect(row).toBeVisible({ timeout: 30_000 })
     await row.getByRole('button', { name: /iniciar atendimento/i }).click()
 
-    await page.waitForURL(/\/consultation\/[^/]+$/, { timeout: 30_000 })
+    await page.waitForURL(/\/app\/consultation\/[^/]+$/, { timeout: 30_000 })
     await expect(page.getByRole('heading', { name: /confirmar paciente/i })).toBeVisible({
       timeout: 30_000,
     })
@@ -203,7 +203,7 @@ test.describe('fluxo de consulta com IA mockada', () => {
     await confirmar.click()
 
     // Sem credito debitado, redirect direto sem server action
-    await page.waitForURL(/\/consultation(\?|$|\/)$/, { timeout: 15_000 })
-    await expect(page).toHaveURL(/\/consultation(\?|$|\/)$/)
+    await page.waitForURL(/\/app\/consultation(\?|$|\/)$/, { timeout: 15_000 })
+    await expect(page).toHaveURL(/\/app\/consultation(\?|$|\/)$/)
   })
 })

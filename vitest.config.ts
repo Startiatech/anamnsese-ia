@@ -10,7 +10,7 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./vitest.setup.ts'],
     globals: true,
-    exclude: ['**/node_modules/**', '**/*.integration.test.ts'],
+    exclude: ['**/node_modules/**', '**/*.integration.test.ts', 'e2e/**'],
     env: {
       JWT_SECRET: 'test-secret-for-vitest-only',
     },

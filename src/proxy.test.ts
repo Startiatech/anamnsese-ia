@@ -34,17 +34,17 @@ function getForwardedHeader(res: Response, name: string) {
 
 describe('proxy — x-is-plans header', () => {
   it('define x-is-plans como 1 em /plans', async () => {
-    const res = await proxy(makeRequest('/plans'))
+    const res = await proxy(makeRequest('/app/plans'))
     expect(getForwardedHeader(res, 'x-is-plans')).toBe('1')
   })
 
   it('define x-is-plans como 1 em sub-rotas de /plans', async () => {
-    const res = await proxy(makeRequest('/plans/upgrade'))
+    const res = await proxy(makeRequest('/app/plans/upgrade'))
     expect(getForwardedHeader(res, 'x-is-plans')).toBe('1')
   })
 
   it('define x-is-plans como 0 em outras rotas autenticadas', async () => {
-    for (const path of ['/dashboard', '/history', '/settings', '/consultation']) {
+    for (const path of ['/app/dashboard', '/app/history', '/app/settings', '/app/consultation']) {
       const res = await proxy(makeRequest(path))
       expect(getForwardedHeader(res, 'x-is-plans')).toBe('0')
     }
@@ -53,12 +53,12 @@ describe('proxy — x-is-plans header', () => {
 
 describe('proxy — x-is-onboarding header', () => {
   it('define x-is-onboarding como 1 em /settings', async () => {
-    const res = await proxy(makeRequest('/settings'))
+    const res = await proxy(makeRequest('/app/settings'))
     expect(getForwardedHeader(res, 'x-is-onboarding')).toBe('1')
   })
 
   it('define x-is-onboarding como 0 em /plans', async () => {
-    const res = await proxy(makeRequest('/plans'))
+    const res = await proxy(makeRequest('/app/plans'))
     expect(getForwardedHeader(res, 'x-is-onboarding')).toBe('0')
   })
 })
@@ -82,25 +82,25 @@ describe('proxy — rotas públicas', () => {
 describe('proxy — sem token', () => {
   it('redireciona para /login quando sem cookie', async () => {
     mockVerifyToken.mockResolvedValue(null)
-    const res = await proxy(makeRequest('/dashboard'))
+    const res = await proxy(makeRequest('/app/dashboard'))
     expect(res.status).toBe(307)
     expect(res.headers.get('location')).toContain('/login')
   })
 })
 
 describe('proxy — controle de acesso por role', () => {
-  it('redireciona user para /dashboard quando acessa /console', async () => {
+  it('redireciona user para /app/dashboard quando acessa /console', async () => {
     mockVerifyToken.mockResolvedValue({ ...VALID_PAYLOAD, role: 'user' })
     const res = await proxy(makeRequest('/console'))
     expect(res.status).toBe(307)
-    expect(res.headers.get('location')).toContain('/dashboard')
+    expect(res.headers.get('location')).toContain('/app/dashboard')
   })
 
-  it('redireciona user para /dashboard quando acessa sub-rota /console/planos', async () => {
+  it('redireciona user para /app/dashboard quando acessa sub-rota /console/planos', async () => {
     mockVerifyToken.mockResolvedValue({ ...VALID_PAYLOAD, role: 'user' })
     const res = await proxy(makeRequest('/console/planos'))
     expect(res.status).toBe(307)
-    expect(res.headers.get('location')).toContain('/dashboard')
+    expect(res.headers.get('location')).toContain('/app/dashboard')
   })
 
   it('permite admin acessar /console', async () => {

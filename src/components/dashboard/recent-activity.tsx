@@ -22,7 +22,7 @@ export function RecentActivity({ consultations, patients }: RecentActivityProps)
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <p className="text-xs text-muted-foreground">Atividade recente</p>
-          <Link href="/history" className="text-xs text-highlight hover:text-highlight/70 flex items-center gap-1 transition-colors">
+          <Link href="/app/history" className="text-xs text-highlight hover:text-highlight/70 flex items-center gap-1 transition-colors">
             Histórico <ArrowRight className="h-3 w-3" />
           </Link>
         </div>

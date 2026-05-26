@@ -23,14 +23,8 @@ const ROLE_LABEL: Record<string, string> = {
 }
 
 const ROOTS: { prefix: string; label: string; href: string }[] = [
-  { prefix: '/console',   label: 'Console',              href: '/console' },
-  { prefix: '/dashboard', label: 'Área do Profissional', href: '/dashboard' },
-  { prefix: '/consultation', label: 'Área do Profissional', href: '/dashboard' },
-  { prefix: '/history',     label: 'Área do Profissional', href: '/dashboard' },
-  { prefix: '/plans',       label: 'Área do Profissional', href: '/dashboard' },
-  { prefix: '/settings',    label: 'Área do Profissional', href: '/dashboard' },
-  { prefix: '/result',      label: 'Área do Profissional', href: '/dashboard' },
-  { prefix: '/onboarding',  label: 'Área do Profissional', href: '/dashboard' },
+  { prefix: '/console', label: 'Console',              href: '/console' },
+  { prefix: '/app',     label: 'Área do Profissional', href: '/app/dashboard' },
 ]
 
 export function ConsoleBreadcrumb() {
@@ -38,7 +32,7 @@ export function ConsoleBreadcrumb() {
   const { user } = useApp()
 
   const role = user?.role ? ROLE_LABEL[user.role] : null
-  const root = ROOTS.find((r) => pathname.startsWith(r.prefix)) ?? { prefix: '', label: 'Área do Profissional', href: '/dashboard' }
+  const root = ROOTS.find((r) => pathname.startsWith(r.prefix)) ?? { prefix: '', label: 'Área do Profissional', href: '/app/dashboard' }
 
   const segments = [
     { label: root.label, href: root.href },

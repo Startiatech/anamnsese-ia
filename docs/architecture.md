@@ -15,7 +15,7 @@ flowchart TD
     B -->|Sem token JWT| D[Redirect → /login]
     B -->|Token válido| E{Verificar role}
 
-    E -->|role: user| F[App /dashboard]
+    E -->|role: user| F[App /app/dashboard]
     E -->|role: admin ou master| G[Admin /console]
     E -->|user tentando /console| D
 
@@ -44,12 +44,12 @@ flowchart LR
 
     AU --> AU1[login/]
 
-    AP --> AP1[dashboard/]
-    AP --> AP2[consultation/\nnovo/]
-    AP --> AP3[result/id/]
-    AP --> AP4[history/]
-    AP --> AP5[plans/]
-    AP --> AP6[settings/tabs/]
+    AP --> AP1[app/dashboard/]
+    AP --> AP2[app/consultation/\nnovo/]
+    AP --> AP3[app/result/id/]
+    AP --> AP4[app/history/]
+    AP --> AP5[app/plans/]
+    AP --> AP6[app/settings/tabs/]
 
     AD --> AD1[users/]
     AD --> AD2[plans/]
@@ -93,7 +93,7 @@ sequenceDiagram
     Médico->>UI: Salva consulta
     UI->>DB: POST /api/consultations
     DB-->>UI: id da consulta
-    UI->>Médico: Redirect → /result/id
+    UI->>Médico: Redirect → /app/result/id
 ```
 
 ---
@@ -156,7 +156,7 @@ flowchart LR
 
 ```mermaid
 flowchart TD
-    A[Usuário sem créditos] -->|Acessa /plans| B[Página de planos]
+    A[Usuário sem créditos] -->|Acessa /app/plans| B[Página de planos]
     B -->|Escolhe plano| C[Checkout Stripe]
     C -->|Webhook confirmado| D[Server Action: addCredit]
     D --> E[(Supabase: tabela credits)]
@@ -175,7 +175,7 @@ flowchart TD
 |------|--------|-------------|
 | `/` · `/login` · `/request-access` | Público | Nenhuma |
 | `/_next/*` · `/api/auth/*` · `/api/stats` | Ignorado pelo proxy | Nenhuma |
-| `/dashboard` · `/consultation/*` · `/result/*` · `/history` · `/plans` · `/settings` | Autenticado | JWT válido |
+| `/app/dashboard` · `/app/consultation/*` · `/app/result/*` · `/app/history` · `/app/plans` · `/app/settings` | Autenticado | JWT válido |
 | `/console/*` | Admin | JWT + role `admin` ou `master` |
 
 ---
@@ -211,13 +211,13 @@ flowchart LR
 
 ```mermaid
 flowchart TD
-    U[Usuário acessa /consultation/novo]
+    U[Usuário acessa /app/consultation/novo]
     U --> Q{isClinicComplete?}
-    Q -- não --> R["redirect /settings?force=clinica&next=/consultation/novo"]
+    Q -- não --> R["redirect /app/settings?force=clinica&next=/app/consultation/novo"]
     R --> F[Aba Clínica travada e visível]
     F --> S[PATCH /api/users/me]
     S --> N["window.location.href = next"]
-    N --> NA[/consultation/novo]
+    N --> NA[/app/consultation/novo]
     Q -- sim --> NA
 ```
 
@@ -243,7 +243,7 @@ sequenceDiagram
 
 ```mermaid
 flowchart LR
-    R[result/id/page.tsx] -->|findUserById| FU[StoredUser com clinic*]
+    R[app/result/id/page.tsx] -->|findUserById| FU[StoredUser com clinic*]
     FU -->|monta ClinicData| EB[ExportButtons]
     EB --> PDF[generatePDFBlob]
     EB --> DOCX[generateDOCXBlob]

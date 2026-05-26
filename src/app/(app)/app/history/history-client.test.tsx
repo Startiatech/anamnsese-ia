@@ -11,8 +11,8 @@ vi.mock('next/link', () => ({
 
 vi.mock('@/lib/routes', () => ({
   ROUTES: {
-    resultado: (id: string) => `/result/${id}`,
-    atendimento: '/consultation',
+    resultado: (id: string) => `/app/result/${id}`,
+    atendimento: '/app/consultation',
   },
   API: { consultationsPage: (offset: number, limit: number) => `/api/consultations?offset=${offset}&limit=${limit}` },
 }))
@@ -98,7 +98,7 @@ describe('HistoryClient — badge de status da anamnese', () => {
     render(<HistoryClient consultations={mixed} patientsById={patientsById} hasMore={false} />)
     const links = screen.getAllByRole('link', { name: /ver anamnese/i })
     expect(links).toHaveLength(1)
-    expect(links[0]).toHaveAttribute('href', '/result/c-1')
+    expect(links[0]).toHaveAttribute('href', '/app/result/c-1')
   })
 })
 

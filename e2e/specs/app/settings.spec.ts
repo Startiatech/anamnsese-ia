@@ -46,7 +46,7 @@ test.describe('configuracoes do usuario', () => {
 
     await loginAsUser(page, user)
 
-    await page.goto('/settings')
+    await page.goto('/app/settings')
     await page.waitForLoadState('networkidle')
 
     // Tab "Perfil" ja eh a inicial — confirma renderizacao
@@ -93,7 +93,7 @@ test.describe('configuracoes do usuario', () => {
     await seedClinicForUser(user.id)
     await loginAsUser(page, user)
 
-    await page.goto('/settings')
+    await page.goto('/app/settings')
     await page.waitForLoadState('networkidle')
 
     // Troca para a tab "Clínica" (botao simples com texto exato)

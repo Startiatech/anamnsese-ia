@@ -86,6 +86,12 @@ const expectedUser: StoredUser = {
   clinicRtName: undefined,
   clinicRtRegistry: undefined,
   clinicBusinessHours: undefined,
+  prefFontSize: 'normal',
+  prefHighContrast: false,
+  prefSpacingIncreased: false,
+  prefFocusHighlight: false,
+  prefExtraReducedMotion: false,
+  betaA11yV2: false,
 }
 
 beforeEach(() => vi.clearAllMocks())
