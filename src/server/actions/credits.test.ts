@@ -39,7 +39,7 @@ describe('injectCredits', () => {
     expect(mockAddBonusCredits).not.toHaveBeenCalled()
   })
 
-  it('chama addCredits atomico e retorna newTotal', async () => {
+  it('chama addBonusCredits atomico e retorna newTotal', async () => {
     mockAddBonusCredits.mockResolvedValue(30)
     mockCreateNotification.mockResolvedValue(undefined)
     const result = await injectCredits('u1', 20)

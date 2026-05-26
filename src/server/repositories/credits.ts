@@ -40,14 +40,6 @@ export const CreditRepository = {
     return (data as number) ?? 0
   },
 
-  async addCredits(userId: string, amount: number): Promise<number> {
-    const { data } = await supabase.rpc('add_user_credits', {
-      p_user_id: userId,
-      p_amount: amount,
-    })
-    return (data as number) ?? 0
-  },
-
   async getCreditsBreakdown(userId: string): Promise<{ bonus: number; paid: number; total: number }> {
     const { data } = await supabase
       .from('users')

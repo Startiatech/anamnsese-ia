@@ -64,10 +64,33 @@ describe('PlanRepository.getUserPlan', () => {
 })
 
 describe('PlanRepository.selectPlan', () => {
-  it('updates plan_id and plan_selected for the user', async () => {
-    mockEq.mockResolvedValueOnce({ error: null })
+  it('busca a quota do plano e atualiza plan_id, plan_selected e credits_remaining', async () => {
+    mockSelect.mockReturnThis()
+    mockEq.mockReturnThis()
+    mockUpdate.mockReturnThis()
+    mockSingle.mockResolvedValueOnce({ data: { quota: 30 }, error: null })
+
     await PlanRepository.selectPlan('user-1', 'profissional')
-    expect(mockUpdate).toHaveBeenCalledWith({ plan_id: 'profissional', plan_selected: true })
-    expect(mockEq).toHaveBeenCalledWith('id', 'user-1')
+
+    expect(mockUpdate).toHaveBeenCalledWith({
+      plan_id: 'profissional',
+      plan_selected: true,
+      credits_remaining: 30,
+    })
+  })
+
+  it('reseta credits_remaining para 0 quando o plano nao tem quota', async () => {
+    mockSelect.mockReturnThis()
+    mockEq.mockReturnThis()
+    mockUpdate.mockReturnThis()
+    mockSingle.mockResolvedValueOnce({ data: null, error: null })
+
+    await PlanRepository.selectPlan('user-1', 'inexistente')
+
+    expect(mockUpdate).toHaveBeenCalledWith({
+      plan_id: 'inexistente',
+      plan_selected: true,
+      credits_remaining: 0,
+    })
   })
 })
