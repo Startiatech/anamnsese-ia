@@ -368,8 +368,17 @@ input:-webkit-autofill:active {
   color: white !important;
 }
 
-[data-sonner-toast][data-type="loading"] [data-icon] svg {
-  color: white !important;
+[data-sonner-toast][data-type="loading"] [data-icon] {
+  display: none !important;
+}
+
+[data-sonner-toast][data-type="loading"] [data-title] {
+  animation: sonner-loading-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes sonner-loading-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
 }
 
 .dark [data-sonner-toast][data-type="loading"] {

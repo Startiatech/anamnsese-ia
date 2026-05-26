@@ -247,7 +247,15 @@ export function ConsultationPageClient({ initialPatients, clinicComplete }: Cons
                                 return
                               }
                               setProcessingId(patient.id)
-                              router.push(ROUTES.atendimentoId(patient.id))
+                              const navigate = new Promise<void>((resolve) => {
+                                router.push(ROUTES.atendimentoId(patient.id))
+                                setTimeout(resolve, 800)
+                              })
+                              toast.promise(navigate, {
+                                loading: 'Aguarde...',
+                                success: 'Atendimento iniciado.',
+                                error: 'Erro ao iniciar atendimento.',
+                              })
                             }}
                           >
                             {processingId === patient.id ? 'Aguarde...' : 'Iniciar atendimento'}

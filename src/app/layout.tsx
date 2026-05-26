@@ -2,7 +2,6 @@ import type { Metadata } from 'next'
 import localFont from 'next/font/local'
 import NextTopLoader from 'nextjs-toploader'
 import { Toaster } from 'sonner'
-import { Loader2 } from 'lucide-react'
 import { ThemeProvider } from '@/components/providers/theme-provider'
 import './globals.css'
 
@@ -46,7 +45,7 @@ export default function RootLayout({
           <Toaster
             richColors
             position="bottom-right"
-            icons={{ loading: <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" /> }}
+            icons={{ loading: <></> }}
           />
         </ThemeProvider>
       </body>
