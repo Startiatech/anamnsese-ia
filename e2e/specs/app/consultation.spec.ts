@@ -176,8 +176,8 @@ test.describe('fluxo de consulta com IA mockada', () => {
     await page.goto('/app/consultation')
     await page.waitForLoadState('networkidle')
     // Paciente do teste deve aparecer na lista com count >= 1 atendimento
-    const row = page.getByRole('row').filter({ hasText: patient.name })
-    await expect(row).toBeVisible({ timeout: 30_000 })
+    const listRow = page.getByRole('row').filter({ hasText: patient.name })
+    await expect(listRow).toBeVisible({ timeout: 30_000 })
   })
 
   test('abandonar consulta no step 1 (antes de debitar) volta para /consultation', async ({
