@@ -24,6 +24,7 @@ describe('PlanInterestRepository', () => {
       const result = await PlanInterestRepository.save({
         name: 'João Silva',
         email: 'joao@email.com',
+        phone: '(11) 98888-7777',
         plan: 'profissional',
       })
 
@@ -38,6 +39,7 @@ describe('PlanInterestRepository', () => {
       const result = await PlanInterestRepository.save({
         name: 'João Silva',
         email: 'joao@email.com',
+        phone: '(11) 98888-7777',
         plan: 'profissional',
       })
 
@@ -48,7 +50,7 @@ describe('PlanInterestRepository', () => {
       const mockUpsert = vi.fn().mockResolvedValue({ error: null })
       mockSupabase.from.mockReturnValue({ upsert: mockUpsert })
 
-      await PlanInterestRepository.save({ name: 'Ana', email: 'ana@email.com', plan: 'gestao-clinicas' })
+      await PlanInterestRepository.save({ name: 'Ana', email: 'ana@email.com', phone: '(11) 98888-7777', plan: 'gestao-clinicas' })
 
       expect(mockUpsert).toHaveBeenCalledWith(
         expect.objectContaining({ name: 'Ana', email: 'ana@email.com', plan: 'gestao-clinicas' }),

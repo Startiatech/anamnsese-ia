@@ -22,6 +22,7 @@ describe('updateClinicData', () => {
       clinicName: 'C',
       clinicCnpj: '11222333000181',
       clinicAddress: 'R1',
+      clinicAddressNumber: '100',
       clinicCep: '01000000',
       clinicPhone: '11999999999',
       clinicEmail: 'c@x.com',

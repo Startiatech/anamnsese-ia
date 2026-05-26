@@ -21,6 +21,7 @@ describe('PlanInterestRepository (integration)', () => {
       const result = await PlanInterestRepository.save({
         name: 'Teste Integration',
         email: TEST_EMAIL_A,
+        phone: '(11) 98888-7777',
         plan: 'profissional',
       })
 
@@ -36,8 +37,8 @@ describe('PlanInterestRepository (integration)', () => {
     })
 
     it('upsert não duplica registro com mesmo email+plan', async () => {
-      await PlanInterestRepository.save({ name: 'Teste', email: TEST_EMAIL_A, plan: 'profissional' })
-      await PlanInterestRepository.save({ name: 'Teste Atualizado', email: TEST_EMAIL_A, plan: 'profissional' })
+      await PlanInterestRepository.save({ name: 'Teste', email: TEST_EMAIL_A, phone: '(11) 98888-7777', plan: 'profissional' })
+      await PlanInterestRepository.save({ name: 'Teste Atualizado', email: TEST_EMAIL_A, phone: '(11) 98888-7777', plan: 'profissional' })
 
       const { data } = await supabase
         .from('plan_interest')
@@ -49,8 +50,8 @@ describe('PlanInterestRepository (integration)', () => {
     })
 
     it('permite mesmo email em planos diferentes', async () => {
-      await PlanInterestRepository.save({ name: 'Teste', email: TEST_EMAIL_A, plan: 'profissional' })
-      await PlanInterestRepository.save({ name: 'Teste', email: TEST_EMAIL_A, plan: 'gestao-clinicas' })
+      await PlanInterestRepository.save({ name: 'Teste', email: TEST_EMAIL_A, phone: '(11) 98888-7777', plan: 'profissional' })
+      await PlanInterestRepository.save({ name: 'Teste', email: TEST_EMAIL_A, phone: '(11) 98888-7777', plan: 'gestao-clinicas' })
 
       const { data } = await supabase
         .from('plan_interest')
@@ -63,8 +64,8 @@ describe('PlanInterestRepository (integration)', () => {
 
   describe('list', () => {
     it('retorna interesses ordenados por created_at desc', async () => {
-      await PlanInterestRepository.save({ name: 'Primeiro', email: TEST_EMAIL_A, plan: 'profissional' })
-      await PlanInterestRepository.save({ name: 'Segundo', email: TEST_EMAIL_B, plan: 'gestao-clinicas' })
+      await PlanInterestRepository.save({ name: 'Primeiro', email: TEST_EMAIL_A, phone: '(11) 98888-7777', plan: 'profissional' })
+      await PlanInterestRepository.save({ name: 'Segundo', email: TEST_EMAIL_B, phone: '(11) 98888-7777', plan: 'gestao-clinicas' })
 
       const list = await PlanInterestRepository.list()
       const testItems = list.filter((i) => [TEST_EMAIL_A, TEST_EMAIL_B].includes(i.email))
@@ -78,7 +79,7 @@ describe('PlanInterestRepository (integration)', () => {
     })
 
     it('cada item tem as propriedades esperadas', async () => {
-      await PlanInterestRepository.save({ name: 'Teste Props', email: TEST_EMAIL_A, plan: 'profissional' })
+      await PlanInterestRepository.save({ name: 'Teste Props', email: TEST_EMAIL_A, phone: '(11) 98888-7777', plan: 'profissional' })
 
       const list = await PlanInterestRepository.list()
       const item = list.find((i) => i.email === TEST_EMAIL_A)

@@ -10,18 +10,13 @@ const patient: Patient = {
   cpf: '123.456.789-09',
   birthDate: '1990-05-15',
   phone: '(11) 91234-5678',
-  userId: 'u1',
   createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
 }
 
 const consultation: Consultation = {
   id: 'c1',
   patientId: 'p1',
-  userId: 'u1',
-  status: 'completed',
-  audioUrl: null,
-  transcript: null,
+  rawTranscript: '',
   structuredAnamnesis: {
     sections: [
       { title: 'Queixa Principal', content: 'Dor de cabeça.' },

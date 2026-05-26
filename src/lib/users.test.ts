@@ -149,6 +149,13 @@ describe('addUser', () => {
       minutesPerConsultation: 5,
       pinIsTemp: false,
       createdAt: new Date().toISOString(),
+      clinicRtIsSelf: true,
+      prefFontSize: 'normal',
+      prefHighContrast: false,
+      prefSpacingIncreased: false,
+      prefFocusHighlight: false,
+      prefExtraReducedMotion: false,
+      betaA11yV2: false,
     }
     await addUser(newUser)
     expect(mockInsert).toHaveBeenCalledWith(

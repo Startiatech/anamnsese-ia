@@ -65,8 +65,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
     const isOnboarding = !isMasterOrAdmin && !!(storedUser.passwordIsTemp || !storedUser.onboardingCompleted)
 
-    const [initialNotifications, initialNotificationsUnread] = isOnboarding
-      ? [[], 0] as const
+    const [initialNotifications, initialNotificationsUnread]: [Awaited<ReturnType<typeof listNotifications>>, number] = isOnboarding
+      ? [[], 0]
       : await Promise.all([listNotifications(payload.sub), countUnread(payload.sub)])
 
     return (

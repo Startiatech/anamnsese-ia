@@ -57,6 +57,12 @@ export async function POST(req: NextRequest) {
     minutesPerConsultation: 45,
     pinIsTemp: false,
     clinicRtIsSelf: true,
+    prefFontSize: 'normal',
+    prefHighContrast: false,
+    prefSpacingIncreased: false,
+    prefFocusHighlight: false,
+    prefExtraReducedMotion: false,
+    betaA11yV2: false,
   })
 
   // Persiste a senha em texto plano enquanto for temporaria para permitir

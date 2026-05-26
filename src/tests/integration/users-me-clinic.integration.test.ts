@@ -1,5 +1,6 @@
 // @vitest-environment node
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import type { NextRequest } from 'next/server'
 
 let currentToken: string | null = null
 
@@ -41,7 +42,7 @@ describe('PATCH /api/users/me com campos clinic', () => {
   afterEach(async () => { await cleanupUser(userId) })
 
   it('aceita payload misto (perfil + clinic)', async () => {
-    const res = await PATCH(await authed(userId, { name: 'Novo Nome', ...validClinic }))
+    const res = await PATCH((await authed(userId, { name: 'Novo Nome', ...validClinic })) as NextRequest)
     expect(res.status).toBe(200)
     const u = await findUserById(userId)
     expect(u?.name).toBe('Novo Nome')
@@ -51,12 +52,12 @@ describe('PATCH /api/users/me com campos clinic', () => {
   })
 
   it('rejeita CNPJ invalido', async () => {
-    const res = await PATCH(await authed(userId, { ...validClinic, clinicCnpj: '11222333000180' }))
+    const res = await PATCH((await authed(userId, { ...validClinic, clinicCnpj: '11222333000180' })) as NextRequest)
     expect(res.status).toBe(400)
   })
 
   it('rejeita RT incompleto quando clinicRtIsSelf = false', async () => {
-    const res = await PATCH(await authed(userId, { ...validClinic, clinicRtIsSelf: false }))
+    const res = await PATCH((await authed(userId, { ...validClinic, clinicRtIsSelf: false })) as NextRequest)
     expect(res.status).toBe(400)
   })
 })
