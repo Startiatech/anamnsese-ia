@@ -47,6 +47,15 @@ export async function abandonConsultation(
   const user = await getServerUser()
   if (!user) return
 
+  // Read debit_source before upsert to know which wallet to refund
+  const { data: existing } = await supabase
+    .from('consultations')
+    .select('debit_source')
+    .eq('user_id', user.sub)
+    .eq('patient_id', patientId)
+    .single()
+  const source = (existing?.debit_source ?? null) as 'bonus' | 'paid' | null
+
   // raw_transcript is always cleared for privacy on abandonment
   await supabase.from('consultations').upsert(
     {
@@ -60,8 +69,8 @@ export async function abandonConsultation(
     { onConflict: 'user_id,patient_id' },
   )
 
-  if (!aiWasUsed) {
-    await supabase.rpc('refund_user_credit', { p_user_id: user.sub })
+  if (!aiWasUsed && source) {
+    await CreditRepository.refundCredit(user.sub, source)
   }
 }
 

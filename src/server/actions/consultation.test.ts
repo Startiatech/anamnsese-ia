@@ -8,15 +8,17 @@ const { mockGetServerUser, mockUpsert, mockRpc, mockSingle } = vi.hoisted(() => 
   mockSingle: vi.fn(),
 }))
 
-const { mockDebitReturningSource, mockGetCredits } = vi.hoisted(() => ({
+const { mockDebitReturningSource, mockGetCredits, mockRefundCredit } = vi.hoisted(() => ({
   mockDebitReturningSource: vi.fn(),
   mockGetCredits: vi.fn(),
+  mockRefundCredit: vi.fn(),
 }))
 
 vi.mock('@/server/repositories/credits', () => ({
   CreditRepository: {
     getCredits: mockGetCredits,
     debitCreditReturningSource: mockDebitReturningSource,
+    refundCredit: mockRefundCredit,
   },
 }))
 
@@ -81,9 +83,9 @@ describe('abandonConsultation', () => {
     vi.clearAllMocks()
     buildChain()
     mockGetServerUser.mockResolvedValue({ sub: 'user-1' })
-    mockSingle.mockResolvedValue({ data: { credits_remaining: 5 }, error: null })
+    mockSingle.mockResolvedValue({ data: { debit_source: 'paid' }, error: null })
     mockUpsert.mockResolvedValue({})
-    mockRpc.mockResolvedValue({})
+    mockRefundCredit.mockResolvedValue(undefined)
   })
 
   it('does nothing when unauthenticated', async () => {
@@ -100,14 +102,42 @@ describe('abandonConsultation', () => {
     )
   })
 
-  it('calls refund_user_credit when aiWasUsed is false', async () => {
+  it('upserts status abandoned with current_step and raw_transcript null', async () => {
     await abandonConsultation('patient-1', 3, false)
-    expect(mockRpc).toHaveBeenCalledWith('refund_user_credit', { p_user_id: 'user-1' })
+    expect(mockUpsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        user_id: 'user-1',
+        patient_id: 'patient-1',
+        status: 'abandoned',
+        current_step: 3,
+        raw_transcript: null,
+      }),
+      expect.objectContaining({ onConflict: 'user_id,patient_id' }),
+    )
   })
 
-  it('does NOT call refund_user_credit when aiWasUsed is true', async () => {
+  it('refunds bonus wallet when debit_source is bonus and aiWasUsed is false', async () => {
+    mockSingle.mockResolvedValueOnce({ data: { debit_source: 'bonus' }, error: null })
+    await abandonConsultation('patient-1', 3, false)
+    expect(mockRefundCredit).toHaveBeenCalledWith('user-1', 'bonus')
+  })
+
+  it('refunds paid wallet when debit_source is paid and aiWasUsed is false', async () => {
+    mockSingle.mockResolvedValueOnce({ data: { debit_source: 'paid' }, error: null })
+    await abandonConsultation('patient-1', 3, false)
+    expect(mockRefundCredit).toHaveBeenCalledWith('user-1', 'paid')
+  })
+
+  it('does NOT refund when aiWasUsed is true', async () => {
+    mockSingle.mockResolvedValueOnce({ data: { debit_source: 'paid' }, error: null })
     await abandonConsultation('patient-1', 3, true)
-    expect(mockRpc).not.toHaveBeenCalledWith('refund_user_credit', expect.anything())
+    expect(mockRefundCredit).not.toHaveBeenCalled()
+  })
+
+  it('does NOT refund when no consultation row exists (source is null)', async () => {
+    mockSingle.mockResolvedValueOnce({ data: null, error: null })
+    await abandonConsultation('patient-1', 3, false)
+    expect(mockRefundCredit).not.toHaveBeenCalled()
   })
 })
 
