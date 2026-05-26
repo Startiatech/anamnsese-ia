@@ -60,15 +60,15 @@ test.describe('login', () => {
     await expect(page).toHaveURL(/\/console/)
   })
 
-  test('usuario profissional loga e e redirecionado para /dashboard', async ({ page }) => {
+  test('usuario profissional loga e e redirecionado para /app/dashboard', async ({ page }) => {
     const user = await createTestUser({ role: 'user' })
     await page.goto('/login')
     await page.getByLabel(/email/i).fill(user.email)
     await page.getByLabel(/senha/i).fill(E2E_DEFAULT_PASSWORD)
     await page.getByRole('button', { name: /entrar/i }).click()
 
-    await page.waitForURL(/\/dashboard(\?|$|\/)/, { timeout: 60_000 })
-    await expect(page).toHaveURL(/\/dashboard/)
+    await page.waitForURL(/\/app\/dashboard(\?|$|\/)/, { timeout: 60_000 })
+    await expect(page).toHaveURL(/\/app\/dashboard/)
   })
 
   test('credencial invalida exibe toast "Email ou senha incorretos" e mantem em /login', async ({ page }, testInfo) => {
