@@ -10,7 +10,6 @@ const {
   mockAbandonConsultation,
   mockCompleteConsultation,
   mockPush,
-  mockHardNavigate,
   mockToastDismiss,
   mockToastPromise,
 } = vi.hoisted(() => ({
@@ -18,7 +17,6 @@ const {
   mockAbandonConsultation: vi.fn(),
   mockCompleteConsultation: vi.fn(),
   mockPush: vi.fn(),
-  mockHardNavigate: vi.fn(),
   mockToastDismiss: vi.fn(),
   mockToastPromise: vi.fn(),
 }))
@@ -42,10 +40,6 @@ vi.mock('@/server/actions/feedback', () => ({
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: mockPush }),
-}))
-
-vi.mock('@/lib/navigation', () => ({
-  hardNavigate: mockHardNavigate,
 }))
 
 vi.mock('sonner', () => ({
@@ -282,7 +276,6 @@ describe('ConsultationPageFlow — TrialEndModal timing (experimental plan, last
     confirmAbandon()
     await waitFor(() => expect(mockAbandonConsultation).toHaveBeenCalled())
     expect(screen.queryByTestId('trial-end-modal')).not.toBeInTheDocument()
-    // hardNavigate (pós-mutation server-side)
-    expect(mockHardNavigate).toHaveBeenCalled()
+    expect(mockPush).toHaveBeenCalled()
   })
 })

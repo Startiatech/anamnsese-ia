@@ -24,7 +24,6 @@ import {
 } from '@/components/ui/alert-dialog'
 import { debitConsultationCredit, abandonConsultation, completeConsultation } from '@/server/actions/consultation'
 import { ROUTES } from '@/lib/routes'
-import { hardNavigate } from '@/lib/navigation'
 import type { ClinicData } from '@/lib/clinic'
 import { Logo } from '@/components/ui/logo'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
@@ -107,8 +106,7 @@ function AtendimentoFlow({
       setShowTrialEndModal(true)
       return
     }
-    // Pós-mutation server-side: hardNavigate força recarga com estado fresco
-    hardNavigate(ROUTES.atendimento)
+    router.push(ROUTES.atendimento)
   }
 
   async function handleDebit(): Promise<{ error?: string }> {
@@ -158,8 +156,7 @@ function AtendimentoFlow({
         if (isLastCredit && aiWasUsed) {
           setShowTrialEndModal(true)
         } else {
-          // Pós-mutation server-side: hardNavigate força recarga com estado fresco
-          hardNavigate(ROUTES.atendimento)
+          router.push(ROUTES.atendimento)
         }
       }),
       {
