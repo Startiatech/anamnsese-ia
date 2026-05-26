@@ -3,7 +3,7 @@ import { headers } from 'next/headers'
 import { getServerUser } from '@/server/services/session'
 import { CreditRepository } from '@/server/repositories/credits'
 import { findUserById } from '@/server/repositories/users'
-import { listForUser as listNotifications, countUnread } from '@/server/repositories/notifications'
+import { listForUser as listNotifications, countUnread, findLatestUnreadByType } from '@/server/repositories/notifications'
 import { PlanRepository } from '@/server/repositories/plans'
 import { deriveInitials } from '@/lib/utils'
 import { ROUTES } from '@/lib/routes'
@@ -65,9 +65,13 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
     const isOnboarding = !isMasterOrAdmin && !!(storedUser.passwordIsTemp || !storedUser.onboardingCompleted)
 
-    const [initialNotifications, initialNotificationsUnread]: [Awaited<ReturnType<typeof listNotifications>>, number] = isOnboarding
-      ? [[], 0]
-      : await Promise.all([listNotifications(payload.sub), countUnread(payload.sub)])
+    const [initialNotifications, initialNotificationsUnread, creditInjectedNotification] = isOnboarding
+      ? [[], 0, null]
+      : await Promise.all([
+          listNotifications(payload.sub),
+          countUnread(payload.sub),
+          findLatestUnreadByType(payload.sub, 'credit_injected'),
+        ])
 
     return (
       <AppLayoutClient
@@ -86,6 +90,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         initialBetaA11yV2={storedUser.betaA11yV2}
         initialNotifications={initialNotifications}
         initialNotificationsUnread={initialNotificationsUnread}
+        creditInjectedNotification={creditInjectedNotification}
       >
         {children}
       </AppLayoutClient>

@@ -1,6 +1,6 @@
 import { supabase } from '@/server/supabase'
 
-export type NotificationType = 'info' | 'feature' | 'warning'
+export type NotificationType = 'info' | 'feature' | 'warning' | 'credit_injected'
 
 export interface Notification {
   id: string
@@ -72,6 +72,19 @@ export async function markAllAsRead(userId: string): Promise<void> {
     .eq('user_id', userId)
     .is('read_at', null)
   if (error) throw new Error(`markAllAsRead failed: ${error.message}`)
+}
+
+export async function findLatestUnreadByType(userId: string, type: NotificationType): Promise<Notification | null> {
+  const { data } = await supabase
+    .from('notifications')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('type', type)
+    .is('read_at', null)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  return data ? toNotification(data as Record<string, unknown>) : null
 }
 
 export async function createNotification(input: CreateNotificationInput): Promise<void> {

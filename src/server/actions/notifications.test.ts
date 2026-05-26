@@ -21,6 +21,7 @@ import {
   listMyNotifications,
   markNotificationAsRead,
   markAllNotificationsAsRead,
+  acknowledgeNotification,
 } from './notifications'
 
 describe('listMyNotifications', () => {
@@ -113,5 +114,31 @@ describe('markAllNotificationsAsRead', () => {
 
     expect(mockMarkAllAsRead).toHaveBeenCalledWith('u1')
     expect(result).toEqual({ ok: true })
+  })
+})
+
+describe('acknowledgeNotification', () => {
+  beforeEach(() => vi.clearAllMocks())
+
+  it('retorna error quando nao autenticado', async () => {
+    mockGetServerUser.mockResolvedValue(null)
+    const result = await acknowledgeNotification('n-1')
+    expect(result.error).toBeDefined()
+    expect(mockMarkAsRead).not.toHaveBeenCalled()
+  })
+
+  it('chama markAsRead com userId e id', async () => {
+    mockGetServerUser.mockResolvedValue({ sub: 'u-1' })
+    mockMarkAsRead.mockResolvedValue(undefined)
+    const result = await acknowledgeNotification('n-1')
+    expect(mockMarkAsRead).toHaveBeenCalledWith('u-1', 'n-1')
+    expect(result.error).toBeUndefined()
+  })
+
+  it('retorna error quando markAsRead lanca', async () => {
+    mockGetServerUser.mockResolvedValue({ sub: 'u-1' })
+    mockMarkAsRead.mockRejectedValue(new Error('boom'))
+    const result = await acknowledgeNotification('n-1')
+    expect(result.error).toBe('boom')
   })
 })

@@ -51,3 +51,14 @@ export async function markAllNotificationsAsRead(): Promise<{ ok: boolean; error
     return { ok: false, error: 'Erro ao marcar todas como lidas' }
   }
 }
+
+export async function acknowledgeNotification(id: string): Promise<{ error?: string }> {
+  const user = await getServerUser()
+  if (!user) return { error: 'Não autenticado' }
+  try {
+    await markAsRead(user.sub, id)
+    return {}
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : 'Erro ao marcar como lido' }
+  }
+}

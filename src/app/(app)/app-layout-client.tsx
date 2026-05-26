@@ -20,6 +20,7 @@ import { LayoutDashboard, Stethoscope, ClipboardList, CreditCard } from 'lucide-
 import { ScrollToTop } from '@/components/ui/scroll-to-top'
 import { DeletionBanner } from '@/components/layout/deletion-banner'
 import { PinTempBanner } from '@/components/layout/pin-temp-banner'
+import { CreditInjectedModal } from '@/components/notifications/credit-injected-modal'
 import type { User } from '@/types'
 
 const NAV_ITEMS = [
@@ -29,7 +30,7 @@ const NAV_ITEMS = [
   { href: '/app/plans',        label: 'Planos',      icon: CreditCard },
 ]
 
-function AppShell({ children, isOnboarding, deletionScheduledAt, bonusCredits, pinIsTemp, initialNotifications, initialNotificationsUnread }: { children: React.ReactNode; isOnboarding: boolean; deletionScheduledAt: string | null; bonusCredits: number; pinIsTemp: boolean; initialNotifications: Notification[]; initialNotificationsUnread: number }) {
+function AppShell({ children, isOnboarding, deletionScheduledAt, bonusCredits, pinIsTemp, initialNotifications, initialNotificationsUnread, creditInjectedNotification }: { children: React.ReactNode; isOnboarding: boolean; deletionScheduledAt: string | null; bonusCredits: number; pinIsTemp: boolean; initialNotifications: Notification[]; initialNotificationsUnread: number; creditInjectedNotification?: Notification | null }) {
   const { user, credits, planQuota, logout } = useApp()
   const [confirmOpen, setConfirmOpen] = useState(false)
 
@@ -117,6 +118,13 @@ function AppShell({ children, isOnboarding, deletionScheduledAt, bonusCredits, p
           <ScrollToTop />
         </SidebarInset>
       </SidebarProvider>
+      {creditInjectedNotification && (
+        <CreditInjectedModal
+          notificationId={creditInjectedNotification.id}
+          title={creditInjectedNotification.title}
+          body={creditInjectedNotification.body}
+        />
+      )}
     </>
   )
 }
@@ -137,6 +145,7 @@ export function AppLayoutClient({
   initialBetaA11yV2 = false,
   initialNotifications = [],
   initialNotificationsUnread = 0,
+  creditInjectedNotification = null,
   children,
 }: {
   initialUser: User | null
@@ -154,6 +163,7 @@ export function AppLayoutClient({
   initialBetaA11yV2?: boolean
   initialNotifications?: Notification[]
   initialNotificationsUnread?: number
+  creditInjectedNotification?: Notification | null
   children: React.ReactNode
 }) {
   return (
@@ -174,6 +184,7 @@ export function AppLayoutClient({
             pinIsTemp={pinIsTemp}
             initialNotifications={initialNotifications}
             initialNotificationsUnread={initialNotificationsUnread}
+            creditInjectedNotification={creditInjectedNotification}
           >
             {children}
           </AppShell>
