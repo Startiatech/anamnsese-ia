@@ -21,6 +21,7 @@ import { ScrollToTop } from '@/components/ui/scroll-to-top'
 import { DeletionBanner } from '@/components/layout/deletion-banner'
 import { PinTempBanner } from '@/components/layout/pin-temp-banner'
 import { CreditInjectedModal } from '@/components/notifications/credit-injected-modal'
+import { VisibilityRefresh } from '@/components/system/visibility-refresh'
 import type { User } from '@/types'
 
 const NAV_ITEMS = [
@@ -125,6 +126,7 @@ function AppShell({ children, isOnboarding, deletionScheduledAt, bonusCredits, p
           body={creditInjectedNotification.body}
         />
       )}
+      <VisibilityRefresh />
     </>
   )
 }
