@@ -18,7 +18,6 @@ import {
   SidebarTrigger,
   useSidebar,
 } from '@/components/ui/sidebar'
-import { LogoMark } from '@/components/ui/logo'
 import { cn } from '@/lib/utils'
 
 export interface NavItem {
@@ -51,32 +50,18 @@ export function AppSidebar({ navItems, actionItems, preFooter, footer }: AppSide
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="flex flex-row items-center gap-2 px-2 h-16 border-b border-sidebar-border">
-        {/* LogoMark — trigger quando recolhido, ícone simples quando expandido */}
-        <button
-          className={cn(
-            'flex items-center rounded-md transition-all duration-200 ease-linear',
-            isCollapsed
-              ? 'w-full justify-center h-9 hover:bg-sidebar-accent'
-              : 'shrink-0 pointer-events-none px-2'
-          )}
-          onClick={isCollapsed ? toggleSidebar : undefined}
-          tabIndex={isCollapsed ? 0 : -1}
-        >
-          <LogoMark id="sidebar" />
-        </button>
-
-        {/* Texto que desliza para dentro/fora */}
+        {/* Wordmark anamnese_IA_ — visível apenas quando expandido */}
         <div className={cn(
           'overflow-hidden whitespace-nowrap transition-all duration-200 ease-linear',
-          isCollapsed ? 'max-w-0 opacity-0 pointer-events-none' : 'max-w-[200px] opacity-100'
+          isCollapsed ? 'max-w-0 opacity-0 pointer-events-none' : 'max-w-[200px] opacity-100 px-2'
         )}>
-          <span style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: '14px', letterSpacing: '-0.3px', color: 'var(--logo-text-color)', fontWeight: 400 }}>anamnese </span>
-          <span style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: '14px', fontWeight: 700, background: 'linear-gradient(90deg, var(--logo-from-color), var(--logo-to-color))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>IA</span>
+          <span style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: '14px', letterSpacing: '-0.3px', color: 'var(--logo-text-color)', fontWeight: 400 }}>anamnese</span>
+          <span style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: '14px', fontWeight: 700, letterSpacing: '0.5px', background: 'linear-gradient(90deg, var(--logo-from-color), var(--logo-to-color))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>_IA_</span>
         </div>
 
-        {/* Trigger de recolher — só quando expandido no desktop */}
-        {!isCollapsed && !isMobile && (
-          <SidebarTrigger className="shrink-0 ml-auto" />
+        {/* Trigger — quando recolhido, ocupa o header todo; quando expandido, fica à direita */}
+        {!isMobile && (
+          <SidebarTrigger className={cn('shrink-0', isCollapsed ? 'mx-auto' : 'ml-auto')} />
         )}
       </SidebarHeader>
 
