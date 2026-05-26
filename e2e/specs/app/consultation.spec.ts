@@ -49,6 +49,10 @@ test.describe('fluxo de consulta com IA mockada', () => {
 
   test('inicia consulta, percorre os 5 steps e finaliza com IA mockada', async ({ page }) => {
     await mockAiEndpoints(page)
+    // O fluxo registra um beforeunload listener apos debitar credito (avisa o usuario
+    // antes de fechar a aba). A finalizacao usa hardNavigate (window.location.href)
+    // que dispara o beforeunload — aceitamos automaticamente para permitir a navegacao.
+    page.on('dialog', (dialog) => dialog.accept())
 
     const user = await createTestUser({ role: 'user' })
     await seedClinicForUser(user.id)
