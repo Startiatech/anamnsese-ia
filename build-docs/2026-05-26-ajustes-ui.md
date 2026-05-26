@@ -45,8 +45,9 @@ Documento vivo. Atualizar a cada alteração desta sessão.
 - **Demo widget:** `text-violet-400` → `text-primary` em "Demo gerada por IA".
 - **How it works:** eyebrow "Como funciona" e segmento "em 3 passos" → `text-primary`.
 - **Benefits:** eyebrow "Benefícios" e segmento "Anamnese IA" → `text-primary`.
-- **Plans:** traço esquerdo + eyebrow "planos" + segmento "cresça quando quiser" → `bg-primary/40` e `text-primary`.
-- **CTA:** traço esquerdo + eyebrow "fase beta..." + segmento "atendimentos?" → `bg-primary/40` e `text-primary`.
+- **Plans:** eyebrow "planos" + segmento "cresça quando quiser" → `text-primary`. Traço esquerdo removido para alinhar o texto flush com o título abaixo.
+- **CTA:** eyebrow "fase beta · acesso por solicitação" + segmento "atendimentos?" → `text-primary`. Traço esquerdo removido (mesmo motivo de alinhamento).
+- **Eyebrows — saturação:** removido o `/80` de opacidade nos eyebrows "planos" e "fase beta..." para igualar o tom dos demais destaques em `text-primary` cheio.
 - **Login:**
   - Headline "documentada por IA." (versão desktop e mobile) → `text-primary`.
   - "Esqueceu a senha?" → hover usa `hover:text-primary`.
