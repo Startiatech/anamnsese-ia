@@ -152,20 +152,54 @@ flowchart LR
 
 ---
 
-## Créditos — Ciclo de Vida
+## Créditos — Duas Carteiras + Estorno Simétrico
+
+Duas carteiras independentes em `users`:
+
+- `credits_remaining` — saldo do plano (experimental/pago). Reset para `plan.quota` em toda troca de plano (padrão SaaS).
+- `bonus_credits` — cortesia/urgência. Alimentada **só** pela injeção do master. Sem ciclo.
+
+**Regras:**
+
+1. Débito drena `bonus_credits` primeiro, depois `credits_remaining`.
+2. Cada consulta registra `debit_source` ('bonus' | 'paid') no momento do débito.
+3. Estorno (abandono sem uso de IA) volta para a **mesma carteira** indicada por `debit_source`.
+4. `getCredits` retorna `bonus + paid` (validações de saldo).
 
 ```mermaid
 flowchart TD
-    A[Usuário sem créditos] -->|Acessa /app/plans| B[Página de planos]
-    B -->|Escolhe plano| C[Checkout Stripe]
-    C -->|Webhook confirmado| D[Server Action: addCredit]
-    D --> E[(Supabase: tabela credits)]
+    subgraph Origens["Entradas de crédito"]
+        A1[Contratação/renovação de plano] -->|reset| CR[(credits_remaining)]
+        A2[Master injeta cortesia] -->|add_user_bonus_credits| BC[(bonus_credits)]
+    end
 
-    F[Fluxo de consulta] -->|Anamnese gerada| G[Server Action: debitCredit]
-    G --> E
-    E --> H[AppContext: atualiza saldo]
-    H --> I[SidebarCredits: exibe saldo]
+    subgraph Consumo["Fluxo de consulta"]
+        F[StepPatient: confirma paciente] --> G[debitConsultationCredit]
+        G -->|debit_user_credit RETURNS text| SRC{source}
+        SRC -->|bonus| BC
+        SRC -->|paid| CR
+        G -->|persist debit_source| CONS[(consultations.debit_source)]
+        F2[Step Audio sem transcrever] --> AB[abandonConsultation]
+        AB -->|read debit_source| CONS
+        AB -->|refund_user_credit p_source| REFUND{source}
+        REFUND -->|bonus| BC
+        REFUND -->|paid| CR
+    end
+
+    subgraph UI["Camada UI"]
+        CR --> SUM[CreditRepository.getCredits<br/>bonus + paid]
+        BC --> SUM
+        SUM --> CTX[AppContext.credits]
+        CTX --> TB[Topbar / Sidebar badge]
+        BC --> SB[SidebarCredits: linha 'bonus' separada]
+        CR --> SB
+    end
 ```
+
+**Pontos críticos:**
+
+- `AppProvider` sincroniza `credits` via `useEffect([initialCredits])` — sem isso, navegações no App Router não refletiam mudanças.
+- `consultation-page-flow` chama `refreshCredits()` após `handleDebit` e dentro do `then` de `abandonConsultation`.
 
 ---
 
