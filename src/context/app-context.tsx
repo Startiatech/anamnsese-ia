@@ -5,6 +5,7 @@ import {
   useContext,
   useState,
   useCallback,
+  useEffect,
   type ReactNode,
 } from 'react'
 import type { User } from '@/types'
@@ -30,6 +31,11 @@ export function AppProvider({ children, initialUser = null, initialCredits = 0, 
   const [user] = useState<User | null>(initialUser)
   const [credits, setCredits] = useState<number>(initialCredits)
   const [planQuota] = useState<number>(initialPlanQuota)
+
+  // Sincroniza credits quando o layout re-renderiza com prop atualizada
+  useEffect(() => {
+    setCredits(initialCredits)
+  }, [initialCredits])
 
   const refreshCredits = useCallback(async () => {
     const res = await fetch('/api/auth/me')
