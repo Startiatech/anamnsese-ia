@@ -100,8 +100,8 @@ test.describe('console feedbacks (admin)', () => {
     await page.goto('/console/feedbacks')
     await page.waitForLoadState('networkidle')
 
-    await expect(page.getByRole('heading', { level: 1, name: /feedback intelligence/i })).toBeVisible()
-    await expect(page.getByText(/analise o sentimento dos usuários e otimize a conversão/i)).toBeVisible()
+    await expect(page.getByRole('heading', { level: 1, name: /feedbacks dos usu[áa]rios/i })).toBeVisible()
+    await expect(page.getByText(/coment[áa]rios, pedidos e sentimento dos profissionais/i)).toBeVisible()
 
     // 4 labels de metricas
     await expect(page.getByText(/^satisfação$/i)).toBeVisible()
