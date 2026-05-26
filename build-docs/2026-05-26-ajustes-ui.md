@@ -48,6 +48,11 @@ Documento vivo. Atualizar a cada alteração desta sessão.
 - **Plans:** eyebrow "planos" + segmento "cresça quando quiser" → `text-primary`. Traço esquerdo removido para alinhar o texto flush com o título abaixo.
 - **CTA:** eyebrow "fase beta · acesso por solicitação" + segmento "atendimentos?" → `text-primary`. Traço esquerdo removido (mesmo motivo de alinhamento).
 - **Eyebrows — saturação:** removido o `/80` de opacidade nos eyebrows "planos" e "fase beta..." para igualar o tom dos demais destaques em `text-primary` cheio.
+
+### 7. Settings — loading com skeleton
+- **Arquivo:** `src/app/(app)/app/settings/loading.tsx`
+- **Mudança:** o spinner `Loader2` em tela cheia foi substituído por um skeleton representativo (header + tabs + form), alinhado ao padrão do `result/[id]/loading.tsx`.
+- **Motivo:** evitar o "flash de spinner gigante" ao navegar do avatar para configurações.
 - **Login:**
   - Headline "documentada por IA." (versão desktop e mobile) → `text-primary`.
   - "Esqueceu a senha?" → hover usa `hover:text-primary`.
