@@ -33,3 +33,23 @@ Documento vivo. Atualizar a cada alteração desta sessão.
 - **Problema:** entre ~640px e ~1024px, o botão "Entrar" parecia colado na borda direita enquanto a logo tinha respiro à esquerda. Causa: assimetria perceptiva — logo é texto transparente, botão tem fundo sólido; mesmo `px-6` do wrapper externo, o olho percebia menos respiro do lado do botão.
 - **Correção:** padding interno no `<nav>` (`px-2 sm:px-4`) garantindo respiro simétrico independente do wrapper externo.
 - **TDD:** ajuste puramente visual de classe CSS, sem contrato comportamental — validado por @ui-reviewer.
+
+### 5. Hero — "gerada por IA" em azul sólido
+- **Arquivo:** `src/components/landing/hero-section.tsx`
+- **Mudança:** substituído gradient triplo (violeta→sky→verde) por azul sólido `#38BDF8` (sky-400) no segmento "gerada por IA" da headline. Objetivo: tom mais sóbrio, reduzindo a "cara de projeto gerado por IA".
+- **TDD:** alteração visual, E2E continua passando (só valida o texto).
+
+### 6. LP + login — padronização do tom azul (token `--primary`)
+- **Objetivo:** reduzir a "cara de projeto gerado por IA" — eliminar gradientes triplos e variações violet/cyan dispersas, padronizando os destaques no azul `--primary` do design system.
+- **Hero (já em #5):** "gerada por IA" migrado de cor sólida sky-400 para `text-primary`.
+- **Demo widget:** `text-violet-400` → `text-primary` em "Demo gerada por IA".
+- **How it works:** eyebrow "Como funciona" e segmento "em 3 passos" → `text-primary`.
+- **Benefits:** eyebrow "Benefícios" e segmento "Anamnese IA" → `text-primary`.
+- **Plans:** traço esquerdo + eyebrow "planos" + segmento "cresça quando quiser" → `bg-primary/40` e `text-primary`.
+- **CTA:** traço esquerdo + eyebrow "fase beta..." + segmento "atendimentos?" → `bg-primary/40` e `text-primary`.
+- **Login:**
+  - Headline "documentada por IA." (versão desktop e mobile) → `text-primary`.
+  - "Esqueceu a senha?" → hover usa `hover:text-primary`.
+  - "Solicitar" (após "Não tem acesso?") → `text-primary` com `hover:opacity-80`.
+  - Ícones (FEATURES): estilo "pastel saturado" trocado por glow rgba + border 0.25 — alinhado ao padrão sutil dos `BenefitCard` da LP.
+- **TDD:** alterações puramente visuais. E2E da landing (`landing.spec.ts`) só valida texto e continua válido.
