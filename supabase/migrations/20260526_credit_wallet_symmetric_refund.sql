@@ -1,6 +1,6 @@
 -- 1. Coluna para registrar de qual carteira saiu o débito de cada consulta
 ALTER TABLE consultations
-  ADD COLUMN debit_source text CHECK (debit_source IN ('bonus', 'paid'));
+  ADD COLUMN IF NOT EXISTS debit_source text CHECK (debit_source IN ('bonus', 'paid'));
 
 -- 2. Atualiza debit_user_credit para retornar a origem do débito
 -- DROP necessario porque o tipo de retorno mudou (void -> text)
