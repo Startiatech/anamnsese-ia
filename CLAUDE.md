@@ -42,6 +42,17 @@ Route groups: `(marketing)/` · `(auth)/` · `(app)/` · `(admin)/console/` · `
 
 `docs/architecture.md` contém os diagramas Mermaid do projeto. **Obrigatório atualizar este arquivo sempre que uma nova funcionalidade for implementada** — adicionar ou ajustar o diagrama correspondente (fluxo, rota, componente, integração) junto com o código entregue.
 
+## Build docs
+
+Toda entrega gera um arquivo de build documentando as alterações. **Estrutura obrigatória:**
+
+- Pasta por dia: `build-docs/YYYY-MM-DD/`
+- Arquivo dentro da pasta com prefixo de data: `build-docs/YYYY-MM-DD/YYYY-MM-DD-nome-curto.md`
+
+Exemplo: `build-docs/2026-05-26/2026-05-26-credits-wallet-symmetric-refund.md`
+
+Todos os arquivos de build do mesmo dia ficam dentro da mesma pasta.
+
 ---
 
 ## Comandos proibidos de executar via terminal
