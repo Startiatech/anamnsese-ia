@@ -108,11 +108,13 @@ const defaultProps = {
 
 beforeEach(() => {
   MockMediaRecorder.reset()
+  vi.useFakeTimers({ shouldAdvanceTime: true })
   vi.stubGlobal('MediaRecorder', MockMediaRecorder)
   vi.stubGlobal('fetch', vi.fn(() => makeStreamResponse('Paciente relata dor de cabeça.')))
 })
 
 afterEach(() => {
+  vi.useRealTimers()
   vi.unstubAllGlobals()
   vi.clearAllMocks()
 })
@@ -134,6 +136,10 @@ async function startRecording(mockStream: MediaStream) {
   )
   await act(async () => {
     fireEvent.click(screen.getByRole('button', { name: /iniciar gravação/i }))
+  })
+  // Avança o countdown 3..2..1 (3s) para o MediaRecorder ser criado
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(3000)
   })
   await waitFor(() => expect(MockMediaRecorder.instances).toHaveLength(1))
 }
@@ -235,6 +241,117 @@ describe('StepAudio — iniciar gravação', () => {
       expect(toast.error).toHaveBeenCalledWith(
         expect.stringMatching(/microfone|permissão|acesso/i),
       )
+    })
+  })
+})
+
+describe('StepAudio — margem de espera (requesting + preparing)', () => {
+  it('exibe estado "Solicitando acesso ao microfone" enquanto getUserMedia está pendente', async () => {
+    let resolveStream: (s: MediaStream) => void = () => {}
+    const pending = new Promise<MediaStream>(resolve => { resolveStream = resolve })
+    vi.stubGlobal('navigator', { mediaDevices: { getUserMedia: vi.fn().mockReturnValue(pending) } })
+
+    renderStepAudio()
+    await switchToRecordMode()
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /iniciar gravação/i }))
+    })
+
+    expect(screen.getByText(/solicitando acesso ao microfone/i)).toBeInTheDocument()
+
+    // limpa: resolve para não vazar a promise
+    await act(async () => { resolveStream(makeMockStream()) })
+  })
+
+  it('exibe countdown 3..2..1 após permissão concedida e antes de gravar', async () => {
+    const mockStream = makeMockStream()
+    vi.stubGlobal('navigator', { mediaDevices: { getUserMedia: vi.fn().mockResolvedValue(mockStream) } })
+
+    renderStepAudio()
+    await switchToRecordMode()
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /iniciar gravação/i }))
+    })
+
+    expect(screen.getByTestId('record-countdown')).toHaveTextContent('3')
+    expect(MockMediaRecorder.instances).toHaveLength(0)
+
+    await act(async () => { await vi.advanceTimersByTimeAsync(1000) })
+    expect(screen.getByTestId('record-countdown')).toHaveTextContent('2')
+
+    await act(async () => { await vi.advanceTimersByTimeAsync(1000) })
+    expect(screen.getByTestId('record-countdown')).toHaveTextContent('1')
+
+    expect(MockMediaRecorder.instances).toHaveLength(0)
+  })
+
+  it('cria o MediaRecorder somente após o countdown terminar', async () => {
+    const mockStream = makeMockStream()
+    vi.stubGlobal('navigator', { mediaDevices: { getUserMedia: vi.fn().mockResolvedValue(mockStream) } })
+
+    renderStepAudio()
+    await switchToRecordMode()
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /iniciar gravação/i }))
+    })
+
+    expect(MockMediaRecorder.instances).toHaveLength(0)
+
+    await act(async () => { await vi.advanceTimersByTimeAsync(3000) })
+
+    expect(MockMediaRecorder.instances).toHaveLength(1)
+  })
+
+  it('mostra mensagem específica para NotAllowedError', async () => {
+    const { toast } = await import('sonner')
+    const err = new DOMException('Permission denied', 'NotAllowedError')
+    vi.stubGlobal('navigator', { mediaDevices: { getUserMedia: vi.fn().mockRejectedValue(err) } })
+
+    renderStepAudio()
+    await switchToRecordMode()
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /iniciar gravação/i }))
+    })
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith(expect.stringMatching(/permissão negada|habilite o microfone/i))
+    })
+  })
+
+  it('mostra mensagem específica para NotFoundError', async () => {
+    const { toast } = await import('sonner')
+    const err = new DOMException('No device', 'NotFoundError')
+    vi.stubGlobal('navigator', { mediaDevices: { getUserMedia: vi.fn().mockRejectedValue(err) } })
+
+    renderStepAudio()
+    await switchToRecordMode()
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /iniciar gravação/i }))
+    })
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith(expect.stringMatching(/nenhum microfone detectado/i))
+    })
+  })
+
+  it('volta ao estado idle (botão Iniciar gravação visível) após erro', async () => {
+    const err = new DOMException('Permission denied', 'NotAllowedError')
+    vi.stubGlobal('navigator', { mediaDevices: { getUserMedia: vi.fn().mockRejectedValue(err) } })
+
+    renderStepAudio()
+    await switchToRecordMode()
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /iniciar gravação/i }))
+    })
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /iniciar gravação/i })).toBeInTheDocument()
     })
   })
 })

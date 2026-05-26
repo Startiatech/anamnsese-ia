@@ -9,9 +9,11 @@ import { API } from '@/lib/routes'
 
 const TYPEWRITER_INTERVAL_MS = 30
 const ACCEPTED_FORMATS = '.mp3,.wav,.m4a,.ogg'
+const COUNTDOWN_SECONDS = 3
+const COUNTDOWN_INTERVAL_MS = 1000
 
 type InputMode = 'upload' | 'record'
-type RecordState = 'idle' | 'recording' | 'paused' | 'recorded'
+type RecordState = 'idle' | 'requesting' | 'preparing' | 'recording' | 'paused' | 'recorded'
 type AudioState = 'idle' | 'streaming' | 'done' | 'quota_exceeded'
 
 interface StepAudioProps {
@@ -38,6 +40,7 @@ export function StepAudio({
   const [recordState, setRecordState] = useState<RecordState>('idle')
   const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null)
   const [elapsedMs, setElapsedMs] = useState(0)
+  const [countdown, setCountdown] = useState(COUNTDOWN_SECONDS)
 
   const [file, setFile] = useState<File | null>(null)
   const [partialTranscript, setPartialTranscript] = useState(initialTranscript)
@@ -58,6 +61,7 @@ export function StepAudio({
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const chunksRef = useRef<Blob[]>([])
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const elapsedStartRef = useRef<number | null>(null)
   const accumulatedMsRef = useRef(0)
 
@@ -67,6 +71,7 @@ export function StepAudio({
       stopMicrophoneTrack()
       if (intervalRef.current) clearInterval(intervalRef.current)
       if (timerRef.current) clearInterval(timerRef.current)
+      if (countdownRef.current) clearInterval(countdownRef.current)
     }
   }, [])
 
@@ -121,32 +126,63 @@ export function StepAudio({
   }
 
   async function handleStartRecording() {
+    setRecordState('requesting')
+
+    let stream: MediaStream
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-      mediaStreamRef.current = stream
-      chunksRef.current = []
-
-      const recorder = new MediaRecorder(stream)
-      mediaRecorderRef.current = recorder
-
-      recorder.ondataavailable = (e: BlobEvent) => {
-        if (e.data.size > 0) chunksRef.current.push(e.data)
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+    } catch (err) {
+      setRecordState('idle')
+      const name = err instanceof DOMException ? err.name : ''
+      if (name === 'NotAllowedError') {
+        toast.error('Permissão negada. Habilite o microfone nas configurações do navegador.')
+      } else if (name === 'NotFoundError') {
+        toast.error('Nenhum microfone detectado neste dispositivo.')
+      } else {
+        toast.error('Não foi possível acessar o microfone. Verifique as permissões.')
       }
-
-      recorder.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: 'audio/webm' })
-        setRecordedBlob(blob)
-        setRecordState('recorded')
-        stopMicrophoneTrack()
-        resetTimer()
-      }
-
-      recorder.start(1000)
-      startTimer()
-      setRecordState('recording')
-    } catch {
-      toast.error('Não foi possível acessar o microfone. Verifique as permissões.')
+      return
     }
+
+    mediaStreamRef.current = stream
+    chunksRef.current = []
+    setCountdown(COUNTDOWN_SECONDS)
+    setRecordState('preparing')
+
+    let remaining = COUNTDOWN_SECONDS
+    countdownRef.current = setInterval(() => {
+      remaining -= 1
+      if (remaining <= 0) {
+        if (countdownRef.current) {
+          clearInterval(countdownRef.current)
+          countdownRef.current = null
+        }
+        beginRecording(stream)
+      } else {
+        setCountdown(remaining)
+      }
+    }, COUNTDOWN_INTERVAL_MS)
+  }
+
+  function beginRecording(stream: MediaStream) {
+    const recorder = new MediaRecorder(stream)
+    mediaRecorderRef.current = recorder
+
+    recorder.ondataavailable = (e: BlobEvent) => {
+      if (e.data.size > 0) chunksRef.current.push(e.data)
+    }
+
+    recorder.onstop = () => {
+      const blob = new Blob(chunksRef.current, { type: 'audio/webm' })
+      setRecordedBlob(blob)
+      setRecordState('recorded')
+      stopMicrophoneTrack()
+      resetTimer()
+    }
+
+    recorder.start(1000)
+    startTimer()
+    setRecordState('recording')
   }
 
   function handlePauseRecording() {
@@ -397,6 +433,27 @@ export function StepAudio({
               <Button className="w-full sm:w-auto" onClick={handleStartRecording}>
                 Iniciar gravação
               </Button>
+            )}
+
+            {/* Requesting: aguardando prompt do navegador */}
+            {recordState === 'requesting' && (
+              <div className="flex items-center gap-3" data-testid="record-requesting">
+                <span className="inline-block h-3 w-3 rounded-full bg-primary animate-pulse" />
+                <span className="text-sm text-muted-foreground">Solicitando acesso ao microfone...</span>
+              </div>
+            )}
+
+            {/* Preparing: countdown 3..2..1 */}
+            {recordState === 'preparing' && (
+              <div className="flex flex-col items-start gap-2">
+                <span
+                  data-testid="record-countdown"
+                  className="font-mono text-5xl font-bold tabular-nums text-primary"
+                >
+                  {countdown}
+                </span>
+                <span className="text-sm text-muted-foreground">Prepare-se para gravar...</span>
+              </div>
             )}
 
             {/* Recording */}
