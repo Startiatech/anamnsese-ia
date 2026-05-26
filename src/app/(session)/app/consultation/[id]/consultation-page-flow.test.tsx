@@ -12,6 +12,7 @@ const {
   mockPush,
   mockToastDismiss,
   mockToastPromise,
+  mockRefreshCredits,
 } = vi.hoisted(() => ({
   mockDebitConsultationCredit: vi.fn(),
   mockAbandonConsultation: vi.fn(),
@@ -19,6 +20,11 @@ const {
   mockPush: vi.fn(),
   mockToastDismiss: vi.fn(),
   mockToastPromise: vi.fn(),
+  mockRefreshCredits: vi.fn(),
+}))
+
+vi.mock('@/context/app-context', () => ({
+  useApp: () => ({ refreshCredits: mockRefreshCredits }),
 }))
 
 vi.mock('@/server/actions/consultation', () => ({
@@ -221,6 +227,21 @@ describe('ConsultationPageFlow — credit refund logic', () => {
   it('dismisses loading toast on mount', () => {
     renderFlow()
     expect(mockToastDismiss).toHaveBeenCalled()
+  })
+
+  it('chama refreshCredits apos debit bem-sucedido', async () => {
+    renderFlow()
+    await confirmDebit()
+    await waitFor(() => expect(mockRefreshCredits).toHaveBeenCalled())
+  })
+
+  it('chama refreshCredits apos abandono com estorno', async () => {
+    renderFlow()
+    await confirmDebit()
+    mockRefreshCredits.mockClear()
+    clickAbandon()
+    confirmAbandon()
+    await waitFor(() => expect(mockRefreshCredits).toHaveBeenCalled())
   })
 })
 
