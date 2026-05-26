@@ -26,7 +26,7 @@ export function LandingNavbar() {
         borderBottom: scrolled ? '1px solid var(--topbar-scrolled-border)' : '1px solid var(--topbar-initial-border)',
       }}
     >
-      <nav className="w-full max-w-5xl flex items-center h-16 gap-4">
+      <nav className="w-full max-w-5xl flex items-center h-16 gap-4 px-2 sm:px-4">
         {/* Logo */}
         <Link href="/" className="flex items-center">
           <Logo size="md" />
