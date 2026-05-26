@@ -3,6 +3,9 @@ ALTER TABLE consultations
   ADD COLUMN debit_source text CHECK (debit_source IN ('bonus', 'paid'));
 
 -- 2. Atualiza debit_user_credit para retornar a origem do débito
+-- DROP necessario porque o tipo de retorno mudou (void -> text)
+DROP FUNCTION IF EXISTS public.debit_user_credit(uuid);
+
 CREATE OR REPLACE FUNCTION public.debit_user_credit(p_user_id uuid)
 RETURNS text
 LANGUAGE plpgsql
@@ -34,6 +37,9 @@ END;
 $function$;
 
 -- 3. Estorno simétrico: aceita a carteira de destino
+-- DROP necessario porque a assinatura mudou (adicionou p_source)
+DROP FUNCTION IF EXISTS public.refund_user_credit(uuid);
+
 CREATE OR REPLACE FUNCTION public.refund_user_credit(p_user_id uuid, p_source text)
 RETURNS void
 LANGUAGE plpgsql
