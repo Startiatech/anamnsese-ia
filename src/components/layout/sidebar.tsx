@@ -18,6 +18,7 @@ import {
   SidebarTrigger,
   useSidebar,
 } from '@/components/ui/sidebar'
+import { Logo } from '@/components/ui/logo'
 import { cn } from '@/lib/utils'
 
 export interface NavItem {
@@ -50,13 +51,12 @@ export function AppSidebar({ navItems, actionItems, preFooter, footer }: AppSide
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="flex flex-row items-center gap-2 px-2 h-16 border-b border-sidebar-border">
-        {/* Wordmark anamnese_IA_ — visível apenas quando expandido */}
+        {/* Logo — visível apenas quando expandido */}
         <div className={cn(
           'overflow-hidden whitespace-nowrap transition-all duration-200 ease-linear',
           isCollapsed ? 'max-w-0 opacity-0 pointer-events-none' : 'max-w-[200px] opacity-100 px-2'
         )}>
-          <span style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: '14px', letterSpacing: '-0.3px', color: 'var(--logo-text-color)', fontWeight: 400 }}>anamnese</span>
-          <span style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: '14px', fontWeight: 700, letterSpacing: '0.5px', background: 'linear-gradient(90deg, var(--logo-from-color), var(--logo-to-color))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>_IA_</span>
+          <Logo size="sm" id="sidebar" />
         </div>
 
         {/* Trigger — quando recolhido, ocupa o header todo; quando expandido, fica à direita */}
