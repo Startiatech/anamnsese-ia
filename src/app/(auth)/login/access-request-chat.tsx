@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
-import { LogoMark } from '@/components/ui/logo'
 import { ArrowLeft, ArrowRight, Send, CheckCircle2, Pencil, Check, X } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -51,8 +50,16 @@ interface Message { id?: string; from: 'bot' | 'user'; text: string; pending?: b
 
 function SparkAvatar() {
   return (
-    <div className="w-7 h-7 rounded-lg shrink-0 flex items-center justify-center bg-primary/10 border border-primary/20">
-      <LogoMark id="chat-av" />
+    <div
+      className="w-7 h-7 rounded-lg shrink-0 flex items-center justify-center bg-primary/10 border border-primary/20"
+      aria-label="anamnese_IA_"
+    >
+      <span
+        className="text-primary font-bold leading-none"
+        style={{ fontFamily: "'Inter', system-ui, sans-serif", fontSize: '11px', letterSpacing: '0.5px' }}
+      >
+        _IA_
+      </span>
     </div>
   )
 }

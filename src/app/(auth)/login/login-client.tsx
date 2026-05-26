@@ -77,10 +77,10 @@ export function LoginClient() {
   }
 
   const FEATURES = [
-    { icon: Mic,      text: 'Gravação direta na plataforma',       color: 'text-red-600 dark:text-red-400',         iconBg: 'bg-red-100 border border-red-300/70 dark:bg-red-500/10 dark:border-red-500/30' },
-    { icon: FileText, text: 'Anamnese estruturada automaticamente', color: 'text-violet-600 dark:text-violet-400',   iconBg: 'bg-violet-100 border border-violet-300/70 dark:bg-violet-500/10 dark:border-violet-500/30' },
-    { icon: Clock,    text: 'Economize até 70% do tempo',           color: 'text-cyan-600 dark:text-cyan-400',       iconBg: 'bg-cyan-100 border border-cyan-300/70 dark:bg-cyan-500/10 dark:border-cyan-500/30' },
-    { icon: Shield,   text: 'Dados clínicos protegidos',            color: 'text-emerald-600 dark:text-emerald-400', iconBg: 'bg-emerald-100 border border-emerald-300/70 dark:bg-emerald-500/10 dark:border-emerald-500/30' },
+    { icon: Mic,      text: 'Gravação direta na plataforma',        color: 'text-rose-600/80 dark:text-rose-400/80',     glow: 'rgba(244,63,94,0.10)',  border: 'rgba(244,63,94,0.25)' },
+    { icon: FileText, text: 'Anamnese estruturada automaticamente', color: 'text-violet-600/80 dark:text-violet-400/80', glow: 'rgba(124,58,237,0.10)', border: 'rgba(124,58,237,0.25)' },
+    { icon: Clock,    text: 'Economize até 70% do tempo',           color: 'text-cyan-700/80 dark:text-cyan-400/80',     glow: 'rgba(6,182,212,0.10)',  border: 'rgba(6,182,212,0.25)' },
+    { icon: Shield,   text: 'Dados clínicos protegidos',            color: 'text-emerald-600/80 dark:text-emerald-400/80', glow: 'rgba(16,185,129,0.10)', border: 'rgba(16,185,129,0.25)' },
   ]
 
   const backLink = (
@@ -112,8 +112,7 @@ export function LoginClient() {
 
           <h2 className="text-3xl xl:text-4xl font-black leading-tight tracking-tight">
             <span className="text-foreground">Sua consulta,</span><br />
-            <span className="bg-clip-text text-transparent"
-              style={{ backgroundImage: 'linear-gradient(110deg, #8B5CF6 0%, #06B6D4 100%)', WebkitBackgroundClip: 'text' }}>
+            <span className="text-primary">
               documentada por IA.
             </span>
           </h2>
@@ -123,9 +122,12 @@ export function LoginClient() {
           </p>
 
           <div className="space-y-4">
-            {FEATURES.map(({ icon: Icon, text, color, iconBg }) => (
+            {FEATURES.map(({ icon: Icon, text, color, glow, border }) => (
               <div key={text} className="flex items-center gap-3">
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${iconBg}`}>
+                <div
+                  className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                  style={{ background: glow, border: `1px solid ${border}` }}
+                >
                   <Icon className={`h-4 w-4 ${color}`} />
                 </div>
                 <span className="text-sm text-muted-foreground">{text}</span>
@@ -146,8 +148,7 @@ export function LoginClient() {
             <p className="text-xs text-muted-foreground/40 tracking-widest uppercase mb-5">voz · inteligência · documento</p>
             <h2 className="text-3xl md:text-4xl font-black leading-tight tracking-tight mb-5">
               <span className="text-foreground">Sua consulta,</span><br />
-              <span className="bg-clip-text text-transparent"
-                style={{ backgroundImage: 'linear-gradient(110deg, #8B5CF6 0%, #06B6D4 100%)', WebkitBackgroundClip: 'text' }}>
+              <span className="text-primary">
                 documentada por IA.
               </span>
             </h2>
@@ -194,7 +195,7 @@ export function LoginClient() {
                   <div className="flex justify-center">
                     <Button type="button" variant="link" onClick={() => setMode('forgot')}
                       disabled={isSubmitting}
-                      className="p-0 h-auto text-xs text-muted-foreground/60 hover:text-violet-600 dark:hover:text-violet-400 disabled:opacity-40 disabled:cursor-not-allowed">
+                      className="p-0 h-auto text-xs text-muted-foreground/60 hover:text-primary disabled:opacity-40 disabled:cursor-not-allowed">
                       Esqueceu a senha?
                     </Button>
                   </div>
@@ -210,7 +211,7 @@ export function LoginClient() {
                     Não tem acesso?{' '}
                     <Button type="button" variant="link" onClick={() => setMode('request')}
                       disabled={isSubmitting}
-                      className="p-0 h-auto text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 disabled:opacity-40 disabled:cursor-not-allowed">
+                      className="p-0 h-auto text-primary hover:opacity-80 disabled:opacity-40 disabled:cursor-not-allowed">
                       Solicitar
                     </Button>
                   </p>
