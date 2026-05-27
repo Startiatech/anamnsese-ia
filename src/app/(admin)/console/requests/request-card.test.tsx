@@ -30,6 +30,7 @@ describe('RequestCard', () => {
     expect(screen.getByText('Profissional Um Teste')).toBeInTheDocument()
     expect(screen.getByText('profissionalumteste@gmail.com')).toBeInTheDocument()
     expect(screen.getByText(/Gostaria de testar a plataforma/)).toBeInTheDocument()
+    expect(screen.getByText(/27\/05\/2026/)).toBeInTheDocument()
   })
 
   it('does not render the message block when there is no message', () => {
@@ -67,6 +68,22 @@ describe('RequestCard', () => {
     expect(screen.queryByRole('button', { name: /aprovar/i })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /rejeitar/i })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /ver credenciais/i })).not.toBeInTheDocument()
+  })
+
+  it('expands and collapses a long message', async () => {
+    const user = userEvent.setup()
+    const h = noopHandlers()
+    const longMsg = 'a'.repeat(130)
+    render(<RequestCard request={makeRequest({ message: longMsg })} processing={false} {...h} />)
+    await user.click(screen.getByRole('button', { name: /ver mais/i }))
+    expect(screen.getByRole('button', { name: /ver menos/i })).toBeInTheDocument()
+  })
+
+  it('renders no action buttons for approved without temp password', () => {
+    const h = noopHandlers()
+    render(<RequestCard request={makeRequest({ status: 'approved', userPasswordIsTemp: false })} processing={false} {...h} />)
+    expect(screen.queryByRole('button', { name: /ver credenciais/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /aprovar/i })).not.toBeInTheDocument()
   })
 
   it('disables actions and shows Aguarde when processing', () => {

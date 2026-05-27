@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button'
 import { StatusBadge } from '@/components/console/status-badge'
 import type { AccessRequest } from '@/lib/types'
 
+const MESSAGE_COLLAPSE_THRESHOLD = 120
+
 interface RequestCardProps {
   request: AccessRequest
   processing: boolean
@@ -24,8 +26,8 @@ function formatDate(iso: string) {
 function Field({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="flex items-baseline justify-between gap-3">
-      <span className="text-xs text-muted-foreground">{label}</span>
-      <span className="text-sm text-foreground text-right">{value}</span>
+      <span className="text-xs text-muted-foreground shrink-0">{label}</span>
+      <span className="text-sm text-foreground text-right min-w-0 break-words">{value}</span>
     </div>
   )
 }
@@ -55,11 +57,11 @@ export function RequestCard({
           <p className={`text-sm italic text-foreground ${expanded ? '' : 'line-clamp-3'}`}>
             &ldquo;{request.message}&rdquo;
           </p>
-          {request.message.length > 120 && (
+          {request.message.length > MESSAGE_COLLAPSE_THRESHOLD && (
             <button
               type="button"
               onClick={() => setExpanded((v) => !v)}
-              className="text-xs text-primary hover:underline"
+              className="text-xs text-primary underline py-2 px-1 -mx-1 active:opacity-70"
             >
               {expanded ? 'ver menos' : 'ver mais'}
             </button>
