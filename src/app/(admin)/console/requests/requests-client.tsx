@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useConsoleNotification } from '@/context/console-notification-context'
+import { RequestCard } from './request-card'
 import { ClipboardX, MessageSquare, MoreHorizontal, CheckCircle, XCircle, KeyRound } from 'lucide-react'
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription } from '@/components/ui/empty'
 import type { AccessRequest } from '@/lib/types'
@@ -178,7 +179,7 @@ export function RequestsClient(_: { initialRequests: AccessRequest[] }) {
         </Empty>
       ) : (
         <TooltipProvider delayDuration={200}>
-          <div className="rounded-xl border border-border overflow-hidden">
+          <div className="hidden md:block rounded-xl border border-border overflow-hidden">
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
@@ -267,6 +268,19 @@ export function RequestsClient(_: { initialRequests: AccessRequest[] }) {
                 })}
               </TableBody>
             </Table>
+          </div>
+
+          <div className="md:hidden space-y-3">
+            {sorted.map((r) => (
+              <RequestCard
+                key={r.id}
+                request={r}
+                processing={processingId === r.id}
+                onApprove={handleApprove}
+                onReject={handleReject}
+                onViewCredentials={handleViewCredentials}
+              />
+            ))}
           </div>
         </TooltipProvider>
       )}
