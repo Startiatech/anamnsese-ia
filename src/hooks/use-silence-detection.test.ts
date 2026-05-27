@@ -98,4 +98,21 @@ describe('useSilenceDetection', () => {
     vi.advanceTimersByTime(3000)
     expect(onSilence).not.toHaveBeenCalled()
   })
+
+  it('does nothing when stream is null', () => {
+    const onSilence = vi.fn()
+    mockVolume = 0
+    renderHook(() =>
+      useSilenceDetection({
+        stream: null,
+        active: true,
+        silenceMs: 2500,
+        threshold: 0.05,
+        onSilence,
+        onSpeech: vi.fn(),
+      }),
+    )
+    vi.advanceTimersByTime(3000)
+    expect(onSilence).not.toHaveBeenCalled()
+  })
 })
