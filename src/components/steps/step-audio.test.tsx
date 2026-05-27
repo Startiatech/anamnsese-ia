@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import { StepAudio } from './step-audio'
+import type { InterruptionReason } from '@/hooks/use-recording-interruption'
 
 // ── Mocks globais ────────────────────────────────────────────────────────────
 
@@ -21,6 +22,62 @@ vi.mock('@/context/consultation-context', () => ({
     setIsTranscribing: vi.fn(),
   }),
 }))
+
+// ── Controllable hook mocks ──────────────────────────────────────────────────
+
+// These refs allow tests to trigger callbacks on demand without auto-firing.
+let _triggerSilence: (() => void) | null = null
+let _triggerSpeech: (() => void) | null = null
+let _triggerInterrupt: ((r: InterruptionReason) => void) | null = null
+
+vi.mock('@/hooks/use-wake-lock', () => ({
+  useWakeLock: () => ({
+    acquire: vi.fn().mockResolvedValue(undefined),
+    release: vi.fn().mockResolvedValue(undefined),
+  }),
+}))
+
+vi.mock('@/hooks/use-silence-detection', () => ({
+  useSilenceDetection: ({
+    active,
+    onSilence,
+    onSpeech,
+  }: {
+    active: boolean
+    onSilence: () => void
+    onSpeech: () => void
+  }) => {
+    if (active) {
+      _triggerSilence = onSilence
+      _triggerSpeech = onSpeech
+    } else {
+      _triggerSilence = null
+      _triggerSpeech = null
+    }
+  },
+}))
+
+vi.mock('@/hooks/use-recording-interruption', async () => {
+  const actual = await vi.importActual<typeof import('@/hooks/use-recording-interruption')>(
+    '@/hooks/use-recording-interruption',
+  )
+  return {
+    ...actual,
+    useRecordingInterruption: ({
+      active,
+      onInterrupt,
+    }: {
+      active: boolean
+      onInterrupt: (r: InterruptionReason) => void
+    }) => {
+      if (active) {
+        _triggerInterrupt = onInterrupt
+      } else {
+        _triggerInterrupt = null
+      }
+    },
+  }
+})
 
 // ── Mock MediaRecorder ───────────────────────────────────────────────────────
 
@@ -108,6 +165,9 @@ const defaultProps = {
 
 beforeEach(() => {
   MockMediaRecorder.reset()
+  _triggerSilence = null
+  _triggerSpeech = null
+  _triggerInterrupt = null
   vi.useFakeTimers({ shouldAdvanceTime: true })
   vi.stubGlobal('MediaRecorder', MockMediaRecorder)
   vi.stubGlobal('fetch', vi.fn(() => makeStreamResponse('Paciente relata dor de cabeça.')))
@@ -584,5 +644,92 @@ describe('StepAudio — cleanup de segurança', () => {
     act(() => { unmount() })
 
     expect(track.stop).toHaveBeenCalled()
+  })
+})
+
+describe('StepAudio — VAD auto-pausa, wake lock e interrupção', () => {
+  it('exibe indicador de silêncio quando onSilence é disparado durante gravação', async () => {
+    const mockStream = makeMockStream()
+    renderStepAudio()
+    await switchToRecordMode()
+    await startRecording(mockStream)
+
+    // Dispara o callback de silêncio
+    await act(async () => {
+      _triggerSilence?.()
+    })
+
+    expect(await screen.findByText(/pausado automaticamente/i)).toBeInTheDocument()
+  })
+
+  it('exibe alerta de interrupção com mensagem e texto de preservação', async () => {
+    const mockStream = makeMockStream()
+    renderStepAudio()
+    await switchToRecordMode()
+    await startRecording(mockStream)
+
+    // Dispara o callback de interrupção (suspended)
+    await act(async () => {
+      _triggerInterrupt?.('suspended')
+    })
+
+    expect(await screen.findByText(/o computador entrou em suspensão/i)).toBeInTheDocument()
+    expect(await screen.findByText(/foi preservado/i)).toBeInTheDocument()
+  })
+
+  it('concatena dois segmentos e envia um único blob ao transcrever', async () => {
+    const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue(
+      new Response('texto\n__DONE__\n', { status: 200 }),
+    )
+
+    const mockStream = makeMockStream()
+    renderStepAudio()
+    await switchToRecordMode()
+
+    // Segmento 1
+    await startRecording(mockStream)
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /finalizar/i }))
+    })
+
+    // Após finalizar, estado é 'recorded' — clicar "Continuar gravando"
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /continuar gravando/i })).toBeInTheDocument()
+    })
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /continuar gravando/i }))
+    })
+
+    // Segmento 2: novo ciclo de gravação (manual, sem usar o helper que valida instâncias)
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /iniciar gravação/i }))
+    })
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(3000)
+    })
+    await waitFor(() => expect(MockMediaRecorder.instances).toHaveLength(2))
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /finalizar/i }))
+    })
+
+    // Clicar Transcrever
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /transcrever/i })).toBeInTheDocument()
+    })
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /transcrever/i }))
+    })
+
+    await waitFor(() => {
+      expect(fetchSpy).toHaveBeenCalled()
+    })
+
+    const sentInit = fetchSpy.mock.calls[0][1] as RequestInit
+    const sentForm = sentInit.body as FormData
+    const audio = sentForm.get('audio') as File
+    expect(audio.size).toBeGreaterThan(0)
   })
 })

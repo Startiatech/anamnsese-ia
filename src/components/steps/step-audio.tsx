@@ -6,11 +6,20 @@ import { useConsultationFlow } from '@/context/consultation-context'
 import { StepContentBox } from '@/components/steps/step-content-box'
 import { toast } from 'sonner'
 import { API } from '@/lib/routes'
+import { useSilenceDetection } from '@/hooks/use-silence-detection'
+import { useWakeLock } from '@/hooks/use-wake-lock'
+import {
+  useRecordingInterruption,
+  INTERRUPTION_MESSAGES,
+  type InterruptionReason,
+} from '@/hooks/use-recording-interruption'
 
 const TYPEWRITER_INTERVAL_MS = 30
 const ACCEPTED_FORMATS = '.mp3,.wav,.m4a,.ogg'
 const COUNTDOWN_SECONDS = 3
 const COUNTDOWN_INTERVAL_MS = 1000
+const SILENCE_THRESHOLD = 0.05
+const SILENCE_MS = 2500
 
 type InputMode = 'upload' | 'record'
 type RecordState = 'idle' | 'requesting' | 'preparing' | 'recording' | 'paused' | 'recorded'
@@ -41,6 +50,8 @@ export function StepAudio({
   const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null)
   const [elapsedMs, setElapsedMs] = useState(0)
   const [countdown, setCountdown] = useState(COUNTDOWN_SECONDS)
+  const [autoPaused, setAutoPaused] = useState(false)
+  const [interruption, setInterruption] = useState<InterruptionReason | null>(null)
 
   const [file, setFile] = useState<File | null>(null)
   const [partialTranscript, setPartialTranscript] = useState(initialTranscript)
@@ -65,6 +76,44 @@ export function StepAudio({
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const elapsedStartRef = useRef<number | null>(null)
   const accumulatedMsRef = useRef(0)
+
+  // ── Hooks de gravação ─────────────────────────────────────────────────────
+  const { acquire: acquireWakeLock, release: releaseWakeLock } = useWakeLock()
+
+  const isRecordingActive = recordState === 'recording' || recordState === 'paused'
+
+  useSilenceDetection({
+    stream: mediaStreamRef.current,
+    active: recordState === 'recording',
+    silenceMs: SILENCE_MS,
+    threshold: SILENCE_THRESHOLD,
+    onSilence: () => {
+      if (mediaRecorderRef.current?.state === 'recording') {
+        mediaRecorderRef.current.pause()
+        pauseTimer()
+        setAutoPaused(true)
+      }
+    },
+    onSpeech: () => {
+      if (mediaRecorderRef.current?.state === 'paused') {
+        mediaRecorderRef.current.resume()
+        startTimer()
+        setAutoPaused(false)
+      }
+    },
+  })
+
+  useRecordingInterruption({
+    stream: mediaStreamRef.current,
+    active: isRecordingActive,
+    onInterrupt: (reason) => {
+      setInterruption(reason)
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+        mediaRecorderRef.current.stop() // onstop preserves the segment
+      }
+      pauseTimer()
+    },
+  })
 
   // Cleanup do microfone ao desmontar
   useEffect(() => {
@@ -181,11 +230,22 @@ export function StepAudio({
       setRecordState('recorded')
       stopMicrophoneTrack()
       resetTimer()
+      void releaseWakeLock()
     }
 
     recorder.start(1000)
+    void acquireWakeLock()
+    setAutoPaused(false)
+    setInterruption(null)
     startTimer()
     setRecordState('recording')
+  }
+
+  function handleContinueRecording() {
+    setRecordedBlob(null)
+    setRecordState('idle')
+    setInterruption(null)
+    setAutoPaused(false)
   }
 
   function handlePauseRecording() {
@@ -471,7 +531,9 @@ export function StepAudio({
                   >
                     {formatTimer(elapsedMs)}
                   </span>
-                  <span className="text-sm text-muted-foreground">Gravando...</span>
+                  <span className="text-sm text-muted-foreground">
+                    {autoPaused ? '⏸ Silêncio detectado — pausado automaticamente' : 'Gravando...'}
+                  </span>
                 </div>
                 <div className="flex gap-2">
                   <Button variant="outline" onClick={handlePauseRecording}>
@@ -514,12 +576,27 @@ export function StepAudio({
             {/* Recorded: aguardando transcrição */}
             {recordState === 'recorded' && recordedBlob && (
               <div className="space-y-3">
-                <p className="text-sm text-muted-foreground">
-                  Gravação concluída. Clique em Transcrever para processar o áudio.
-                </p>
+                {interruption && (
+                  <div
+                    data-testid="interruption-alert"
+                    className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-sm text-destructive"
+                  >
+                    A gravação foi interrompida porque {INTERRUPTION_MESSAGES[interruption].toLowerCase()}.
+                    O áudio até {formatTimer(elapsedMs)} foi preservado. Continue gravando para anexar
+                    um novo trecho ou transcreva o que já foi capturado.
+                  </div>
+                )}
+                {!interruption && (
+                  <p className="text-sm text-muted-foreground">
+                    Gravação concluída. Clique em Transcrever para processar o áudio.
+                  </p>
+                )}
                 <div className="flex gap-2">
                   <Button onClick={() => handleProcess(recordedBlob)}>
                     Transcrever
+                  </Button>
+                  <Button variant="outline" onClick={handleContinueRecording}>
+                    Continuar gravando
                   </Button>
                   <Button variant="outline" onClick={handleReset}>
                     Regravar
