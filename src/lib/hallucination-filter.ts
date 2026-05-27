@@ -21,7 +21,7 @@ function normalize(s: string): string {
     .trim()
     .toLowerCase()
     .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '') // remove acentos
+    .replace(/[̀-ͯ]/g, '') // remove acentos (NFD combining diacriticals)
     .replace(/[.!?…]+$/g, '') // remove pontuação final
     .trim()
 }
