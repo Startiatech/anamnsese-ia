@@ -103,6 +103,24 @@ describe('transcribeInChunks', () => {
     const result = await transcribeInChunks(file, groq)
     expect(result).toBe('texto transcrito')
   })
+
+  it('sends temperature 0 and a medical prompt to Groq', async () => {
+    const file = makeFile(5)
+    const groq = makeGroq()
+    await transcribeInChunks(file, groq)
+
+    const args = mockCreate.mock.calls[0][0] as { temperature: number; prompt: string }
+    expect(args.temperature).toBe(0)
+    expect(args.prompt).toContain('consulta médica')
+  })
+
+  it('filters isolated hallucination phrases from the result', async () => {
+    mockCreate.mockResolvedValueOnce('Paciente refere cefaleia.\nTchau')
+    const file = makeFile(5)
+    const groq = makeGroq()
+    const result = await transcribeInChunks(file, groq)
+    expect(result).toBe('Paciente refere cefaleia.')
+  })
 })
 
 describe('CHUNK_SIZE_BYTES', () => {
