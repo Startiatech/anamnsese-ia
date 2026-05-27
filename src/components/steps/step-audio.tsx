@@ -223,12 +223,6 @@ export function StepAudio({
     if (dropped) handleFile(dropped)
   }
 
-  function handleContinueRecording() {
-    // Volta ao idle preservando segmentos já gravados para concatenação
-    setRecordedBlob(null)
-    setRecordState('idle')
-  }
-
   function handleReset() {
     segmentsRef.current = []
     setFile(null)
@@ -527,7 +521,7 @@ export function StepAudio({
                   <Button onClick={() => handleProcess(recordedBlob)}>
                     Transcrever
                   </Button>
-                  <Button variant="outline" onClick={handleContinueRecording}>
+                  <Button variant="outline" onClick={handleReset}>
                     Regravar
                   </Button>
                 </div>
