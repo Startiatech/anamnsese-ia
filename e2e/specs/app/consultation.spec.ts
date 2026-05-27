@@ -280,20 +280,17 @@ test.describe('fluxo de consulta com IA mockada', () => {
     // Aguarda o estado "gravando" via sinal observável (timer visível após o countdown).
     await expect(page.getByTestId('record-timer')).toBeVisible({ timeout: 30_000 })
 
-    // Simula a track de áudio morrendo (hibernação): primeiro marca a aba como
-    // "hidden" recentemente, depois dispara 'ended' na track do stream sintético.
-    await page.evaluate(() => {
-      Object.defineProperty(document, 'visibilityState', {
-        configurable: true,
-        get: () => 'hidden',
+    // Simula a track de áudio morrendo (hibernação/desconexão). O listener 'ended' do
+    // hook é registrado num useEffect; re-disparamos até o alerta aparecer para evitar
+    // corrida de timing (sem waitForTimeout).
+    await expect(async () => {
+      await page.evaluate(() => {
+        const stream = (window as unknown as { __lastMediaStream?: MediaStream }).__lastMediaStream
+        stream?.getAudioTracks().forEach(t => t.dispatchEvent(new Event('ended')))
       })
-      document.dispatchEvent(new Event('visibilitychange'))
+      await expect(page.getByTestId('interruption-alert')).toBeVisible({ timeout: 1000 })
+    }).toPass({ timeout: 15_000 })
 
-      const stream = (window as unknown as { __lastMediaStream?: MediaStream }).__lastMediaStream
-      stream?.getAudioTracks().forEach((t) => t.dispatchEvent(new Event('ended')))
-    })
-
-    await expect(page.getByTestId('interruption-alert')).toBeVisible({ timeout: 15_000 })
     await expect(page.getByTestId('interruption-alert')).toContainText(/foi preservado/i)
   })
 })

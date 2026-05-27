@@ -27,6 +27,7 @@ export default defineConfig({
     video: 'retain-on-failure',
     actionTimeout: 20_000,
     navigationTimeout: 30_000,
+    launchOptions: { args: ['--autoplay-policy=no-user-gesture-required'] },
   },
   projects: [
     {

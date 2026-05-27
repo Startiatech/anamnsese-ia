@@ -22,8 +22,8 @@ export async function mockMediaDevices(page: Page): Promise<void> {
         // Tenta criar stream sintético via AudioContext para que a track
         // seja um objeto real que suporte dispatchEvent('ended').
         try {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const AudioCtx = (window as any).AudioContext || (window as any).webkitAudioContext
+          const win = window as unknown as { AudioContext?: typeof AudioContext; webkitAudioContext?: typeof AudioContext; __lastMediaStream?: MediaStream }
+          const AudioCtx = win.AudioContext || win.webkitAudioContext
           if (AudioCtx) {
             const ctx = new AudioCtx()
             const osc = ctx.createOscillator()
@@ -32,8 +32,7 @@ export async function mockMediaDevices(page: Page): Promise<void> {
             osc.start()
             const stream = dest.stream
             // Expõe para o teste
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            ;(window as any).__lastMediaStream = stream
+            win.__lastMediaStream = stream
             return stream
           }
         } catch (_) {
@@ -43,8 +42,7 @@ export async function mockMediaDevices(page: Page): Promise<void> {
         // Fallback: tenta getUserMedia real (pode falhar em headless)
         if (originalGetUserMedia) {
           const stream = await originalGetUserMedia(constraints)
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          ;(window as any).__lastMediaStream = stream
+          ;(window as unknown as { __lastMediaStream?: MediaStream }).__lastMediaStream = stream
           return stream
         }
 
