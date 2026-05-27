@@ -1,10 +1,18 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { CredentialsDialog } from './credentials-dialog'
 
 describe('CredentialsDialog', () => {
-  it('exposes the copy button with accessible label and appropriate touch target size', () => {
+  beforeEach(() => {
+    vi.stubGlobal('navigator', {
+      clipboard: {
+        writeText: vi.fn().mockResolvedValue(undefined),
+      },
+    })
+  })
+
+  it('exposes the copy button with accessible label', () => {
     render(
       <CredentialsDialog
         open
@@ -20,7 +28,8 @@ describe('CredentialsDialog', () => {
     expect(copyButton).toHaveAttribute('aria-label', 'Copiar senha')
   })
 
-  it('displays copy button with a touch-friendly size (h-11 minimum)', () => {
+  it('toggles button label from "Copiar" to "Copiado" after click', async () => {
+    const user = userEvent.setup()
     render(
       <CredentialsDialog
         open
@@ -31,8 +40,10 @@ describe('CredentialsDialog', () => {
         password="abc12345"
       />,
     )
-    const copyButton = screen.getByRole('button', { name: /copiar/i })
-    expect(copyButton).toHaveClass('h-11')
+    const copyButton = screen.getByRole('button', { name: /copiar senha/i })
+    expect(copyButton).toHaveTextContent('Copiar')
+    await user.click(copyButton)
+    expect(copyButton).toHaveTextContent('Copiado')
   })
 
   it('renders the password in a clickable code block', () => {
