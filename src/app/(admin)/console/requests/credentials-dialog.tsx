@@ -91,17 +91,18 @@ export function CredentialsDialog({
             Senha provisoria
           </div>
           <div className="flex items-center gap-2">
-            <code className="flex-1 text-base font-mono bg-muted px-3 py-2 rounded-md select-all">
+            <code className="flex-1 min-w-0 truncate text-base font-mono bg-muted px-3 py-2 rounded-md select-all">
               {password}
             </code>
             <Button
               type="button"
               variant="outline"
-              size="icon"
               onClick={handleCopy}
               aria-label="Copiar senha"
+              className="h-11 shrink-0 gap-1.5 px-3"
             >
               {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+              {copied ? 'Copiado' : 'Copiar'}
             </Button>
           </div>
         </div>
