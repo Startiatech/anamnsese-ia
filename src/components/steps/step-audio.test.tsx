@@ -731,5 +731,21 @@ describe('StepAudio — VAD auto-pausa, wake lock e interrupção', () => {
     const sentForm = sentInit.body as FormData
     const audio = sentForm.get('audio') as File
     expect(audio.size).toBeGreaterThan(0)
+    expect(MockMediaRecorder.instances.length).toBe(2)
+  })
+
+  it('retoma automaticamente quando a voz volta apos silencio', async () => {
+    const mockStream = makeMockStream()
+    renderStepAudio()
+    await switchToRecordMode()
+    await startRecording(mockStream)
+
+    await act(async () => { _triggerSilence?.() })
+    expect(await screen.findByText(/pausado automaticamente/i)).toBeInTheDocument()
+
+    await act(async () => { _triggerSpeech?.() })
+    await waitFor(() => {
+      expect(screen.queryByText(/pausado automaticamente/i)).not.toBeInTheDocument()
+    })
   })
 })

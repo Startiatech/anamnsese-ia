@@ -18,6 +18,7 @@ const TYPEWRITER_INTERVAL_MS = 30
 const ACCEPTED_FORMATS = '.mp3,.wav,.m4a,.ogg'
 const COUNTDOWN_SECONDS = 3
 const COUNTDOWN_INTERVAL_MS = 1000
+// VAD: silêncio = RMS abaixo de 5% da escala por 2,5s contínuos antes de auto-pausar.
 const SILENCE_THRESHOLD = 0.05
 const SILENCE_MS = 2500
 
@@ -82,6 +83,10 @@ export function StepAudio({
 
   const isRecordingActive = recordState === 'recording' || recordState === 'paused'
 
+  // mediaStreamRef.current já está populado quando recordState vira 'recording'
+  // (setado em beginRecording antes do setRecordState), então o stream passado aos
+  // hooks é o stream vivo no render em que `active` fica true. O guard interno dos
+  // hooks (!active || !stream) cobre o estado transitório.
   useSilenceDetection({
     stream: mediaStreamRef.current,
     active: recordState === 'recording',
@@ -250,6 +255,7 @@ export function StepAudio({
 
   function handlePauseRecording() {
     if (!mediaRecorderRef.current || !mediaStreamRef.current) return
+    if (mediaRecorderRef.current.state !== 'recording') return
     mediaRecorderRef.current.pause()
     mediaStreamRef.current.getTracks().forEach(t => { t.enabled = false })
     pauseTimer()
@@ -258,6 +264,7 @@ export function StepAudio({
 
   function handleResumeRecording() {
     if (!mediaRecorderRef.current || !mediaStreamRef.current) return
+    if (mediaRecorderRef.current.state !== 'paused') return
     mediaStreamRef.current.getTracks().forEach(t => { t.enabled = true })
     mediaRecorderRef.current.resume()
     startTimer()
