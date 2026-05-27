@@ -12,7 +12,7 @@ export function PageHeader({ title, description, action }: PageHeaderProps) {
       <div className="flex items-start justify-between">
         <div className="flex-1 min-w-0">
           <ConsoleBreadcrumb />
-          <h1 className="text-3xl font-bold tracking-tight text-foreground mt-3">{title}</h1>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground mt-3">{title}</h1>
           <p className="text-sm text-highlight mt-1">{description}</p>
         </div>
         {action && <div className="shrink-0 ml-4 mt-3">{action}</div>}

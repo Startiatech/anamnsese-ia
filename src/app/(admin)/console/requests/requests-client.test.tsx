@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { RequestsClient } from './requests-client'
 import { ConsoleNotificationProvider } from '@/context/console-notification-context'
@@ -47,13 +47,30 @@ describe('RequestsClient (responsivo)', () => {
     )
     vi.spyOn(window, 'open').mockReturnValue(null)
 
-    renderWithProvider([pendingRequest()])
-
-    await user.click(screen.getByRole('button', { name: /aprovar/i }))
+    const { container } = renderWithProvider([pendingRequest()])
+    const mobileList = container.querySelector('.md\\:hidden') as HTMLElement
+    await user.click(within(mobileList).getByRole('button', { name: /aprovar/i }))
 
     expect(fetchSpy).toHaveBeenCalledWith(
       '/api/admin/create-user',
       expect.objectContaining({ method: 'POST' }),
+    )
+  })
+
+  it('rejecting from the mobile card triggers the reject PATCH request', async () => {
+    const user = userEvent.setup()
+    const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify({ ok: true }), { status: 200 }),
+    )
+    vi.spyOn(window, 'open').mockReturnValue(null)
+
+    const { container } = renderWithProvider([pendingRequest()])
+    const mobileList = container.querySelector('.md\\:hidden') as HTMLElement
+    await user.click(within(mobileList).getByRole('button', { name: /rejeitar/i }))
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      expect.stringContaining('r1'),
+      expect.objectContaining({ method: 'PATCH' }),
     )
   })
 })
