@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef } from 'react'
 
 interface WakeLockSentinelLike {
   release: () => Promise<void>
-  released: boolean
 }
 
 export function useWakeLock() {
@@ -40,6 +39,7 @@ export function useWakeLock() {
     document.addEventListener('visibilitychange', onVisible)
     return () => {
       document.removeEventListener('visibilitychange', onVisible)
+      wantLockRef.current = false
       if (sentinelRef.current) {
         void sentinelRef.current.release().catch(() => {})
         sentinelRef.current = null

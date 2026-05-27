@@ -41,4 +41,16 @@ describe('useWakeLock', () => {
     const { result } = renderHook(() => useWakeLock())
     await expect(result.current.acquire()).resolves.toBeUndefined()
   })
+
+  it('re-acquires the wake lock when visibility returns while active', async () => {
+    const { result } = renderHook(() => useWakeLock())
+    await act(async () => { await result.current.acquire() })
+    Object.defineProperty(document, 'visibilityState', {
+      configurable: true,
+      value: 'visible',
+    })
+    document.dispatchEvent(new Event('visibilitychange'))
+    await act(async () => {})
+    expect(requestSpy).toHaveBeenCalledTimes(2)
+  })
 })
