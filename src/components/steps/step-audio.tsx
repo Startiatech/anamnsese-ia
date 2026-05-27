@@ -60,6 +60,7 @@ export function StepAudio({
   const mediaStreamRef = useRef<MediaStream | null>(null)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const chunksRef = useRef<Blob[]>([])
+  const segmentsRef = useRef<Blob[]>([])
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const elapsedStartRef = useRef<number | null>(null)
@@ -145,7 +146,6 @@ export function StepAudio({
     }
 
     mediaStreamRef.current = stream
-    chunksRef.current = []
     setCountdown(COUNTDOWN_SECONDS)
     setRecordState('preparing')
 
@@ -165,6 +165,7 @@ export function StepAudio({
   }
 
   function beginRecording(stream: MediaStream) {
+    chunksRef.current = []
     const recorder = new MediaRecorder(stream)
     mediaRecorderRef.current = recorder
 
@@ -173,8 +174,10 @@ export function StepAudio({
     }
 
     recorder.onstop = () => {
-      const blob = new Blob(chunksRef.current, { type: 'audio/webm' })
-      setRecordedBlob(blob)
+      const segment = new Blob(chunksRef.current, { type: 'audio/webm' })
+      if (segment.size > 0) segmentsRef.current.push(segment)
+      const combined = new Blob(segmentsRef.current, { type: 'audio/webm' })
+      setRecordedBlob(combined)
       setRecordState('recorded')
       stopMicrophoneTrack()
       resetTimer()
@@ -220,7 +223,14 @@ export function StepAudio({
     if (dropped) handleFile(dropped)
   }
 
+  function handleContinueRecording() {
+    // Volta ao idle preservando segmentos já gravados para concatenação
+    setRecordedBlob(null)
+    setRecordState('idle')
+  }
+
   function handleReset() {
+    segmentsRef.current = []
     setFile(null)
     setRecordedBlob(null)
     setRecordState('idle')
@@ -517,7 +527,7 @@ export function StepAudio({
                   <Button onClick={() => handleProcess(recordedBlob)}>
                     Transcrever
                   </Button>
-                  <Button variant="outline" onClick={handleReset}>
+                  <Button variant="outline" onClick={handleContinueRecording}>
                     Regravar
                   </Button>
                 </div>
