@@ -212,6 +212,36 @@ test.describe('console requests (admin)', () => {
     expect(user).toBeNull()
   })
 
+  test('mobile: botoes Aprovar/Rejeitar visiveis e clicaveis num pedido pendente', async ({ page, context }, testInfo) => {
+    test.skip(testInfo.project.name !== 'mobile', 'cenario especifico do viewport mobile')
+
+    await loginAsMasterViaCookie(context)
+    const seeded = await createAccessRequest()
+
+    // Stub window.open to avoid real WhatsApp tab opening
+    await context.addInitScript(() => {
+      ;(window as unknown as { open: (...args: unknown[]) => null }).open = () => null
+    })
+
+    await page.goto('/console/requests')
+    await page.waitForLoadState('networkidle')
+
+    // Wait for the seeded card to appear (mobile card list, not the hidden table)
+    await expect(page.getByText(seeded.email)).toBeVisible({ timeout: 10_000 })
+
+    // On mobile (375px) the table is hidden and cards are shown.
+    // The card for a pending request exposes direct Aprovar/Rejeitar buttons.
+    const aprovar = page.getByRole('button', { name: /aprovar/i })
+    await expect(aprovar).toBeVisible()
+    await expect(page.getByRole('button', { name: /rejeitar/i })).toBeVisible()
+
+    // The page must not have horizontal scroll at 375px
+    const hasHScroll = await page.evaluate(
+      () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
+    )
+    expect(hasHScroll).toBe(false)
+  })
+
   test('mensagem da solicitacao fica acessivel via tooltip "Ver"', async ({ page, context }) => {
     await loginAsMasterViaCookie(context)
     const seeded = await createAccessRequest()
