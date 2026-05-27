@@ -38,7 +38,7 @@ export function RequestCard({
   const [expanded, setExpanded] = useState(false)
 
   return (
-    <div className="rounded-xl border border-border p-4 space-y-3">
+    <div data-testid="request-card" className="rounded-xl border border-border p-4 space-y-3">
       <div className="min-w-0">
         <p className="text-sm font-medium text-foreground">{request.name}</p>
         <p className="text-xs text-muted-foreground break-all">{request.email}</p>

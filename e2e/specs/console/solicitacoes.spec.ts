@@ -212,7 +212,7 @@ test.describe('console requests (admin)', () => {
     expect(user).toBeNull()
   })
 
-  test('mobile: botoes Aprovar/Rejeitar visiveis e clicaveis num pedido pendente', async ({ page, context }, testInfo) => {
+  test('mobile: acoes Aprovar/Rejeitar visiveis num pedido pendente', async ({ page, context }, testInfo) => {
     test.skip(testInfo.project.name !== 'mobile', 'cenario especifico do viewport mobile')
 
     await loginAsMasterViaCookie(context)
@@ -226,20 +226,18 @@ test.describe('console requests (admin)', () => {
     await page.goto('/console/requests')
     await page.waitForLoadState('networkidle')
 
-    // Wait for the seeded card to appear (mobile card list, not the hidden table)
-    await expect(page.getByText(seeded.email)).toBeVisible({ timeout: 10_000 })
+    // Scope to the seeded card via testid to avoid strict-mode multi-match
+    // (the desktop table is in the DOM at 375px via CSS-only hide)
+    const card = page.getByTestId('request-card').filter({ hasText: seeded.email })
+    await expect(card).toBeVisible({ timeout: 10_000 })
+    await expect(card.getByRole('button', { name: /aprovar/i })).toBeVisible()
+    await expect(card.getByRole('button', { name: /rejeitar/i })).toBeVisible()
 
-    // On mobile (375px) the table is hidden and cards are shown.
-    // The card for a pending request exposes direct Aprovar/Rejeitar buttons.
-    const aprovar = page.getByRole('button', { name: /aprovar/i })
-    await expect(aprovar).toBeVisible()
-    await expect(page.getByRole('button', { name: /rejeitar/i })).toBeVisible()
-
-    // The page must not have horizontal scroll at 375px
-    const hasHScroll = await page.evaluate(
-      () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
+    // The page must not have horizontal scroll at 375px (sub-pixel tolerant)
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
     )
-    expect(hasHScroll).toBe(false)
+    expect(overflow).toBeLessThanOrEqual(1)
   })
 
   test('mensagem da solicitacao fica acessivel via tooltip "Ver"', async ({ page, context }) => {
