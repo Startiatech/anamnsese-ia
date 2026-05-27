@@ -31,6 +31,7 @@ export async function transcribeInChunks(
       prompt: TRANSCRIPTION_PROMPT,
     }) as unknown as string
     const text = filterHallucinations(raw)
+    // chunk totalmente alucinado vira '' aqui; espaço cosmético no join é tolerado (YAGNI)
     transcripts.push(text)
     onChunk?.(text)
   }

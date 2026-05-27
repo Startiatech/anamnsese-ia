@@ -121,6 +121,15 @@ describe('transcribeInChunks', () => {
     const result = await transcribeInChunks(file, groq)
     expect(result).toBe('Paciente refere cefaleia.')
   })
+
+  it('calls onChunk with the filtered text (not raw)', async () => {
+    mockCreate.mockResolvedValueOnce('Paciente refere dor.\nTchau')
+    const file = makeFile(5)
+    const groq = makeGroq()
+    const onChunk = vi.fn()
+    await transcribeInChunks(file, groq, onChunk)
+    expect(onChunk).toHaveBeenCalledWith('Paciente refere dor.')
+  })
 })
 
 describe('CHUNK_SIZE_BYTES', () => {
