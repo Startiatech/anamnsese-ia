@@ -98,6 +98,77 @@ sequenceDiagram
 
 ---
 
+## Robustez da Gravação de Áudio
+
+Camada de proteção contra falhas de hardware, silêncio prolongado e alucinações do Whisper. Implementada sobre `StepAudio` sem quebrar o fluxo existente.
+
+### VAD + Wake Lock + Interrupção (client-side)
+
+```mermaid
+sequenceDiagram
+    actor Médico
+    participant SA as StepAudio
+    participant VAD as use-silence-detection
+    participant WL as use-wake-lock
+    participant RI as use-recording-interruption
+    participant MR as MediaRecorder
+
+    Médico->>SA: Clica "Iniciar gravação"
+    SA->>WL: acquireWakeLock()
+    WL-->>SA: WakeLock ativo (tela não dorme)
+    SA->>MR: recorder.start(1000)
+    SA->>VAD: conecta AnalyserNode (Web Audio API)
+
+    loop Monitoramento contínuo
+        VAD->>VAD: calcula RMS do buffer de áudio
+        alt RMS < 5% por 2.5s (silêncio)
+            VAD->>SA: onSilence()
+            SA->>MR: recorder.pause() [auto-pause]
+        else Fala detectada
+            VAD->>SA: onSpeech()
+            SA->>MR: recorder.resume()
+        end
+    end
+
+    alt Track encerrada + aba oculta recente (< 4s)
+        RI->>SA: onInterruption(reason: 'suspended' | 'mic-disconnected' | 'backgrounded')
+        SA->>MR: recorder.stop() [preserva segmento]
+        SA-->>Médico: Alert com motivo + "segmento preservado"
+        alt Médico clica "Continuar gravando"
+            Médico->>SA: novo getUserMedia → novo segmento appended
+        else Médico clica "Transcrever o que existe"
+            SA->>SA: concatena segmentsRef → upload
+        end
+    else Médico clica "Finalizar"
+        Médico->>SA: handleStop()
+        SA->>MR: recorder.stop()
+        SA->>WL: releaseWakeLock()
+        SA->>SA: concatena segmentsRef → blob único
+    end
+```
+
+### Hardenização do Whisper + Filtro de Alucinações (server-side)
+
+```mermaid
+flowchart TD
+    UP[Blob de áudio — segmentos concatenados] --> TC[transcribe-chunks.ts]
+    TC -->|temperature: 0\nTRANSCRIPTION_PROMPT| GR[Groq whisper-large-v3]
+    GR -->|texto raw por chunk| HF[filterHallucinations]
+    HF -->|remove frases isoladas conhecidas\n"tchau" · "obrigado" · "legendas amara.org" ...| OUT[Transcrição limpa]
+    OUT --> ANM[/api/anamnesis — geração de relatório]
+```
+
+**Pontos-chave:**
+
+- VAD é nativo (Web Audio API) — sem biblioteca externa, sem custo, sem conta.
+- Wake Lock silencioso: não exibe alerta; só libera quando a gravação para.
+- Interrupção distingue 3 razões (`suspended`, `mic-disconnected`, `backgrounded`) para mensagem precisa ao usuário.
+- Multi-segmento: `segmentsRef: Blob[]` acumula todos os trechos; concatenado em um único upload ao final.
+- Filtro de alucinações só remove frase quando ela está **isolada** no chunk — preserva menções legítimas.
+- `temperature: 0` e `TRANSCRIPTION_PROMPT` também protegem consultas no modo upload direto.
+
+---
+
 ## Camadas do Servidor
 
 ```mermaid
