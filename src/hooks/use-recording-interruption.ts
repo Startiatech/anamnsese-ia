@@ -30,6 +30,7 @@ export function useRecordingInterruption({
     if (!active || !stream) return
     const track = stream.getAudioTracks()[0]
     if (!track) return
+    lastHiddenAtRef.current = null
 
     const onVisibility = () => {
       if (document.visibilityState === 'hidden') {

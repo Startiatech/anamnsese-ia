@@ -3,12 +3,13 @@ import { renderHook } from '@testing-library/react'
 import { useRecordingInterruption } from './use-recording-interruption'
 
 class FakeTrack {
-  onended: (() => void) | null = null
   listeners: Record<string, (() => void)[]> = {}
   addEventListener(ev: string, cb: () => void) {
     (this.listeners[ev] ??= []).push(cb)
   }
-  removeEventListener() {}
+  removeEventListener(ev: string, cb: () => void) {
+    this.listeners[ev] = (this.listeners[ev] ?? []).filter(f => f !== cb)
+  }
   fireEnded() { this.listeners['ended']?.forEach(cb => cb()) }
 }
 
@@ -59,6 +60,17 @@ describe('useRecordingInterruption', () => {
     renderHook(() =>
       useRecordingInterruption({ stream: fakeStream(track), active: false, onInterrupt }),
     )
+    track.fireEnded()
+    expect(onInterrupt).not.toHaveBeenCalled()
+  })
+
+  it('does not fire after unmount (cleanup removes the listener)', () => {
+    const onInterrupt = vi.fn()
+    const track = new FakeTrack()
+    const { unmount } = renderHook(() =>
+      useRecordingInterruption({ stream: fakeStream(track), active: true, onInterrupt }),
+    )
+    unmount()
     track.fireEnded()
     expect(onInterrupt).not.toHaveBeenCalled()
   })
