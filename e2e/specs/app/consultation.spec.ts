@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
 import { createTestUser, loginAsUser } from '../../fixtures/auth'
 import { createPatient, seedClinicForUser } from '../../fixtures/seed'
-import { mockAiEndpoints } from '../../fixtures/mocks'
+import { mockAiEndpoints, mockMediaDevices } from '../../fixtures/mocks'
 
 /**
  * Fluxo de consulta — descoberta de implementacao:
@@ -220,5 +220,80 @@ test.describe('fluxo de consulta com IA mockada', () => {
     // Sem credito debitado, redirect direto sem server action
     await page.waitForURL(/\/app\/consultation(\?|$|\/)$/, { timeout: 15_000 })
     await expect(page).toHaveURL(/\/app\/consultation(\?|$|\/)$/)
+  })
+
+  test('exibe aviso quando a gravação é interrompida e preserva o trecho', async ({ page }) => {
+    await mockAiEndpoints(page)
+    // Injeta mock de getUserMedia antes de qualquer navegação
+    await mockMediaDevices(page)
+
+    const user = await createTestUser({ role: 'user' })
+    await seedClinicForUser(user.id)
+    const patient = await createPatient(user.id, {
+      name: `E2E_Patient_${Date.now()}_interrupt`,
+    })
+    await loginAsUser(page, user)
+
+    // ── Navega até /consultation e inicia atendimento ──────────────────────
+    await page.goto('/app/consultation')
+    await page.waitForLoadState('networkidle')
+
+    const row = page.getByRole('row').filter({ hasText: patient.name })
+    await expect(row).toBeVisible({ timeout: 30_000 })
+    await row.getByRole('button', { name: /iniciar atendimento/i }).click()
+
+    // ── Step 1: Confirmar paciente ─────────────────────────────────────────
+    await page.waitForURL(/\/app\/consultation\/[^/]+$/, { timeout: 30_000 })
+    await page.waitForLoadState('networkidle')
+    await expect(page.getByRole('heading', { name: /confirmar paciente/i })).toBeVisible({
+      timeout: 30_000,
+    })
+    const confirmContinuar = page.getByRole('button', { name: /confirmar e continuar/i })
+    await expect(confirmContinuar).toBeEnabled()
+    await confirmContinuar.click()
+
+    // CreditInfoModal -> "Confirmar início"
+    const confirmInicio = page.getByRole('button', { name: /confirmar in[ií]cio/i })
+    await expect(confirmInicio).toBeVisible({ timeout: 10_000 })
+    await expect(confirmInicio).toBeEnabled()
+    await confirmInicio.click()
+
+    // ── Step 2: Autorização de gravação ───────────────────────────────────
+    await expect(
+      page.getByRole('heading', { name: /autoriza[cç][aã]o de grava[cç][aã]o/i }),
+    ).toBeVisible({ timeout: 30_000 })
+    const consentCheckbox = page.getByRole('checkbox')
+    await expect(consentCheckbox).toBeVisible()
+    await consentCheckbox.click()
+    const continuarConsent = page.getByRole('button', { name: /^continuar$/i })
+    await expect(continuarConsent).toBeEnabled()
+    await continuarConsent.click()
+
+    // ── Step 3: Áudio — tab "Gravar consulta" ─────────────────────────────
+    await expect(page.getByRole('heading', { name: /[áa]udio da consulta/i })).toBeVisible({
+      timeout: 30_000,
+    })
+
+    await page.getByRole('tab', { name: /gravar consulta/i }).click()
+    await page.getByRole('button', { name: /iniciar gravação/i }).click()
+
+    // Aguarda o estado "gravando" via sinal observável (timer visível após o countdown).
+    await expect(page.getByTestId('record-timer')).toBeVisible({ timeout: 30_000 })
+
+    // Simula a track de áudio morrendo (hibernação): primeiro marca a aba como
+    // "hidden" recentemente, depois dispara 'ended' na track do stream sintético.
+    await page.evaluate(() => {
+      Object.defineProperty(document, 'visibilityState', {
+        configurable: true,
+        get: () => 'hidden',
+      })
+      document.dispatchEvent(new Event('visibilitychange'))
+
+      const stream = (window as unknown as { __lastMediaStream?: MediaStream }).__lastMediaStream
+      stream?.getAudioTracks().forEach((t) => t.dispatchEvent(new Event('ended')))
+    })
+
+    await expect(page.getByTestId('interruption-alert')).toBeVisible({ timeout: 15_000 })
+    await expect(page.getByTestId('interruption-alert')).toContainText(/foi preservado/i)
   })
 })

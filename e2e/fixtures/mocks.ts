@@ -1,5 +1,59 @@
 import type { Page } from '@playwright/test'
 
+/**
+ * Injeta um mock de `navigator.mediaDevices.getUserMedia` que retorna um
+ * MediaStream sintético (via AudioContext + createMediaStreamDestination),
+ * cujo audio track suporta addEventListener/dispatchEvent nativamente.
+ *
+ * O stream é exposto em `window.__lastMediaStream` para que o teste possa
+ * disparar eventos 'ended' na track e simular interrupção de gravação.
+ *
+ * Deve ser chamado antes de qualquer navegação para a página que usa a API.
+ */
+export async function mockMediaDevices(page: Page): Promise<void> {
+  await page.addInitScript(() => {
+    const originalGetUserMedia =
+      navigator.mediaDevices?.getUserMedia?.bind(navigator.mediaDevices)
+
+    Object.defineProperty(navigator.mediaDevices, 'getUserMedia', {
+      configurable: true,
+      writable: true,
+      value: async function (constraints: MediaStreamConstraints) {
+        // Tenta criar stream sintético via AudioContext para que a track
+        // seja um objeto real que suporte dispatchEvent('ended').
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const AudioCtx = (window as any).AudioContext || (window as any).webkitAudioContext
+          if (AudioCtx) {
+            const ctx = new AudioCtx()
+            const osc = ctx.createOscillator()
+            const dest = ctx.createMediaStreamDestination()
+            osc.connect(dest)
+            osc.start()
+            const stream = dest.stream
+            // Expõe para o teste
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            ;(window as any).__lastMediaStream = stream
+            return stream
+          }
+        } catch (_) {
+          // fallback abaixo
+        }
+
+        // Fallback: tenta getUserMedia real (pode falhar em headless)
+        if (originalGetUserMedia) {
+          const stream = await originalGetUserMedia(constraints)
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          ;(window as any).__lastMediaStream = stream
+          return stream
+        }
+
+        throw new DOMException('Microfone não disponível', 'NotAllowedError')
+      },
+    })
+  })
+}
+
 // Shapes reais das APIs (inspecionadas em src/app/api/{transcribe,anamnesis,anamnesis/refine}/route.ts):
 //
 // - POST /api/transcribe
