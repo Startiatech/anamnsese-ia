@@ -131,7 +131,7 @@ sequenceDiagram
     end
 
     alt Track encerrada + aba oculta recente (< 4s)
-        RI->>SA: onInterruption(reason: 'suspended' | 'mic-disconnected' | 'backgrounded')
+        RI->>SA: onInterruption(reason: 'suspended' | 'mic-disconnected')
         SA->>MR: recorder.stop() [preserva segmento]
         SA-->>Médico: Alert com motivo + "segmento preservado"
         alt Médico clica "Continuar gravando"
@@ -162,7 +162,7 @@ flowchart TD
 
 - VAD é nativo (Web Audio API) — sem biblioteca externa, sem custo, sem conta.
 - Wake Lock silencioso: não exibe alerta; só libera quando a gravação para.
-- Interrupção distingue 3 razões (`suspended`, `mic-disconnected`, `backgrounded`) para mensagem precisa ao usuário.
+- Interrupção distingue 2 razões (`suspended`, `mic-disconnected`) para mensagem precisa ao usuário.
 - Multi-segmento: `segmentsRef: Blob[]` acumula todos os trechos; concatenado em um único upload ao final.
 - Filtro de alucinações só remove frase quando ela está **isolada** no chunk — preserva menções legítimas.
 - `temperature: 0` e `TRANSCRIPTION_PROMPT` também protegem consultas no modo upload direto.

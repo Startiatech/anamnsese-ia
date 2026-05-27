@@ -668,13 +668,21 @@ describe('StepAudio — VAD auto-pausa, wake lock e interrupção', () => {
     await switchToRecordMode()
     await startRecording(mockStream)
 
+    // Avança 5s durante a gravação para que o snapshot seja > 00:00
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(5000)
+    })
+
     // Dispara o callback de interrupção (suspended)
     await act(async () => {
       _triggerInterrupt?.('suspended')
     })
 
-    expect(await screen.findByText(/o computador entrou em suspensão/i)).toBeInTheDocument()
-    expect(await screen.findByText(/foi preservado/i)).toBeInTheDocument()
+    const alert = await screen.findByTestId('interruption-alert')
+    expect(alert).toHaveTextContent(/o computador entrou em suspensão/i)
+    expect(alert).toHaveTextContent(/foi preservado/i)
+    // The preserved time must not be 00:00 — the snapshot was taken after 5s of recording
+    expect(alert).not.toHaveTextContent('00:00')
   })
 
   it('concatena dois segmentos e envia um único blob ao transcrever', async () => {

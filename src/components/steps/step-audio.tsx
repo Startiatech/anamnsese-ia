@@ -53,6 +53,7 @@ export function StepAudio({
   const [countdown, setCountdown] = useState(COUNTDOWN_SECONDS)
   const [autoPaused, setAutoPaused] = useState(false)
   const [interruption, setInterruption] = useState<InterruptionReason | null>(null)
+  const [savedElapsedMs, setSavedElapsedMs] = useState(0)
 
   const [file, setFile] = useState<File | null>(null)
   const [partialTranscript, setPartialTranscript] = useState(initialTranscript)
@@ -99,6 +100,7 @@ export function StepAudio({
         setAutoPaused(true)
       }
     },
+    // VAD auto-resumes on detected speech (ambient sound can resume an auto-paused recording — intentional hybrid behavior; manual "Pausar" stays available for hard pauses).
     onSpeech: () => {
       if (mediaRecorderRef.current?.state === 'paused') {
         mediaRecorderRef.current.resume()
@@ -112,6 +114,11 @@ export function StepAudio({
     stream: mediaStreamRef.current,
     active: isRecordingActive,
     onInterrupt: (reason) => {
+      // Snapshot the elapsed time before stop/reset zeroes the refs
+      const elapsedSnapshot =
+        accumulatedMsRef.current +
+        (elapsedStartRef.current !== null ? Date.now() - elapsedStartRef.current : 0)
+      setSavedElapsedMs(elapsedSnapshot)
       setInterruption(reason)
       if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
         mediaRecorderRef.current.stop() // onstop preserves the segment
@@ -242,6 +249,7 @@ export function StepAudio({
     void acquireWakeLock()
     setAutoPaused(false)
     setInterruption(null)
+    setSavedElapsedMs(0)
     startTimer()
     setRecordState('recording')
   }
@@ -305,6 +313,7 @@ export function StepAudio({
     }
     setDisplayedText('')
     lastWordCountRef.current = 0
+    setSavedElapsedMs(0)
     resetTimer()
   }
 
@@ -589,7 +598,7 @@ export function StepAudio({
                     className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-sm text-destructive"
                   >
                     A gravação foi interrompida porque {INTERRUPTION_MESSAGES[interruption].toLowerCase()}.
-                    O áudio até {formatTimer(elapsedMs)} foi preservado. Continue gravando para anexar
+                    O áudio até {formatTimer(savedElapsedMs)} foi preservado. Continue gravando para anexar
                     um novo trecho ou transcreva o que já foi capturado.
                   </div>
                 )}

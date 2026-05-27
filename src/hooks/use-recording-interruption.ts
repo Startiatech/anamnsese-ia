@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 
-export type InterruptionReason = 'suspended' | 'mic-disconnected' | 'backgrounded'
+export type InterruptionReason = 'suspended' | 'mic-disconnected'
 
 // Janela em que um evento "hidden" recente indica suspensao do sistema.
 const RECENT_HIDDEN_WINDOW_MS = 4000
@@ -14,7 +14,6 @@ interface UseRecordingInterruptionArgs {
 export const INTERRUPTION_MESSAGES: Record<InterruptionReason, string> = {
   suspended: 'O computador entrou em suspensão',
   'mic-disconnected': 'O microfone foi desconectado',
-  backgrounded: 'O app ficou em segundo plano',
 }
 
 export function useRecordingInterruption({
