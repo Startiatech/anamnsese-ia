@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { RequestCard } from './request-card'
@@ -22,6 +22,25 @@ function makeRequest(overrides: Partial<AccessRequest> = {}): AccessRequest {
 function noopHandlers() {
   return { onApprove: vi.fn(), onReject: vi.fn(), onViewCredentials: vi.fn() }
 }
+
+// jsdom não faz layout: scrollHeight/clientHeight são 0. Simulamos transbordo
+// (clamp ativo) definindo scrollHeight > clientHeight no protótipo.
+function mockOverflow(overflowing: boolean) {
+  Object.defineProperty(HTMLElement.prototype, 'scrollHeight', {
+    configurable: true,
+    get() { return overflowing ? 100 : 40 },
+  })
+  Object.defineProperty(HTMLElement.prototype, 'clientHeight', {
+    configurable: true,
+    get() { return 40 },
+  })
+}
+
+afterEach(() => {
+  // remove os getters mockados do protótipo entre testes
+  delete (HTMLElement.prototype as unknown as { scrollHeight?: number }).scrollHeight
+  delete (HTMLElement.prototype as unknown as { clientHeight?: number }).clientHeight
+})
 
 describe('RequestCard', () => {
   it('shows name, full email and inline message', () => {
@@ -70,13 +89,21 @@ describe('RequestCard', () => {
     expect(screen.queryByRole('button', { name: /ver credenciais/i })).not.toBeInTheDocument()
   })
 
-  it('expands and collapses a long message', async () => {
+  it('expands and collapses a message that overflows the clamp', async () => {
+    mockOverflow(true)
     const user = userEvent.setup()
     const h = noopHandlers()
-    const longMsg = 'a'.repeat(130)
-    render(<RequestCard request={makeRequest({ message: longMsg })} processing={false} {...h} />)
+    render(<RequestCard request={makeRequest({ message: 'a'.repeat(130) })} processing={false} {...h} />)
     await user.click(screen.getByRole('button', { name: /ver mais/i }))
     expect(screen.getByRole('button', { name: /ver menos/i })).toBeInTheDocument()
+  })
+
+  it('does not show "ver mais" when the message fits within the clamp', () => {
+    mockOverflow(false)
+    const h = noopHandlers()
+    // mensagem longa em caracteres, mas que não transborda visualmente
+    render(<RequestCard request={makeRequest({ message: 'a'.repeat(130) })} processing={false} {...h} />)
+    expect(screen.queryByRole('button', { name: /ver mais/i })).not.toBeInTheDocument()
   })
 
   it('renders no action buttons for approved without temp password', () => {

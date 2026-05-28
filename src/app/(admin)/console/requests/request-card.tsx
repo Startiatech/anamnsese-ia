@@ -1,12 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useLayoutEffect } from 'react'
 import { CheckCircle, XCircle, KeyRound } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { StatusBadge } from '@/components/console/status-badge'
 import type { AccessRequest } from '@/lib/types'
-
-const MESSAGE_COLLAPSE_THRESHOLD = 120
 
 interface RequestCardProps {
   request: AccessRequest
@@ -36,6 +34,17 @@ export function RequestCard({
   request, processing, onApprove, onReject, onViewCredentials,
 }: RequestCardProps) {
   const [expanded, setExpanded] = useState(false)
+  const [isOverflowing, setIsOverflowing] = useState(false)
+  const messageRef = useRef<HTMLParagraphElement>(null)
+
+  // "ver mais" só aparece quando o texto realmente transborda o clamp visual
+  // (scrollHeight > clientHeight) — não por contagem de caracteres, que diverge
+  // do número de linhas renderizadas.
+  useLayoutEffect(() => {
+    const el = messageRef.current
+    if (!el || expanded) return
+    setIsOverflowing(el.scrollHeight > el.clientHeight + 1)
+  }, [request.message, expanded])
 
   return (
     <div data-testid="request-card" className="rounded-xl border border-border p-4 space-y-3">
@@ -54,10 +63,13 @@ export function RequestCard({
       {request.message && (
         <div className="space-y-1">
           <span className="text-xs text-muted-foreground">Mensagem</span>
-          <p className={`text-sm italic text-foreground ${expanded ? '' : 'line-clamp-3'}`}>
+          <p
+            ref={messageRef}
+            className={`text-sm italic text-foreground ${expanded ? '' : 'line-clamp-3'}`}
+          >
             &ldquo;{request.message}&rdquo;
           </p>
-          {request.message.length > MESSAGE_COLLAPSE_THRESHOLD && (
+          {isOverflowing && (
             <button
               type="button"
               onClick={() => setExpanded((v) => !v)}
