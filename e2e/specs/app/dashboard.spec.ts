@@ -125,4 +125,20 @@ test.describe('dashboard do usuario', () => {
 
     void testInfo
   })
+
+  test('mobile: dashboard sem scroll horizontal em 375px', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'mobile', 'cenario especifico do viewport mobile')
+
+    const user = await createTestUser({ role: 'user' })
+    await loginAsUser(page, user)
+    await page.waitForURL(/\/app\/dashboard(\?|$|\/)/, { timeout: 60_000 })
+    await page.waitForLoadState('networkidle')
+
+    // Topbar do user (logo + creditos + sino + toggle + avatar) deve caber em 375px
+    // apos o fix de responsividade da topbar (sub-pixel tolerante).
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    )
+    expect(overflow).toBeLessThanOrEqual(1)
+  })
 })
