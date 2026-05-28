@@ -72,7 +72,7 @@ async function waitForUserCreated(email: string, timeoutMs = 15_000): Promise<{ 
 test.describe('console requests (admin)', () => {
   test.setTimeout(90_000)
 
-  test('master ve solicitacao pendente seedada na tabela', async ({ page, context }) => {
+  test('master ve solicitacao pendente seedada na tabela', async ({ page, context }, testInfo) => {
     await loginAsMasterViaCookie(context)
     const seeded = await createAccessRequest()
 
@@ -89,29 +89,38 @@ test.describe('console requests (admin)', () => {
     await expect(page.getByRole('button', { name: /^aprovadas \(/i })).toBeVisible()
     await expect(page.getByRole('button', { name: /^rejeitadas \(/i })).toBeVisible()
 
-    // A row seedada aparece (email unico e2e-req-*)
-    await expect(page.getByText(seeded.email)).toBeVisible({ timeout: 10_000 })
+    // A row/card seedada aparece (email unico e2e-req-*)
+    const isMobile = testInfo.project.name === 'mobile'
+    const seededItem = isMobile
+      ? page.getByTestId('request-card').filter({ hasText: seeded.email })
+      : page.getByRole('row').filter({ hasText: seeded.email })
+    await expect(seededItem).toBeVisible({ timeout: 10_000 })
   })
 
-  test('filtro "Pendentes" mostra apenas solicitacoes pending', async ({ page, context }) => {
+  test('filtro "Pendentes" mostra apenas solicitacoes pending', async ({ page, context }, testInfo) => {
     await loginAsMasterViaCookie(context)
     const seeded = await createAccessRequest()
 
     await page.goto('/console/requests')
     await page.waitForLoadState('networkidle')
 
+    const isMobile = testInfo.project.name === 'mobile'
+    const seededItem = isMobile
+      ? page.getByTestId('request-card').filter({ hasText: seeded.email })
+      : page.getByRole('row').filter({ hasText: seeded.email })
+
     const pendentesBtn = page.getByRole('button', { name: /^pendentes \(/i })
     await expect(pendentesBtn).toBeEnabled()
     await pendentesBtn.click()
 
-    // A row seedada (status=pending) continua visivel
-    await expect(page.getByText(seeded.email)).toBeVisible({ timeout: 10_000 })
+    // A row/card seedada (status=pending) continua visivel
+    await expect(seededItem).toBeVisible({ timeout: 10_000 })
 
-    // Ao mudar para "Aprovadas", a row some
+    // Ao mudar para "Aprovadas", a row/card some
     const aprovadasBtn = page.getByRole('button', { name: /^aprovadas \(/i })
     await expect(aprovadasBtn).toBeEnabled()
     await aprovadasBtn.click()
-    await expect(page.getByText(seeded.email)).toHaveCount(0)
+    await expect(seededItem).toHaveCount(0)
   })
 
   test('aprovar solicitacao cria user e muda status para approved', async ({ page, context }, testInfo) => {
@@ -136,28 +145,43 @@ test.describe('console requests (admin)', () => {
       })
     }
 
-    // Encontra a linha pelo email seedado
-    const row = page.getByRole('row').filter({ hasText: seeded.email })
-    await expect(row).toBeVisible({ timeout: 10_000 })
+    if (isMobile) {
+      const card = page.getByTestId('request-card').filter({ hasText: seeded.email })
+      await expect(card).toBeVisible({ timeout: 10_000 })
+      const createUserResponse = page.waitForResponse(
+        (resp) => resp.url().includes('/api/admin/create-user') && resp.request().method() === 'POST',
+        { timeout: 20_000 },
+      )
+      await card.getByRole('button', { name: /aprovar/i }).click()
+      const createRes = await createUserResponse
+      if (createRes.status() !== 200 && createRes.status() !== 201) {
+        const body = await createRes.text().catch(() => '<no body>')
+        throw new Error(`[e2e] create-user falhou ${createRes.status()}: ${body}`)
+      }
+    } else {
+      // Encontra a linha pelo email seedado
+      const row = page.getByRole('row').filter({ hasText: seeded.email })
+      await expect(row).toBeVisible({ timeout: 10_000 })
 
-    const menuTrigger = row.getByRole('button').last()
-    await expect(menuTrigger).toBeEnabled()
-    await menuTrigger.click()
+      const menuTrigger = row.getByRole('button').last()
+      await expect(menuTrigger).toBeEnabled()
+      await menuTrigger.click()
 
-    const aprovarItem = page.getByRole('menuitem', { name: /aprovar/i })
-    await expect(aprovarItem).toBeVisible()
+      const aprovarItem = page.getByRole('menuitem', { name: /aprovar/i })
+      await expect(aprovarItem).toBeVisible()
 
-    // Captura as duas respostas da API em paralelo ao click para garantir
-    // que o fluxo completou (handleApprove faz POST + PATCH em sequencia).
-    const createUserResponse = page.waitForResponse(
-      (resp) => resp.url().includes('/api/admin/create-user') && resp.request().method() === 'POST',
-      { timeout: 20_000 },
-    )
-    await aprovarItem.click()
-    const createRes = await createUserResponse
-    if (createRes.status() !== 200 && createRes.status() !== 201) {
-      const body = await createRes.text().catch(() => '<no body>')
-      throw new Error(`[e2e] create-user falhou ${createRes.status()}: ${body}`)
+      // Captura as duas respostas da API em paralelo ao click para garantir
+      // que o fluxo completou (handleApprove faz POST + PATCH em sequencia).
+      const createUserResponse = page.waitForResponse(
+        (resp) => resp.url().includes('/api/admin/create-user') && resp.request().method() === 'POST',
+        { timeout: 20_000 },
+      )
+      await aprovarItem.click()
+      const createRes = await createUserResponse
+      if (createRes.status() !== 200 && createRes.status() !== 201) {
+        const body = await createRes.text().catch(() => '<no body>')
+        throw new Error(`[e2e] create-user falhou ${createRes.status()}: ${body}`)
+      }
     }
 
     // Confirma persistencia no banco
@@ -189,16 +213,22 @@ test.describe('console requests (admin)', () => {
       })
     }
 
-    const row = page.getByRole('row').filter({ hasText: seeded.email })
-    await expect(row).toBeVisible({ timeout: 10_000 })
+    if (isMobile) {
+      const card = page.getByTestId('request-card').filter({ hasText: seeded.email })
+      await expect(card).toBeVisible({ timeout: 10_000 })
+      await card.getByRole('button', { name: /rejeitar/i }).click()
+    } else {
+      const row = page.getByRole('row').filter({ hasText: seeded.email })
+      await expect(row).toBeVisible({ timeout: 10_000 })
 
-    const menuTrigger = row.getByRole('button').last()
-    await expect(menuTrigger).toBeEnabled()
-    await menuTrigger.click()
+      const menuTrigger = row.getByRole('button').last()
+      await expect(menuTrigger).toBeEnabled()
+      await menuTrigger.click()
 
-    const rejeitarItem = page.getByRole('menuitem', { name: /rejeitar/i })
-    await expect(rejeitarItem).toBeVisible()
-    await rejeitarItem.click()
+      const rejeitarItem = page.getByRole('menuitem', { name: /rejeitar/i })
+      await expect(rejeitarItem).toBeVisible()
+      await rejeitarItem.click()
+    }
 
     await waitForRequestStatus(seeded.id, 'rejected')
 
@@ -240,7 +270,9 @@ test.describe('console requests (admin)', () => {
     expect(overflow).toBeLessThanOrEqual(1)
   })
 
-  test('mensagem da solicitacao fica acessivel via tooltip "Ver"', async ({ page, context }) => {
+  test('mensagem da solicitacao fica acessivel via tooltip "Ver"', async ({ page, context }, testInfo) => {
+    test.skip(testInfo.project.name === 'mobile', 'tooltip "Ver" é padrão desktop; no mobile a mensagem é inline no card')
+
     await loginAsMasterViaCookie(context)
     const seeded = await createAccessRequest()
 
