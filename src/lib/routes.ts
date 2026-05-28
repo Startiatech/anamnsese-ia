@@ -51,6 +51,7 @@ export const API = {
   adminPlanId:     (id: string) => `/api/admin/plans/${id}`,
   adminResetPin:   (id: string) => `/api/admin/users/${id}/reset-pin`,
   adminUserGroqCost: (id: string) => `/api/admin/users/${id}/groq-cost`,
+  adminRequestViewCredentials: (id: string) => `/api/admin/requests/${id}/view-credentials`,
 
   // Requests
   requests:    '/api/requests',

@@ -74,7 +74,7 @@ export function RequestsClient(_: { initialRequests: AccessRequest[] }) {
     setProcessingId(request.id)
     const tempPassword = Math.random().toString(36).slice(2, 10)
 
-    const promise = fetch('/api/admin/create-user', {
+    const promise = fetch(API.createUser, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: request.name, email: request.email, specialty: request.specialty, phone: request.phone, password: tempPassword }),
@@ -102,7 +102,7 @@ export function RequestsClient(_: { initialRequests: AccessRequest[] }) {
 
   async function handleViewCredentials(request: AccessRequest) {
     setProcessingId(request.id)
-    const promise = fetch(`/api/admin/requests/${request.id}/view-credentials`).then(async (res) => {
+    const promise = fetch(API.adminRequestViewCredentials(request.id)).then(async (res) => {
       if (!res.ok) {
         const body = await res.json().catch(() => ({ error: 'Erro ao buscar credenciais' }))
         throw new Error(body.error ?? 'Erro ao buscar credenciais')
