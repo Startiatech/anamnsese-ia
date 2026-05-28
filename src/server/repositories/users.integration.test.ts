@@ -61,7 +61,6 @@ describe('users repository (integration)', () => {
       prefSpacingIncreased: false,
       prefFocusHighlight: false,
       prefExtraReducedMotion: false,
-      betaA11yV2: false,
     }
     await addUser(newUser)
     const found = await findUserById(id)

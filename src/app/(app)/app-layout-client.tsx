@@ -144,7 +144,6 @@ export function AppLayoutClient({
   initialSpacingIncreased = false,
   initialFocusHighlight = false,
   initialExtraReducedMotion = false,
-  initialBetaA11yV2 = false,
   initialNotifications = [],
   initialNotificationsUnread = 0,
   creditInjectedNotification = null,
@@ -162,7 +161,6 @@ export function AppLayoutClient({
   initialSpacingIncreased?: boolean
   initialFocusHighlight?: boolean
   initialExtraReducedMotion?: boolean
-  initialBetaA11yV2?: boolean
   initialNotifications?: Notification[]
   initialNotificationsUnread?: number
   creditInjectedNotification?: Notification | null
@@ -176,7 +174,6 @@ export function AppLayoutClient({
         initialSpacingIncreased={initialSpacingIncreased}
         initialFocusHighlight={initialFocusHighlight}
         initialExtraReducedMotion={initialExtraReducedMotion}
-        initialBetaA11yV2={initialBetaA11yV2}
       >
         <KeyboardShortcutsProvider>
           <AppShell

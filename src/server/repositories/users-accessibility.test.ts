@@ -126,7 +126,6 @@ describe('findUserById mapping — accessibility prefs', () => {
     expect(user?.prefSpacingIncreased).toBe(false)
     expect(user?.prefFocusHighlight).toBe(false)
     expect(user?.prefExtraReducedMotion).toBe(false)
-    expect(user?.betaA11yV2).toBe(false)
   })
 
   it('mapeia novos campos Fase 3 quando presentes no row', async () => {
@@ -141,7 +140,6 @@ describe('findUserById mapping — accessibility prefs', () => {
         pref_spacing_increased: true,
         pref_focus_highlight: true,
         pref_extra_reduced_motion: true,
-        beta_a11y_v2: true,
       },
       error: null,
     })
@@ -151,6 +149,5 @@ describe('findUserById mapping — accessibility prefs', () => {
     expect(user?.prefSpacingIncreased).toBe(true)
     expect(user?.prefFocusHighlight).toBe(true)
     expect(user?.prefExtraReducedMotion).toBe(true)
-    expect(user?.betaA11yV2).toBe(true)
   })
 })

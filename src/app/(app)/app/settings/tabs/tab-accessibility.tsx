@@ -104,10 +104,10 @@ function StickyStatusIndicator({ status }: { status: SaveStatus }) {
   )
 }
 
-export function TabAccessibility() {
+export function TabAccessibility({ showRequestCard = true }: { showRequestCard?: boolean } = {}) {
   const {
     fontSize, highContrast, spacingIncreased, focusHighlight, extraReducedMotion,
-    betaA11yV2, saveStatus,
+    saveStatus,
     setFontSize, setHighContrast, setSpacingIncreased, setFocusHighlight, setExtraReducedMotion,
   } = useAccessibility()
 
@@ -157,35 +157,31 @@ export function TabAccessibility() {
         <ToggleSwitch label="Alto contraste" checked={highContrast} onChange={setHighContrast} />
       </SectionCard>
 
-      {betaA11yV2 && (
-        <>
-          <SectionCard
-            icon={AlignJustify}
-            title="Espaçamento de leitura"
-            description="Aumenta espaço entre linhas, palavras e letras para reduzir fadiga visual."
-          >
-            <ToggleSwitch label="Espaçamento aumentado" checked={spacingIncreased} onChange={setSpacingIncreased} />
-          </SectionCard>
+      <SectionCard
+        icon={AlignJustify}
+        title="Espaçamento de leitura"
+        description="Aumenta espaço entre linhas, palavras e letras para reduzir fadiga visual."
+      >
+        <ToggleSwitch label="Espaçamento aumentado" checked={spacingIncreased} onChange={setSpacingIncreased} />
+      </SectionCard>
 
-          <SectionCard
-            icon={Focus}
-            title="Destacar elemento em foco"
-            description="Realça com cor amarela e moldura espessa o elemento atualmente focado."
-          >
-            <ToggleSwitch label="Destacar foco atual" checked={focusHighlight} onChange={setFocusHighlight} />
-          </SectionCard>
+      <SectionCard
+        icon={Focus}
+        title="Destacar elemento em foco"
+        description="Realça com cor amarela e moldura espessa o elemento atualmente focado."
+      >
+        <ToggleSwitch label="Destacar foco atual" checked={focusHighlight} onChange={setFocusHighlight} />
+      </SectionCard>
 
-          <SectionCard
-            icon={Wind}
-            title="Reduzir movimento e animações"
-            description="Desativa animações e transições da plataforma além das preferências do sistema."
-          >
-            <ToggleSwitch label="Reduzir movimento" checked={extraReducedMotion} onChange={setExtraReducedMotion} />
-          </SectionCard>
-        </>
-      )}
+      <SectionCard
+        icon={Wind}
+        title="Reduzir movimento e animações"
+        description="Desativa animações e transições da plataforma além das preferências do sistema."
+      >
+        <ToggleSwitch label="Reduzir movimento" checked={extraReducedMotion} onChange={setExtraReducedMotion} />
+      </SectionCard>
 
-      <RequestFeedbackCard />
+      {showRequestCard && <RequestFeedbackCard />}
     </div>
   )
 }

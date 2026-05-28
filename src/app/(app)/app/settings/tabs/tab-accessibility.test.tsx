@@ -15,10 +15,9 @@ interface ProviderOpts {
   spacingIncreased?: boolean
   focusHighlight?: boolean
   extraReducedMotion?: boolean
-  betaA11yV2?: boolean
 }
 
-function renderWithProvider(opts: ProviderOpts = {}) {
+function renderWithProvider(opts: ProviderOpts = {}, props: { showRequestCard?: boolean } = {}) {
   return render(
     <AccessibilityProvider
       initialFontSize={opts.fontSize ?? 'normal'}
@@ -26,9 +25,8 @@ function renderWithProvider(opts: ProviderOpts = {}) {
       initialSpacingIncreased={opts.spacingIncreased ?? false}
       initialFocusHighlight={opts.focusHighlight ?? false}
       initialExtraReducedMotion={opts.extraReducedMotion ?? false}
-      initialBetaA11yV2={opts.betaA11yV2 ?? false}
     >
-      <TabAccessibility />
+      <TabAccessibility showRequestCard={props.showRequestCard} />
     </AccessibilityProvider>
   )
 }
@@ -94,16 +92,9 @@ describe('TabAccessibility — base (sempre visivel)', () => {
   })
 })
 
-describe('TabAccessibility — Fase 3 (gated por betaA11yV2)', () => {
-  it('NAO renderiza os 3 novos toggles quando beta esta desativado', () => {
-    renderWithProvider({ betaA11yV2: false })
-    expect(screen.queryByRole('switch', { name: /espa.amento/i })).toBeNull()
-    expect(screen.queryByRole('switch', { name: /destacar foco/i })).toBeNull()
-    expect(screen.queryByRole('switch', { name: /reduzir movimento/i })).toBeNull()
-  })
-
-  it('renderiza os 3 novos toggles quando beta esta ativado', () => {
-    renderWithProvider({ betaA11yV2: true })
+describe('TabAccessibility — Fase 3 (GA, sempre visivel)', () => {
+  it('renderiza os 3 toggles', () => {
+    renderWithProvider()
     expect(screen.getByRole('switch', { name: /espa.amento/i })).toBeTruthy()
     expect(screen.getByRole('switch', { name: /destacar foco/i })).toBeTruthy()
     expect(screen.getByRole('switch', { name: /reduzir movimento/i })).toBeTruthy()
@@ -111,7 +102,7 @@ describe('TabAccessibility — Fase 3 (gated por betaA11yV2)', () => {
 
   it('clicar no toggle de espacamento aplica data-spacing-increased', async () => {
     const user = userEvent.setup()
-    renderWithProvider({ betaA11yV2: true })
+    renderWithProvider()
 
     await user.click(screen.getByRole('switch', { name: /espa.amento/i }))
 
@@ -120,7 +111,7 @@ describe('TabAccessibility — Fase 3 (gated por betaA11yV2)', () => {
 
   it('clicar no toggle de foco aplica data-focus-highlight', async () => {
     const user = userEvent.setup()
-    renderWithProvider({ betaA11yV2: true })
+    renderWithProvider()
 
     await user.click(screen.getByRole('switch', { name: /destacar foco/i }))
 
@@ -129,11 +120,23 @@ describe('TabAccessibility — Fase 3 (gated por betaA11yV2)', () => {
 
   it('clicar no toggle de movimento aplica data-extra-reduced-motion', async () => {
     const user = userEvent.setup()
-    renderWithProvider({ betaA11yV2: true })
+    renderWithProvider()
 
     await user.click(screen.getByRole('switch', { name: /reduzir movimento/i }))
 
     expect(document.documentElement.getAttribute('data-extra-reduced-motion')).toBe('true')
+  })
+})
+
+describe('TabAccessibility — card de pedido (showRequestCard)', () => {
+  it('exibe o card de pedido por padrao', () => {
+    renderWithProvider()
+    expect(screen.getByTestId('request-feedback-card-mock')).toBeTruthy()
+  })
+
+  it('oculta o card de pedido quando showRequestCard=false', () => {
+    renderWithProvider({}, { showRequestCard: false })
+    expect(screen.queryByTestId('request-feedback-card-mock')).toBeNull()
   })
 })
 

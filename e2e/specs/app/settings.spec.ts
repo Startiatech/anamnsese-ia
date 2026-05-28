@@ -131,4 +131,49 @@ test.describe('configuracoes do usuario', () => {
     expect(data?.clinic_name).toBe(novoNomeClinica)
     expect((data?.clinic_cnpj ?? '').replace(/\D/g, '')).toBe('11222333000181')
   })
+
+  test('aba Acessibilidade exibe os toggles GA, o card de pedido e persiste o ajuste', async ({ page }) => {
+    const user = await createTestUser({ role: 'user' })
+    await loginAsUser(page, user)
+
+    await page.goto('/app/settings')
+    await page.waitForLoadState('networkidle')
+
+    const tabA11y = page.getByRole('button', { name: /^acessibilidade$/i }).first()
+    await expect(tabA11y).toBeVisible({ timeout: 30_000 })
+    await tabA11y.click()
+
+    // Os 3 toggles antes gated agora sao GA (sempre visiveis)
+    const espacamento = page.getByRole('switch', { name: /espa.amento/i })
+    await expect(espacamento).toBeVisible()
+    await expect(page.getByRole('switch', { name: /destacar foco/i })).toBeVisible()
+    await expect(page.getByRole('switch', { name: /reduzir movimento/i })).toBeVisible()
+
+    // Card de pedido aparece no lado do usuario
+    await expect(page.getByText(/falta algum ajuste/i)).toBeVisible()
+
+    // Ativar "Espacamento aumentado" auto-salva via PATCH /api/users/me
+    await page.evaluate(() => {
+      document.querySelectorAll('[data-sonner-toaster], [data-sonner-toast]').forEach((el) => {
+        ;(el as HTMLElement).style.pointerEvents = 'none'
+      })
+    })
+    await espacamento.click()
+
+    // Persistencia: pref_spacing_increased = true no banco
+    const supabase = getTestSupabase()
+    await expect
+      .poll(
+        async () => {
+          const { data } = await supabase
+            .from('users')
+            .select('pref_spacing_increased')
+            .eq('id', user.id)
+            .single()
+          return data?.pref_spacing_increased
+        },
+        { timeout: 15_000 },
+      )
+      .toBe(true)
+  })
 })

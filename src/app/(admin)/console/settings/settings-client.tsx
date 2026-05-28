@@ -1,17 +1,19 @@
 'use client'
 
 import { useState } from 'react'
-import { User, Lock } from 'lucide-react'
+import { User, Lock, Accessibility } from 'lucide-react'
 import { PageHeader } from '@/components/console/page-header'
 import { UnderlineTabs } from '@/components/ui/underline-tabs'
 import { TabProfile } from './tabs/tab-profile'
 import { TabSecurity } from './tabs/tab-security'
+import { TabAccessibility } from '@/app/(app)/app/settings/tabs/tab-accessibility'
 
-type TabId = 'perfil' | 'seguranca'
+type TabId = 'perfil' | 'seguranca' | 'acessibilidade'
 
 const TABS: { id: TabId; label: string; icon: typeof User }[] = [
-  { id: 'perfil',    label: 'Perfil',    icon: User },
-  { id: 'seguranca', label: 'Segurança', icon: Lock },
+  { id: 'perfil',         label: 'Perfil',        icon: User },
+  { id: 'seguranca',      label: 'Segurança',     icon: Lock },
+  { id: 'acessibilidade', label: 'Acessibilidade', icon: Accessibility },
 ]
 
 export function SettingsClient({ userName }: { userName: string }) {
@@ -32,6 +34,9 @@ export function SettingsClient({ userName }: { userName: string }) {
       </div>
       <div className={active === 'seguranca' ? '' : 'hidden'}>
         <TabSecurity userName={userName} />
+      </div>
+      <div className={active === 'acessibilidade' ? '' : 'hidden'}>
+        <TabAccessibility showRequestCard={false} />
       </div>
     </div>
   )

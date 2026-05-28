@@ -24,7 +24,6 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   let initialSpacingIncreased = false
   let initialFocusHighlight = false
   let initialExtraReducedMotion = false
-  let initialBetaA11yV2 = false
   let initialNotifications: Notification[] = []
   let initialNotificationsUnread = 0
   let initialA11yPendingCount = 0
@@ -43,7 +42,6 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     initialSpacingIncreased = storedUser?.prefSpacingIncreased ?? false
     initialFocusHighlight = storedUser?.prefFocusHighlight ?? false
     initialExtraReducedMotion = storedUser?.prefExtraReducedMotion ?? false
-    initialBetaA11yV2 = storedUser?.betaA11yV2 ?? false
     initialNotifications = notifications
     initialNotificationsUnread = unread
     initialA11yPendingCount = a11yPending
@@ -68,7 +66,6 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       initialSpacingIncreased={initialSpacingIncreased}
       initialFocusHighlight={initialFocusHighlight}
       initialExtraReducedMotion={initialExtraReducedMotion}
-      initialBetaA11yV2={initialBetaA11yV2}
       initialNotifications={initialNotifications}
       initialNotificationsUnread={initialNotificationsUnread}
       initialA11yPendingCount={initialA11yPendingCount}

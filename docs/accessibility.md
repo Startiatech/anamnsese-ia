@@ -90,7 +90,7 @@ O atalho não dispara quando o foco está em `<input>`, `<textarea>`, `<select>`
 
 Filosofia explícita: **rotular por efeito, não por condição.** Nenhum toggle é nomeado "Modo TEA / TDAH / Dislexia". Cada ajuste descreve o que faz; o usuário combina os que ajudam. Padrão alinhado com Apple/iOS, GOV.UK e Microsoft — evita o accessibility theater dos overlays comerciais.
 
-### Toggles disponíveis (gated por `users.beta_a11y_v2`)
+### Toggles disponíveis
 
 | Toggle | `data-attr` no `<html>` | Efeito CSS |
 |---|---|---|
@@ -98,11 +98,9 @@ Filosofia explícita: **rotular por efeito, não por condição.** Nenhum toggle
 | Destacar elemento em foco | `data-focus-highlight="true"` | `outline 3px solid amarelo` + box-shadow expandido em `*:focus-visible` |
 | Reduzir movimento (extra) | `data-extra-reduced-motion="true"` | Todas animações/transições reduzidas a `0.01ms` |
 
-Todos persistidos em colunas booleanas em `public.users` e sincronizados via PATCH `/api/users/me`.
+Todos persistidos em colunas booleanas em `public.users` e sincronizados via PATCH `/api/users/me`. Os 3 toggles são GA — visíveis para todos os usuários (o feature flag `beta_a11y_v2` foi removido).
 
-### Feature flag
-
-A coluna `users.beta_a11y_v2` controla a visibilidade dos 3 toggles na aba Configurações → Acessibilidade. Ativação ad-hoc via `supabase/seeds/20260525c_phase3_announcement.sql`. Quando estável, a flag será removida e os toggles ficam visíveis para todos.
+A aba Acessibilidade está disponível em **ambos os lados**: `(app)` (médico/cliente) e console master (`(admin)/console/settings`). O componente `TabAccessibility` é reutilizado; no console renderiza com `showRequestCard={false}` (o card "Falta algum ajuste?" envia pedidos ao master, então não faz sentido o próprio master enviá-los a si mesmo).
 
 ### Sino de notificações (`NotificationBell`)
 

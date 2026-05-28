@@ -98,7 +98,6 @@ export function AdminLayoutClient({
   initialSpacingIncreased = false,
   initialFocusHighlight = false,
   initialExtraReducedMotion = false,
-  initialBetaA11yV2 = false,
   initialNotifications = [],
   initialNotificationsUnread = 0,
   initialA11yPendingCount = 0,
@@ -113,7 +112,6 @@ export function AdminLayoutClient({
   initialSpacingIncreased?: boolean
   initialFocusHighlight?: boolean
   initialExtraReducedMotion?: boolean
-  initialBetaA11yV2?: boolean
   initialNotifications?: Notification[]
   initialNotificationsUnread?: number
   initialA11yPendingCount?: number
@@ -127,7 +125,6 @@ export function AdminLayoutClient({
         initialSpacingIncreased={initialSpacingIncreased}
         initialFocusHighlight={initialFocusHighlight}
         initialExtraReducedMotion={initialExtraReducedMotion}
-        initialBetaA11yV2={initialBetaA11yV2}
       >
         <KeyboardShortcutsProvider>
           <ConsoleNotificationProvider initialRequests={initialRequests} initialA11yPendingCount={initialA11yPendingCount}>

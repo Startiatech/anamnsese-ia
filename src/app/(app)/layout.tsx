@@ -87,7 +87,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         initialSpacingIncreased={storedUser.prefSpacingIncreased}
         initialFocusHighlight={storedUser.prefFocusHighlight}
         initialExtraReducedMotion={storedUser.prefExtraReducedMotion}
-        initialBetaA11yV2={storedUser.betaA11yV2}
         initialNotifications={initialNotifications}
         initialNotificationsUnread={initialNotificationsUnread}
         creditInjectedNotification={creditInjectedNotification}

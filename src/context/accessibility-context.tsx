@@ -18,7 +18,6 @@ interface AccessibilityContextValue {
   spacingIncreased: boolean
   focusHighlight: boolean
   extraReducedMotion: boolean
-  betaA11yV2: boolean
   saveStatus: SaveStatus
   setFontSize: (v: FontSize) => void
   setHighContrast: (v: boolean) => void
@@ -58,7 +57,6 @@ interface AccessibilityProviderProps {
   initialSpacingIncreased?: boolean
   initialFocusHighlight?: boolean
   initialExtraReducedMotion?: boolean
-  initialBetaA11yV2?: boolean
 }
 
 export function AccessibilityProvider({
@@ -68,7 +66,6 @@ export function AccessibilityProvider({
   initialSpacingIncreased = false,
   initialFocusHighlight = false,
   initialExtraReducedMotion = false,
-  initialBetaA11yV2 = false,
 }: AccessibilityProviderProps) {
   const [fontSize, setFontSizeState] = useState<FontSize>(initialFontSize)
   const [highContrast, setHighContrastState] = useState<boolean>(initialHighContrast)
@@ -141,7 +138,6 @@ export function AccessibilityProvider({
         spacingIncreased,
         focusHighlight,
         extraReducedMotion,
-        betaA11yV2: initialBetaA11yV2,
         saveStatus,
         setFontSize,
         setHighContrast,

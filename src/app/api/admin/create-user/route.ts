@@ -62,7 +62,6 @@ export async function POST(req: NextRequest) {
     prefSpacingIncreased: false,
     prefFocusHighlight: false,
     prefExtraReducedMotion: false,
-    betaA11yV2: false,
   })
 
   // Persiste a senha em texto plano enquanto for temporaria para permitir

@@ -10,9 +10,11 @@ import { getTestSupabase } from '../../fixtures/supabase'
  *
  * Client (src/app/(admin)/console/settings/settings-client.tsx):
  *  - PageHeader "Configuracoes"
- *  - UnderlineTabs com duas abas:
- *      - Perfil   -> TabProfile (edita name do master)
- *      - Seguranca -> TabSecurity (altera senha: atual + nova + confirmacao)
+ *  - UnderlineTabs com tres abas:
+ *      - Perfil        -> TabProfile (edita name do master)
+ *      - Seguranca     -> TabSecurity (altera senha: atual + nova + confirmacao)
+ *      - Acessibilidade -> TabAccessibility reaproveitada do lado (app), renderizada
+ *                          com showRequestCard={false} (master nao envia pedido a si).
  *
  * Mutacao via Server Action `updateMasterProfile` em
  * `src/server/actions/settings.ts`. Atualiza o proprio registro do master
@@ -230,5 +232,27 @@ test.describe('console configuracoes (admin)', () => {
     } finally {
       await restoreMaster(original)
     }
+  })
+
+  // Read-only: o master e registro compartilhado, entao NAO clicamos nos toggles
+  // (auto-save via PATCH /api/users/me mutaria as prefs do master). Validamos
+  // apenas a renderizacao da aba.
+  test('aba Acessibilidade exibe os toggles e nao mostra o card de pedido', async ({ page, context }) => {
+    await loginAsMasterViaCookie(context)
+
+    await page.goto('/console/settings')
+    await page.waitForLoadState('networkidle')
+
+    await page.getByRole('button', { name: /^acessibilidade$/i }).first().click()
+
+    // Controles de acessibilidade (GA, sempre visiveis)
+    await expect(page.getByRole('radio', { name: /normal/i })).toBeVisible()
+    await expect(page.getByRole('switch', { name: /alto contraste/i })).toBeVisible()
+    await expect(page.getByRole('switch', { name: /espa.amento/i })).toBeVisible()
+    await expect(page.getByRole('switch', { name: /destacar foco/i })).toBeVisible()
+    await expect(page.getByRole('switch', { name: /reduzir movimento/i })).toBeVisible()
+
+    // Card de pedido nao aparece no console (showRequestCard={false})
+    await expect(page.getByText(/falta algum ajuste/i)).toHaveCount(0)
   })
 })

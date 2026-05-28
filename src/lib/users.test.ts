@@ -91,7 +91,6 @@ const expectedUser: StoredUser = {
   prefSpacingIncreased: false,
   prefFocusHighlight: false,
   prefExtraReducedMotion: false,
-  betaA11yV2: false,
 }
 
 beforeEach(() => vi.clearAllMocks())
@@ -155,7 +154,6 @@ describe('addUser', () => {
       prefSpacingIncreased: false,
       prefFocusHighlight: false,
       prefExtraReducedMotion: false,
-      betaA11yV2: false,
     }
     await addUser(newUser)
     expect(mockInsert).toHaveBeenCalledWith(

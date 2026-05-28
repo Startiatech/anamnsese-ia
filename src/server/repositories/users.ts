@@ -57,7 +57,6 @@ export interface StoredUser {
   prefSpacingIncreased: boolean
   prefFocusHighlight: boolean
   prefExtraReducedMotion: boolean
-  betaA11yV2: boolean
 }
 
 function toStoredUser(row: Record<string, unknown>): StoredUser {
@@ -103,7 +102,6 @@ function toStoredUser(row: Record<string, unknown>): StoredUser {
     prefSpacingIncreased: (row.pref_spacing_increased as boolean | null) ?? false,
     prefFocusHighlight: (row.pref_focus_highlight as boolean | null) ?? false,
     prefExtraReducedMotion: (row.pref_extra_reduced_motion as boolean | null) ?? false,
-    betaA11yV2: (row.beta_a11y_v2 as boolean | null) ?? false,
   }
 }
 
