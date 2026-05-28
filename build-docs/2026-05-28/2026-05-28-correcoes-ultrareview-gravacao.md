@@ -84,6 +84,15 @@ de fato transborda o clamp.
 
 Todos os arquivos acima rodados isoladamente: verdes.
 
+## Extra — PageHeader empilha no mobile
+
+Reportado em teste manual (375px): o botão de ação do header (ex.: "Novo atendimento" no
+dashboard do profissional) ficava lado a lado com o título, espremendo a saudação.
+[src/components/console/page-header.tsx](src/components/console/page-header.tsx) passou a usar `flex-col gap-3` no mobile e
+`sm:flex-row sm:items-start sm:justify-between` acima — o botão empilha abaixo do
+título/descrição em telas pequenas. Componente compartilhado: corrige o lado user e o
+console admin simultaneamente.
+
 ## Docs
 
 - [docs/architecture.md](docs/architecture.md): diagramas de interrupção e de transcrição atualizados (watchdog de clock-jump; transcrição por segmento).
