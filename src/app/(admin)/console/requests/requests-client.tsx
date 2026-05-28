@@ -39,6 +39,12 @@ function formatDate(iso: string) {
   })
 }
 
+// Senha provisória com CSPRNG (não Math.random): 16 hex chars (~64 bits).
+function generateTempPassword(): string {
+  const bytes = crypto.getRandomValues(new Uint8Array(8))
+  return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('')
+}
+
 export function RequestsClient(_: { initialRequests: AccessRequest[] }) {
   const { requests, setRequests } = useConsoleNotification()
   const [filter, setFilter] = useState<Filter>('all')
@@ -72,7 +78,7 @@ export function RequestsClient(_: { initialRequests: AccessRequest[] }) {
 
   async function handleApprove(request: AccessRequest) {
     setProcessingId(request.id)
-    const tempPassword = Math.random().toString(36).slice(2, 10)
+    const tempPassword = generateTempPassword()
 
     const promise = fetch(API.createUser, {
       method: 'POST',
@@ -80,22 +86,27 @@ export function RequestsClient(_: { initialRequests: AccessRequest[] }) {
       body: JSON.stringify({ name: request.name, email: request.email, specialty: request.specialty, phone: request.phone, password: tempPassword }),
     }).then(async (res) => {
       if (!res.ok) throw new Error('Erro ao criar usuário')
-      await fetch(API.requestId(request.id), {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'approved' }),
-      })
-      setRequests((prev) => prev.map((r) => r.id === request.id ? { ...r, status: 'approved' as const } : r))
-      // Senha provisoria ja foi persistida (hash) — abre modal com a senha
-      // para o master copiar e enviar via WhatsApp.
+      // Usuario criado: exibe as credenciais imediatamente — a senha so e mostrada
+      // uma vez e o master precisa envia-la, independente do resultado do PATCH.
       setCredentials({
         name: request.name,
         email: request.email,
         phone: request.phone,
         password: tempPassword,
       })
+      const statusRes = await fetch(API.requestId(request.id), {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'approved' }),
+      })
+      if (!statusRes.ok) {
+        // Usuario foi criado, mas a solicitacao nao foi marcada como aprovada.
+        // Nao marca aprovada localmente (fica visivel para reprocessar) e avisa.
+        throw new Error('Usuário criado, mas falha ao marcar a solicitação como aprovada — atualize a página.')
+      }
+      setRequests((prev) => prev.map((r) => r.id === request.id ? { ...r, status: 'approved' as const } : r))
     })
-    toast.promise(promise, { loading: 'Aguarde...', success: 'Acesso liberado!', error: 'Erro ao aprovar.' })
+    toast.promise(promise, { loading: 'Aguarde...', success: 'Acesso liberado!', error: (e: Error) => e.message })
     await promise.catch(() => {})
     setProcessingId(null)
   }
