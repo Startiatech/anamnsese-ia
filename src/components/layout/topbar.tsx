@@ -238,17 +238,12 @@ export function Topbar(props: TopbarProps) {
       className="sticky top-0 h-16 z-50 transition-all duration-300"
       style={headerStyle}
     >
-      <div className="h-full flex items-center gap-3 px-4">
+      <div className="h-full flex items-center gap-2 px-3 md:gap-3 md:px-4">
 
         {/* ── Mobile: trigger hambúrguer + logo (sidebar é Sheet no mobile) ── */}
-        <div className="flex items-center gap-2 md:hidden">
+        <div className="flex items-center gap-1.5 md:hidden">
           {showTrigger && <SidebarTrigger className="shrink-0" />}
-          <Logo size="md" id="topbar-mobile" />
-          {variant === 'admin' && (
-            <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-bold tracking-widest uppercase bg-primary/15 text-primary border border-primary/30">
-              Admin
-            </span>
-          )}
+          <Logo size="sm" id="topbar-mobile" />
         </div>
 
         {/* ── Desktop: logo visível apenas no onboarding (sem sidebar) ── */}
@@ -262,7 +257,7 @@ export function Topbar(props: TopbarProps) {
         <div className="flex-1" />
 
         {/* ── Right: extras + toggle + avatar ── */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 md:gap-2">
           {variant === 'user' && !isOnboarding && (
             <CreditsChip
               credits={props.credits ?? 0}
