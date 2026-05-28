@@ -2,8 +2,15 @@ import { useEffect, useRef } from 'react'
 
 export type InterruptionReason = 'suspended' | 'mic-disconnected'
 
-// Janela em que um evento "hidden" recente indica suspensao do sistema.
-const RECENT_HIDDEN_WINDOW_MS = 4000
+// Watchdog: a cada tick medimos o intervalo real entre ticks. Durante suspensão/
+// hibernação o event loop congela, então no "acordar" o gap fica muito maior que o
+// esperado — sinal confiável (cross-platform) de que o sistema dormiu. Diferente de
+// um evento "hidden", que durante a hibernação fica antigo demais (o relógio avança
+// enquanto o JS está congelado) e por isso não serve para classificar a interrupção.
+const WATCHDOG_INTERVAL_MS = 2000
+const SUSPEND_GAP_MS = 10000
+// Janela após o "acordar" em que um 'ended' da track é atribuído à suspensão.
+const RESUME_WINDOW_MS = 5000
 
 interface UseRecordingInterruptionArgs {
   stream: MediaStream | null
@@ -21,7 +28,7 @@ export function useRecordingInterruption({
   active,
   onInterrupt,
 }: UseRecordingInterruptionArgs) {
-  const lastHiddenAtRef = useRef<number | null>(null)
+  const suspendDetectedAtRef = useRef<number | null>(null)
   const onInterruptRef = useRef(onInterrupt)
   onInterruptRef.current = onInterrupt
 
@@ -29,26 +36,33 @@ export function useRecordingInterruption({
     if (!active || !stream) return
     const track = stream.getAudioTracks()[0]
     if (!track) return
-    lastHiddenAtRef.current = null
+    suspendDetectedAtRef.current = null
 
-    const onVisibility = () => {
-      if (document.visibilityState === 'hidden') {
-        lastHiddenAtRef.current = Date.now()
+    let lastTick = Date.now()
+    const watchdog = setInterval(() => {
+      const now = Date.now()
+      if (now - lastTick > SUSPEND_GAP_MS) {
+        suspendDetectedAtRef.current = now
       }
-    }
+      lastTick = now
+    }, WATCHDOG_INTERVAL_MS)
 
     const onEnded = () => {
-      const hiddenRecently =
-        lastHiddenAtRef.current !== null &&
-        Date.now() - lastHiddenAtRef.current < RECENT_HIDDEN_WINDOW_MS
-      onInterruptRef.current(hiddenRecently ? 'suspended' : 'mic-disconnected')
+      const now = Date.now()
+      // Cobre as duas ordens possíveis no "acordar": se o watchdog ainda não rodou,
+      // o gap desde o último tick já denuncia o congelamento; se já rodou, usamos a
+      // marca recente. Fora disso, a track terminou por desconexão do microfone.
+      const suspended =
+        now - lastTick > SUSPEND_GAP_MS ||
+        (suspendDetectedAtRef.current !== null &&
+          now - suspendDetectedAtRef.current < RESUME_WINDOW_MS)
+      onInterruptRef.current(suspended ? 'suspended' : 'mic-disconnected')
     }
 
-    document.addEventListener('visibilitychange', onVisibility)
     track.addEventListener('ended', onEnded)
 
     return () => {
-      document.removeEventListener('visibilitychange', onVisibility)
+      clearInterval(watchdog)
       track.removeEventListener('ended', onEnded)
     }
   }, [stream, active])

@@ -39,6 +39,32 @@ export async function transcribeInChunks(
   return transcripts.join(' ')
 }
 
+/**
+ * Transcreve uma lista de segmentos de áudio independentes e junta os textos.
+ *
+ * Cada segmento gravado pelo MediaRecorder é um container WebM completo e válido.
+ * Concatenar os bytes de vários WebM produz um arquivo inválido (o demuxer lê só o
+ * primeiro Segment), perdendo silenciosamente todo o áudio após o primeiro trecho.
+ * Por isso transcrevemos cada segmento separadamente e juntamos as transcrições.
+ */
+export async function transcribeSegments(
+  files: File[],
+  groq: Groq,
+  onChunk?: (text: string) => void,
+): Promise<string> {
+  if (files.length === 0) {
+    throw new Error('Nenhum segmento de áudio enviado.')
+  }
+
+  const transcripts: string[] = []
+  for (const file of files) {
+    const text = await transcribeInChunks(file, groq, onChunk)
+    if (text) transcripts.push(text)
+  }
+
+  return transcripts.join(' ')
+}
+
 function splitBuffer(buffer: ArrayBuffer, chunkSize: number): ArrayBuffer[] {
   const chunks: ArrayBuffer[] = []
   let offset = 0

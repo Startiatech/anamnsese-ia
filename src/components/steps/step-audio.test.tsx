@@ -685,12 +685,13 @@ describe('StepAudio — VAD auto-pausa, wake lock e interrupção', () => {
     expect(alert).not.toHaveTextContent('00:00')
   })
 
-  it('concatena dois segmentos e envia um único blob ao transcrever', async () => {
+  it('envia os dois segmentos separadamente (sem concatenar bytes) ao transcrever', async () => {
     const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue(
       new Response('texto\n__DONE__\n', { status: 200 }),
     )
 
     const mockStream = makeMockStream()
+    vi.stubGlobal('navigator', { mediaDevices: { getUserMedia: vi.fn().mockResolvedValue(mockStream) } })
     renderStepAudio()
     await switchToRecordMode()
 
@@ -700,7 +701,7 @@ describe('StepAudio — VAD auto-pausa, wake lock e interrupção', () => {
       fireEvent.click(screen.getByRole('button', { name: /finalizar/i }))
     })
 
-    // Após finalizar, estado é 'recorded' — clicar "Continuar gravando"
+    // Após finalizar, estado é 'recorded' — "Continuar gravando" vai direto pedir o mic
     await waitFor(() => {
       expect(screen.getByRole('button', { name: /continuar gravando/i })).toBeInTheDocument()
     })
@@ -709,10 +710,7 @@ describe('StepAudio — VAD auto-pausa, wake lock e interrupção', () => {
       fireEvent.click(screen.getByRole('button', { name: /continuar gravando/i }))
     })
 
-    // Segmento 2: novo ciclo de gravação (manual, sem usar o helper que valida instâncias)
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /iniciar gravação/i }))
-    })
+    // Segmento 2: já entrou em requesting/preparing — só avança o countdown
     await act(async () => {
       await vi.advanceTimersByTimeAsync(3000)
     })
@@ -722,7 +720,6 @@ describe('StepAudio — VAD auto-pausa, wake lock e interrupção', () => {
       fireEvent.click(screen.getByRole('button', { name: /finalizar/i }))
     })
 
-    // Clicar Transcrever
     await waitFor(() => {
       expect(screen.getByRole('button', { name: /transcrever/i })).toBeInTheDocument()
     })
@@ -737,9 +734,89 @@ describe('StepAudio — VAD auto-pausa, wake lock e interrupção', () => {
 
     const sentInit = fetchSpy.mock.calls[0][1] as RequestInit
     const sentForm = sentInit.body as FormData
-    const audio = sentForm.get('audio') as File
-    expect(audio.size).toBeGreaterThan(0)
+    const audios = sentForm.getAll('audio')
+    expect(audios).toHaveLength(2)
+    audios.forEach((a) => expect((a as File).size).toBeGreaterThan(0))
     expect(MockMediaRecorder.instances.length).toBe(2)
+  })
+
+  it('preserva o segmento gravado se o microfone falhar ao "Continuar gravando"', async () => {
+    const mockStream = makeMockStream()
+    vi.stubGlobal('navigator', { mediaDevices: { getUserMedia: vi.fn().mockResolvedValue(mockStream) } })
+    renderStepAudio()
+    await switchToRecordMode()
+
+    // Segmento 1
+    await startRecording(mockStream)
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /finalizar/i }))
+    })
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /continuar gravando/i })).toBeInTheDocument()
+    })
+
+    // Agora o mic falha na tentativa de continuar
+    vi.stubGlobal('navigator', {
+      mediaDevices: { getUserMedia: vi.fn().mockRejectedValue(new DOMException('No device', 'NotFoundError')) },
+    })
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /continuar gravando/i }))
+    })
+
+    // Volta para 'recorded': Transcrever continua disponível para o trecho já capturado
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /transcrever/i })).toBeInTheDocument()
+    })
+  })
+
+  it('permite pausa manual "dura" durante a auto-pausa do VAD', async () => {
+    const mockStream = makeMockStream()
+    renderStepAudio()
+    await switchToRecordMode()
+    await startRecording(mockStream)
+
+    await act(async () => { _triggerSilence?.() })
+    expect(await screen.findByText(/pausado automaticamente/i)).toBeInTheDocument()
+
+    // Clicar "Pausar" durante a auto-pausa consolida em pausa manual (estado 'paused')
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /pausar/i }))
+    })
+
+    expect(screen.getByTestId('record-paused-indicator')).toBeInTheDocument()
+    // VAD desativado: indicador de auto-pausa some
+    expect(screen.queryByText(/pausado automaticamente/i)).not.toBeInTheDocument()
+  })
+
+  it('acumula a duração de todos os segmentos no tempo preservado da interrupção', async () => {
+    const mockStream = makeMockStream()
+    vi.stubGlobal('navigator', { mediaDevices: { getUserMedia: vi.fn().mockResolvedValue(mockStream) } })
+    renderStepAudio()
+    await switchToRecordMode()
+
+    // Segmento 1: ~4s gravados
+    await startRecording(mockStream)
+    await act(async () => { await vi.advanceTimersByTimeAsync(4000) })
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /finalizar/i }))
+    })
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /continuar gravando/i })).toBeInTheDocument()
+    })
+
+    // Segmento 2: continuar + ~3s gravados
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /continuar gravando/i }))
+    })
+    await act(async () => { await vi.advanceTimersByTimeAsync(3000) })
+    await waitFor(() => expect(MockMediaRecorder.instances).toHaveLength(2))
+    await act(async () => { await vi.advanceTimersByTimeAsync(3000) })
+
+    // Interrupção: tempo preservado deve refletir 4s + 3s (> só os 3s do segmento atual)
+    await act(async () => { _triggerInterrupt?.('suspended') })
+
+    const alert = await screen.findByTestId('interruption-alert')
+    expect(alert).toHaveTextContent(/00:0[4-9]/)
   })
 
   it('retoma automaticamente quando a voz volta apos silencio', async () => {

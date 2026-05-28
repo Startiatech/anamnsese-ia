@@ -14,7 +14,7 @@ vi.mock('groq-sdk', () => ({
   default: MockGroq,
 }))
 
-import { transcribeInChunks, CHUNK_SIZE_BYTES } from './transcribe-chunks'
+import { transcribeInChunks, transcribeSegments, CHUNK_SIZE_BYTES } from './transcribe-chunks'
 
 function makeFile(sizeMB: number): File {
   const bytes = new Uint8Array(sizeMB * 1024 * 1024)
@@ -129,6 +129,46 @@ describe('transcribeInChunks', () => {
     const onChunk = vi.fn()
     await transcribeInChunks(file, groq, onChunk)
     expect(onChunk).toHaveBeenCalledWith('Paciente refere dor.')
+  })
+})
+
+describe('transcribeSegments', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockCreate.mockResolvedValue('texto transcrito')
+  })
+
+  it('transcribes each segment independently and joins with space', async () => {
+    // Cada segmento é um WebM válido próprio — não devem ser concatenados em bytes.
+    mockCreate.mockResolvedValueOnce('trecho um').mockResolvedValueOnce('trecho dois')
+    const groq = makeGroq()
+    const result = await transcribeSegments([makeFile(2), makeFile(2)], groq)
+    expect(mockCreate).toHaveBeenCalledTimes(2)
+    expect(result).toBe('trecho um trecho dois')
+  })
+
+  it('streams onChunk for every segment', async () => {
+    mockCreate.mockResolvedValueOnce('a').mockResolvedValueOnce('b')
+    const onChunk = vi.fn()
+    await transcribeSegments([makeFile(2), makeFile(2)], makeGroq(), onChunk)
+    expect(onChunk).toHaveBeenCalledTimes(2)
+  })
+
+  it('handles a single segment', async () => {
+    mockCreate.mockResolvedValueOnce('unico')
+    const result = await transcribeSegments([makeFile(2)], makeGroq())
+    expect(mockCreate).toHaveBeenCalledTimes(1)
+    expect(result).toBe('unico')
+  })
+
+  it('skips fully-hallucinated (empty) segments when joining', async () => {
+    mockCreate.mockResolvedValueOnce('parte boa').mockResolvedValueOnce('Tchau')
+    const result = await transcribeSegments([makeFile(2), makeFile(2)], makeGroq())
+    expect(result).toBe('parte boa')
+  })
+
+  it('throws when no segments are provided', async () => {
+    await expect(transcribeSegments([], makeGroq())).rejects.toThrow()
   })
 })
 

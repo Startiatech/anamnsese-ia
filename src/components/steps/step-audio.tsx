@@ -78,6 +78,8 @@ export function StepAudio({
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const elapsedStartRef = useRef<number | null>(null)
   const accumulatedMsRef = useRef(0)
+  // Soma das durações dos segmentos já finalizados (o timer visível zera por segmento).
+  const segmentsTotalMsRef = useRef(0)
 
   // ── Hooks de gravação ─────────────────────────────────────────────────────
   const { acquire: acquireWakeLock, release: releaseWakeLock } = useWakeLock()
@@ -114,8 +116,9 @@ export function StepAudio({
     stream: mediaStreamRef.current,
     active: isRecordingActive,
     onInterrupt: (reason) => {
-      // Snapshot the elapsed time before stop/reset zeroes the refs
+      // Snapshot do tempo total preservado: segmentos anteriores + segmento atual.
       const elapsedSnapshot =
+        segmentsTotalMsRef.current +
         accumulatedMsRef.current +
         (elapsedStartRef.current !== null ? Date.now() - elapsedStartRef.current : 0)
       setSavedElapsedMs(elapsedSnapshot)
@@ -194,7 +197,10 @@ export function StepAudio({
     try {
       stream = await navigator.mediaDevices.getUserMedia({ audio: true })
     } catch (err) {
-      setRecordState('idle')
+      // Se já existem segmentos gravados (ex.: "Continuar gravando" e o mic falhou),
+      // volta para 'recorded' para o trecho anterior continuar transcritível — nunca
+      // descartar áudio já capturado. Sem segmentos, volta para 'idle'.
+      setRecordState(segmentsRef.current.length > 0 ? 'recorded' : 'idle')
       const name = err instanceof DOMException ? err.name : ''
       if (name === 'NotAllowedError') {
         toast.error('Permissão negada. Habilite o microfone nas configurações do navegador.')
@@ -237,10 +243,17 @@ export function StepAudio({
     recorder.onstop = () => {
       const segment = new Blob(chunksRef.current, { type: 'audio/webm' })
       if (segment.size > 0) segmentsRef.current.push(segment)
-      const combined = new Blob(segmentsRef.current, { type: 'audio/webm' })
-      setRecordedBlob(combined)
+      // Cada segmento é um WebM válido próprio; NÃO concatenamos os bytes (container
+      // inválido). recordedBlob guarda só o último trecho como marcador para a UI —
+      // a transcrição envia todos os segmentos (segmentsRef) separadamente.
+      const latest = segmentsRef.current[segmentsRef.current.length - 1] ?? null
+      setRecordedBlob(latest)
       setRecordState('recorded')
       stopMicrophoneTrack()
+      // Soma a duração deste segmento ao total antes de zerar o timer do segmento.
+      segmentsTotalMsRef.current +=
+        accumulatedMsRef.current +
+        (elapsedStartRef.current !== null ? Date.now() - elapsedStartRef.current : 0)
       resetTimer()
       void releaseWakeLock()
     }
@@ -255,18 +268,25 @@ export function StepAudio({
   }
 
   function handleContinueRecording() {
-    setRecordedBlob(null)
-    setRecordState('idle')
-    setInterruption(null)
-    setAutoPaused(false)
+    // Não descarta recordedBlob/segmentsRef: vai direto pedir o microfone e anexar um
+    // novo segmento. Se a captura falhar, handleStartRecording restaura 'recorded'.
+    void handleStartRecording()
   }
 
   function handlePauseRecording() {
     if (!mediaRecorderRef.current || !mediaStreamRef.current) return
-    if (mediaRecorderRef.current.state !== 'recording') return
-    mediaRecorderRef.current.pause()
+    const recorder = mediaRecorderRef.current
+    if (recorder.state === 'inactive') return
+    // Pausa manual "dura": funciona tanto em gravação ativa quanto durante uma
+    // auto-pausa do VAD (recorder já 'paused', mas recordState ainda 'recording').
+    // Consolidar em 'paused' desativa o VAD (active = recordState === 'recording'),
+    // impedindo que ruído ambiente retome a gravação.
+    if (recorder.state === 'recording') {
+      recorder.pause()
+      pauseTimer()
+    }
     mediaStreamRef.current.getTracks().forEach(t => { t.enabled = false })
-    pauseTimer()
+    setAutoPaused(false)
     setRecordState('paused')
   }
 
@@ -300,6 +320,7 @@ export function StepAudio({
 
   function handleReset() {
     segmentsRef.current = []
+    segmentsTotalMsRef.current = 0
     setFile(null)
     setRecordedBlob(null)
     setRecordState('idle')
@@ -341,11 +362,17 @@ export function StepAudio({
 
   // ── Transcrição (shared) ───────────────────────────────────────────────────
 
-  const handleProcess = useCallback(async (audioSource: File | Blob) => {
+  const handleProcess = useCallback(async (audioSource: File | Blob[]) => {
     setAudioState('streaming')
 
     const formData = new FormData()
-    formData.append('audio', audioSource, audioSource instanceof File ? audioSource.name : 'recording.webm')
+    // Upload de arquivo: um único File. Gravação: lista de segmentos WebM válidos —
+    // cada um vai como 'audio' separado para transcrição independente no servidor.
+    const sources = Array.isArray(audioSource) ? audioSource : [audioSource]
+    sources.forEach((src, i) => {
+      const name = src instanceof File ? src.name : `recording-${i}.webm`
+      formData.append('audio', src, name)
+    })
     formData.append('patientId', patientId)
 
     toastIdRef.current = toast.loading('Aguarde...')
@@ -608,7 +635,7 @@ export function StepAudio({
                   </p>
                 )}
                 <div className="flex gap-2">
-                  <Button onClick={() => handleProcess(recordedBlob)}>
+                  <Button onClick={() => handleProcess(segmentsRef.current)}>
                     Transcrever
                   </Button>
                   <Button variant="outline" onClick={handleContinueRecording}>

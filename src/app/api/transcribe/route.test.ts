@@ -1,9 +1,9 @@
 // @vitest-environment node
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-const { mockRequireActiveUser, mockTranscribeInChunks, mockSaveTranscript } = vi.hoisted(() => ({
+const { mockRequireActiveUser, mockTranscribeSegments, mockSaveTranscript } = vi.hoisted(() => ({
   mockRequireActiveUser: vi.fn(),
-  mockTranscribeInChunks: vi.fn(),
+  mockTranscribeSegments: vi.fn(),
   mockSaveTranscript: vi.fn(),
 }))
 
@@ -18,7 +18,7 @@ vi.mock('next/server', () => ({
 
 vi.mock('@/server/services/session', () => ({ requireActiveUser: mockRequireActiveUser }))
 
-vi.mock('@/lib/transcribe-chunks', () => ({ transcribeInChunks: mockTranscribeInChunks }))
+vi.mock('@/lib/transcribe-chunks', () => ({ transcribeSegments: mockTranscribeSegments }))
 
 vi.mock('@/server/actions/consultation', () => ({
   saveTranscriptAndIncrementAttempts: mockSaveTranscript,
@@ -70,9 +70,12 @@ vi.mock('groq-sdk', () => ({
 
 import { POST } from './route'
 
-function makeFormData(file: File | null, patientId: string | null = 'patient-1'): Request {
+function makeFormData(file: File | File[] | null, patientId: string | null = 'patient-1'): Request {
   const fd = new FormData()
-  if (file) fd.append('audio', file)
+  if (file) {
+    const files = Array.isArray(file) ? file : [file]
+    files.forEach((f) => fd.append('audio', f))
+  }
   if (patientId) fd.append('patientId', patientId)
   return { formData: async () => fd } as unknown as Request
 }
@@ -87,7 +90,7 @@ describe('POST /api/transcribe', () => {
     vi.clearAllMocks()
     process.env.GROQ_API_KEY = 'test-key'
     mockRequireActiveUser.mockResolvedValue({ sub: 'user-1' })
-    mockTranscribeInChunks.mockImplementation(async (_file: File, _groq: unknown, onChunk?: (t: string) => void) => {
+    mockTranscribeSegments.mockImplementation(async (_files: File[], _groq: unknown, onChunk?: (t: string) => void) => {
       onChunk?.('texto transcrito')
       return 'texto transcrito'
     })
@@ -198,5 +201,18 @@ describe('POST /api/transcribe', () => {
       }
     }
     expect(mockSaveTranscript).toHaveBeenCalledWith('patient-1', 'texto transcrito')
+  })
+
+  it('passes all audio segments to transcribeSegments (multi-segment recording)', async () => {
+    const res = await POST(makeFormData([makeFile('seg-0.webm'), makeFile('seg-1.webm')]) as never)
+    if (res instanceof Response) {
+      const reader = res.body!.getReader()
+      while (true) {
+        const { done } = await reader.read()
+        if (done) break
+      }
+    }
+    const passedFiles = mockTranscribeSegments.mock.calls[0][0] as File[]
+    expect(passedFiles).toHaveLength(2)
   })
 })

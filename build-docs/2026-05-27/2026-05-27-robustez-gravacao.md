@@ -51,8 +51,8 @@ Novo hook. Usa `navigator.wakeLock.request('screen')` para manter a tela ativa d
 Novo hook. Detecta encerramento inesperado da gravação.
 
 - Escuta evento `'ended'` na track do microfone.
-- Cruza com `document.hidden` recente (janela de 4 s) para distinguir a razão.
-- Exporta `INTERRUPTION_MESSAGES` (mapa de razão → mensagem em pt-BR) e tipo `InterruptionReason: 'suspended' | 'mic-disconnected' | 'backgrounded'`.
+- Distingue a razão por um *watchdog* de clock-jump (gap entre ticks de `setInterval` muito maior que o esperado = event loop congelado = suspensão/hibernação). Substituiu a heurística de `document.hidden`, que falhava na hibernação real (o relógio avança enquanto o JS está congelado, tornando o evento "hidden" antigo demais).
+- Exporta `INTERRUPTION_MESSAGES` (mapa de razão → mensagem em pt-BR) e tipo `InterruptionReason: 'suspended' | 'mic-disconnected'`.
 
 ### 6. [src/components/steps/step-audio.tsx](src/components/steps/step-audio.tsx) — Causas A e B
 

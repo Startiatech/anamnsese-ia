@@ -130,20 +130,20 @@ sequenceDiagram
         end
     end
 
-    alt Track encerrada + aba oculta recente (< 4s)
+    alt Track encerrada (watchdog detecta clock-jump = suspensão)
         RI->>SA: onInterruption(reason: 'suspended' | 'mic-disconnected')
         SA->>MR: recorder.stop() [preserva segmento]
-        SA-->>Médico: Alert com motivo + "segmento preservado"
+        SA-->>Médico: Alert com motivo + "áudio preservado (total acumulado)"
         alt Médico clica "Continuar gravando"
-            Médico->>SA: novo getUserMedia → novo segmento appended
-        else Médico clica "Transcrever o que existe"
-            SA->>SA: concatena segmentsRef → upload
+            Médico->>SA: getUserMedia direto → novo segmento appended (falha restaura 'recorded')
+        else Médico clica "Transcrever"
+            SA->>SA: envia cada segmento de segmentsRef separadamente
         end
     else Médico clica "Finalizar"
         Médico->>SA: handleStop()
         SA->>MR: recorder.stop()
         SA->>WL: releaseWakeLock()
-        SA->>SA: concatena segmentsRef → blob único
+        SA->>SA: envia segmentsRef (cada WebM válido) ao /api/transcribe
     end
 ```
 
@@ -151,10 +151,12 @@ sequenceDiagram
 
 ```mermaid
 flowchart TD
-    UP[Blob de áudio — segmentos concatenados] --> TC[transcribe-chunks.ts]
+    UP[/api/transcribe — N segmentos WebM independentes] --> TS[transcribeSegments]
+    TS -->|um por vez| TC[transcribeInChunks por segmento]
     TC -->|temperature: 0\nTRANSCRIPTION_PROMPT| GR[Groq whisper-large-v3]
     GR -->|texto raw por chunk| HF[filterHallucinations]
-    HF -->|remove frases isoladas conhecidas\n"tchau" · "obrigado" · "legendas amara.org" ...| OUT[Transcrição limpa]
+    HF -->|remove frases isoladas conhecidas\n"tchau" · "obrigado" · "legendas amara.org" ...| JOIN[junta transcrições dos segmentos]
+    JOIN --> OUT[Transcrição limpa]
     OUT --> ANM[/api/anamnesis — geração de relatório]
 ```
 
@@ -162,8 +164,8 @@ flowchart TD
 
 - VAD é nativo (Web Audio API) — sem biblioteca externa, sem custo, sem conta.
 - Wake Lock silencioso: não exibe alerta; só libera quando a gravação para.
-- Interrupção distingue 2 razões (`suspended`, `mic-disconnected`) para mensagem precisa ao usuário.
-- Multi-segmento: `segmentsRef: Blob[]` acumula todos os trechos; concatenado em um único upload ao final.
+- Interrupção distingue 2 razões (`suspended`, `mic-disconnected`) via watchdog de clock-jump (não `document.hidden`, que falha na hibernação real).
+- Multi-segmento: `segmentsRef: Blob[]` acumula todos os trechos; cada WebM é enviado **separadamente** ao servidor (`transcribeSegments`) e as transcrições são juntadas — concatenar os bytes produziria um WebM inválido (só o 1º segmento seria lido).
 - Filtro de alucinações só remove frase quando ela está **isolada** no chunk — preserva menções legítimas.
 - `temperature: 0` e `TRANSCRIPTION_PROMPT` também protegem consultas no modo upload direto.
 

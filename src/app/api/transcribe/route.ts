@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import Groq from 'groq-sdk'
 import { requireActiveUser } from '@/server/services/session'
-import { transcribeInChunks } from '@/lib/transcribe-chunks'
+import { transcribeSegments } from '@/lib/transcribe-chunks'
 import { saveTranscriptAndIncrementAttempts } from '@/server/actions/consultation'
 import { supabase } from '@/server/supabase'
 import { UsageRepository, calcWhisperCost } from '@/server/repositories/usage'
@@ -21,17 +21,20 @@ export async function POST(req: NextRequest) {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const formData = await req.formData()
-  const file = formData.get('audio') as File | null
+  // Gravações podem enviar vários segmentos WebM independentes (key 'audio' repetida);
+  // upload de arquivo envia um único 'audio'. getAll cobre os dois casos.
+  const files = formData.getAll('audio').filter((v): v is File => v instanceof File)
   const patientId = formData.get('patientId') as string | null
 
-  if (!file) {
+  if (files.length === 0) {
     return NextResponse.json({ error: 'Arquivo de áudio não enviado.' }, { status: 400 })
   }
-  if (!file.type.startsWith('audio/')) {
+  if (!files.every((f) => f.type.startsWith('audio/'))) {
     return NextResponse.json({ error: 'Formato inválido. Envie um arquivo de áudio.' }, { status: 400 })
   }
   const MAX_BYTES = 100 * 1024 * 1024
-  if (file.size > MAX_BYTES) {
+  const totalBytes = files.reduce((sum, f) => sum + f.size, 0)
+  if (totalBytes > MAX_BYTES) {
     return NextResponse.json({ error: 'Arquivo muito grande. Limite: 100MB.' }, { status: 400 })
   }
   if (!patientId) {
@@ -74,11 +77,11 @@ export async function POST(req: NextRequest) {
   const stream = new ReadableStream({
     async start(controller) {
       try {
-        const transcript = await transcribeInChunks(file, groq, (chunkText) => {
+        const transcript = await transcribeSegments(files, groq, (chunkText) => {
           controller.enqueue(encoder.encode(chunkText + '\n'))
         })
         await saveTranscriptAndIncrementAttempts(patientId, transcript)
-        const audioSeconds = file.size / AUDIO_BYTES_PER_SECOND
+        const audioSeconds = totalBytes / AUDIO_BYTES_PER_SECOND
         void UsageRepository.logApiUsage({
           userId:       user.sub,
           patientId,
