@@ -99,6 +99,13 @@ export const responsibilitySchema = z.object({
 
 export type ResponsibilityFormData = z.infer<typeof responsibilitySchema>
 
+export const masterProfileSchema = z.object({
+  name: z.string().min(2, 'Nome muito curto').max(100).trim(),
+  phone: z.string().max(20, 'Telefone inválido').trim().optional(),
+})
+
+export type MasterProfileFormData = z.infer<typeof masterProfileSchema>
+
 export const REGISTRY_TYPES = [
   'CRM',     // Medicina
   'CRP',     // Psicologia

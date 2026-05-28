@@ -77,6 +77,14 @@ describe('users repository (integration)', () => {
     expect(found?.name).toBe('After')
   })
 
+  it('updateUser persists phone change to DB', async () => {
+    const seeded = await seedUser()
+    created.push(seeded.id)
+    await updateUser(seeded.id, { phone: '(11) 98888-7777' })
+    const found = await findUserById(seeded.id)
+    expect(found?.phone).toBe('(11) 98888-7777')
+  })
+
   it('updateUser persists blocked flag to DB', async () => {
     const seeded = await seedUser()
     created.push(seeded.id)

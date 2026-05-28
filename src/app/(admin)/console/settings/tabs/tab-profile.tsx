@@ -2,29 +2,29 @@
 
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
 import { toast } from 'sonner'
 import { Save } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { FieldInput, FieldLabel } from '@/components/ui/field-input'
 import { updateMasterProfile } from '@/server/actions/settings'
+import { masterProfileSchema, type MasterProfileFormData } from '@/lib/schemas'
 
-const schema = z.object({
-  name: z.string().min(2, 'Nome muito curto').max(100),
-})
+interface TabProfileProps {
+  userName: string
+  userEmail: string
+  userPhone: string
+}
 
-type FormData = z.infer<typeof schema>
-
-export function TabProfile({ userName }: { userName: string }) {
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({
-    resolver: zodResolver(schema),
+export function TabProfile({ userName, userEmail, userPhone }: TabProfileProps) {
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<MasterProfileFormData>({
+    resolver: zodResolver(masterProfileSchema),
     mode: 'onTouched',
-    defaultValues: { name: userName },
+    defaultValues: { name: userName, phone: userPhone },
   })
 
-  async function onSubmit(data: FormData) {
-    const promise = updateMasterProfile({ name: data.name }).then((r) => {
+  async function onSubmit(data: MasterProfileFormData) {
+    const promise = updateMasterProfile({ name: data.name, phone: data.phone }).then((r) => {
       if (!r.ok) throw new Error(r.error)
     })
     toast.promise(promise, {
@@ -45,6 +45,23 @@ export function TabProfile({ userName }: { userName: string }) {
               <FieldInput {...register('name')} />
               {errors.name && (
                 <p className="text-xs text-destructive">{errors.name.message}</p>
+              )}
+            </div>
+
+            <div className="space-y-1">
+              <FieldLabel>E-mail</FieldLabel>
+              <FieldInput value={userEmail} disabled className="opacity-50 cursor-not-allowed" data-testid="console-profile-email" />
+            </div>
+
+            <div className="space-y-1">
+              <FieldLabel>Telefone / WhatsApp</FieldLabel>
+              <FieldInput
+                {...register('phone')}
+                placeholder="(00) 00000-0000"
+                data-testid="console-profile-phone"
+              />
+              {errors.phone && (
+                <p className="text-xs text-destructive">{errors.phone.message}</p>
               )}
             </div>
           </div>

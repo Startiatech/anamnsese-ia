@@ -16,7 +16,13 @@ const TABS: { id: TabId; label: string; icon: typeof User }[] = [
   { id: 'acessibilidade', label: 'Acessibilidade', icon: Accessibility },
 ]
 
-export function SettingsClient({ userName }: { userName: string }) {
+interface SettingsClientProps {
+  userName: string
+  userEmail: string
+  userPhone: string
+}
+
+export function SettingsClient({ userName, userEmail, userPhone }: SettingsClientProps) {
   const [active, setActive] = useState<TabId>('perfil')
 
   return (
@@ -30,7 +36,7 @@ export function SettingsClient({ userName }: { userName: string }) {
       />
 
       <div className={active === 'perfil' ? '' : 'hidden'}>
-        <TabProfile userName={userName} />
+        <TabProfile userName={userName} userEmail={userEmail} userPhone={userPhone} />
       </div>
       <div className={active === 'seguranca' ? '' : 'hidden'}>
         <TabSecurity userName={userName} />

@@ -3,9 +3,11 @@
 import { getServerUser } from '@/server/services/session'
 import { findUserById, updateUser } from '@/server/repositories/users'
 import { comparePassword, hashPassword } from '@/server/services/auth'
+import { masterProfileSchema } from '@/lib/schemas'
 
 interface ProfileInput {
   name: string
+  phone?: string
   currentPassword?: string
   newPassword?: string
   confirmPassword?: string
@@ -19,8 +21,14 @@ export async function updateMasterProfile(
     return { ok: false, error: 'Forbidden' }
   }
 
+  const parsed = masterProfileSchema.safeParse({ name: data.name, phone: data.phone })
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0]?.message ?? 'Dados inválidos.' }
+  }
+  const { name, phone } = parsed.data
+
   const userId = sessionUser.sub
-  const { name, currentPassword, newPassword, confirmPassword } = data
+  const { currentPassword, newPassword, confirmPassword } = data
 
   if (newPassword) {
     if (confirmPassword !== newPassword) {
@@ -33,10 +41,10 @@ export async function updateMasterProfile(
     if (!valid) return { ok: false, error: 'Senha atual incorreta.' }
 
     const newHash = await hashPassword(newPassword)
-    await updateUser(userId, { name, passwordHash: newHash })
+    await updateUser(userId, { name, phone, passwordHash: newHash })
     return { ok: true }
   }
 
-  await updateUser(userId, { name })
+  await updateUser(userId, { name, phone })
   return { ok: true }
 }

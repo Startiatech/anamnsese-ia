@@ -52,9 +52,51 @@ describe('updateMasterProfile', () => {
 
     const result = await updateMasterProfile({ name: 'New Name' })
 
-    expect(mockUpdateUser).toHaveBeenCalledWith('u1', { name: 'New Name' })
+    expect(mockUpdateUser).toHaveBeenCalledWith('u1', { name: 'New Name', phone: undefined })
     expect(mockHash).not.toHaveBeenCalled()
     expect(result).toEqual({ ok: true })
+  })
+
+  it('persiste o telefone junto com o nome', async () => {
+    mockGetServerUser.mockResolvedValue(masterUser)
+    mockUpdateUser.mockResolvedValue(undefined)
+
+    const result = await updateMasterProfile({ name: 'New Name', phone: '(11) 98888-7777' })
+
+    expect(mockUpdateUser).toHaveBeenCalledWith('u1', { name: 'New Name', phone: '(11) 98888-7777' })
+    expect(result).toEqual({ ok: true })
+  })
+
+  it('persiste o telefone no fluxo de troca de senha', async () => {
+    mockGetServerUser.mockResolvedValue(masterUser)
+    mockFindById.mockResolvedValue({ id: 'u1', name: 'Master', passwordHash: 'oldhash' })
+    mockCompare.mockResolvedValue(true)
+    mockHash.mockResolvedValue('newhash')
+    mockUpdateUser.mockResolvedValue(undefined)
+
+    const result = await updateMasterProfile({
+      name: 'Master',
+      phone: '(11) 97777-6666',
+      currentPassword: 'correct',
+      newPassword: 'newpass123',
+      confirmPassword: 'newpass123',
+    })
+
+    expect(mockUpdateUser).toHaveBeenCalledWith('u1', {
+      name: 'Master',
+      phone: '(11) 97777-6666',
+      passwordHash: 'newhash',
+    })
+    expect(result).toEqual({ ok: true })
+  })
+
+  it('rejeita telefone maior que 20 caracteres', async () => {
+    mockGetServerUser.mockResolvedValue(masterUser)
+
+    const result = await updateMasterProfile({ name: 'Master', phone: '1'.repeat(21) })
+
+    expect(mockUpdateUser).not.toHaveBeenCalled()
+    expect(result.ok).toBe(false)
   })
 
   it('atualiza senha quando currentPassword está correto', async () => {
@@ -73,7 +115,7 @@ describe('updateMasterProfile', () => {
 
     expect(mockCompare).toHaveBeenCalledWith('correct', 'oldhash')
     expect(mockHash).toHaveBeenCalledWith('newpass123')
-    expect(mockUpdateUser).toHaveBeenCalledWith('u1', { name: 'Master', passwordHash: 'newhash' })
+    expect(mockUpdateUser).toHaveBeenCalledWith('u1', { name: 'Master', phone: undefined, passwordHash: 'newhash' })
     expect(result).toEqual({ ok: true })
   })
 

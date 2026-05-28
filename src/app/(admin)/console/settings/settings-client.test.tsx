@@ -30,12 +30,12 @@ beforeEach(() => {
 
 describe('Console SettingsClient — aba Acessibilidade', () => {
   it('exibe a aba Acessibilidade', () => {
-    render(<SettingsClient userName="Master" />)
+    render(<SettingsClient userName="Master" userEmail="master@test.com" userPhone="" />)
     expect(screen.getByRole('button', { name: /acessibilidade/i })).toBeTruthy()
   })
 
   it('clicar na aba renderiza o painel de acessibilidade sem o card de pedido', () => {
-    render(<SettingsClient userName="Master" />)
+    render(<SettingsClient userName="Master" userEmail="master@test.com" userPhone="" />)
 
     fireEvent.click(screen.getByRole('button', { name: /acessibilidade/i }))
 

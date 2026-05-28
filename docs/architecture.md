@@ -303,6 +303,20 @@ flowchart LR
     AD -->|criar usuário\nconfirmar exclusão| PA[Ações administrativas]
 ```
 
+## Configurações do Console (master)
+
+`(admin)/console/settings` — três abas:
+
+```mermaid
+flowchart LR
+    P["Perfil\nNome (edit)\nEmail (read-only)\nTelefone/WhatsApp (edit)"] 
+    S["Segurança\ntroca de senha"]
+    A["Acessibilidade\nTabAccessibility reusada\nshowRequestCard=false"]
+```
+
+- **Perfil** → `updateMasterProfile` (Server Action, master-only) valida via `masterProfileSchema` e persiste `{ name, phone }`. Email é exibido read-only e nunca aceito na action (proteção contra mass assignment). O telefone tem peso real: o master recebe aviso de pedido de acesso no WhatsApp.
+- **Acessibilidade** → reaproveita `TabAccessibility` do lado `(app)` com `showRequestCard={false}` (o master é quem recebe os pedidos, não os envia).
+
 ## Dados da Clínica
 
 ### Onboarding (3 abas obrigatórias)
