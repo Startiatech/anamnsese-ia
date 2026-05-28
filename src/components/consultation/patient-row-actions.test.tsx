@@ -24,13 +24,14 @@ vi.mock('@/components/ui/dropdown-menu', () => ({
   DropdownMenuSeparator: () => <hr />,
 }))
 
-function makePatient(consultationCount: number): PatientWithStats {
+function makePatient(hasAnamnesis: boolean, consultationCount = hasAnamnesis ? 1 : 0): PatientWithStats {
   return {
     id: 'p-1',
     name: 'Ana Lima',
     cpf: '123.456.789-00',
     createdAt: '2024-01-01T00:00:00Z',
     consultationCount,
+    hasAnamnesis,
   }
 }
 
@@ -41,10 +42,10 @@ describe('PatientRowActions', () => {
 
   beforeEach(() => vi.clearAllMocks())
 
-  it('renders Editar and Excluir items when consultationCount is 0', () => {
+  it('renders Editar and Excluir items when patient has no anamnesis', () => {
     render(
       <PatientRowActions
-        patient={makePatient(0)}
+        patient={makePatient(false)}
         onUpdated={onUpdated}
         onDeleted={onDeleted}
         onViewAnamnesis={onViewAnamnesis}
@@ -54,10 +55,10 @@ describe('PatientRowActions', () => {
     expect(screen.getByText('Excluir')).toBeInTheDocument()
   })
 
-  it('does NOT show "Ver última anamnese" when consultationCount is 0', () => {
+  it('does NOT show "Ver última anamnese" for patient without anamnesis (mesmo com atendimento abandonado)', () => {
     render(
       <PatientRowActions
-        patient={makePatient(0)}
+        patient={makePatient(false, 1)}
         onUpdated={onUpdated}
         onDeleted={onDeleted}
         onViewAnamnesis={onViewAnamnesis}
@@ -66,10 +67,10 @@ describe('PatientRowActions', () => {
     expect(screen.queryByText('Ver última anamnese')).not.toBeInTheDocument()
   })
 
-  it('shows "Ver última anamnese" when consultationCount > 0', () => {
+  it('shows "Ver última anamnese" when patient has anamnesis', () => {
     render(
       <PatientRowActions
-        patient={makePatient(3)}
+        patient={makePatient(true)}
         onUpdated={onUpdated}
         onDeleted={onDeleted}
         onViewAnamnesis={onViewAnamnesis}
@@ -81,7 +82,7 @@ describe('PatientRowActions', () => {
   it('calls onViewAnamnesis when "Ver última anamnese" is clicked', () => {
     render(
       <PatientRowActions
-        patient={makePatient(1)}
+        patient={makePatient(true)}
         onUpdated={onUpdated}
         onDeleted={onDeleted}
         onViewAnamnesis={onViewAnamnesis}
@@ -94,7 +95,7 @@ describe('PatientRowActions', () => {
   it('"Ver última anamnese" appears before "Excluir" in the menu', () => {
     render(
       <PatientRowActions
-        patient={makePatient(2)}
+        patient={makePatient(true)}
         onUpdated={onUpdated}
         onDeleted={onDeleted}
         onViewAnamnesis={onViewAnamnesis}

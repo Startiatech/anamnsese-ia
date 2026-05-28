@@ -45,6 +45,7 @@ const patient: PatientWithStats = {
   createdAt: new Date().toISOString(),
   consultationCount: 0,
   lastConsultationAt: undefined,
+  hasAnamnesis: false,
 }
 
 const patients: PatientWithStats[] = [

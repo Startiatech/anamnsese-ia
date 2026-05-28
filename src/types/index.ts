@@ -11,6 +11,7 @@ export interface Patient {
 export interface PatientWithStats extends Patient {
   consultationCount: number
   lastConsultationAt?: string  // ISO datetime of most recent consultation
+  hasAnamnesis: boolean        // true se o paciente tem ao menos uma consulta com anamnese gerada
 }
 
 export interface Section {

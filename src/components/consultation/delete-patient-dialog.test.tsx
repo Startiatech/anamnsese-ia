@@ -21,6 +21,7 @@ function makePatient(consultationCount: number): PatientWithStats {
     cpf: '123.456.789-00',
     createdAt: '2024-01-01T00:00:00Z',
     consultationCount,
+    hasAnamnesis: consultationCount > 0,
   }
 }
 

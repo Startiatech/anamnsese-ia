@@ -116,6 +116,12 @@ describe('abandonConsultation', () => {
     )
   })
 
+  it('NÃO inclui structured_anamnesis no upsert (abandonar não apaga a anamnese anterior)', async () => {
+    await abandonConsultation('patient-1', 3, true)
+    const payload = mockUpsert.mock.calls[0][0] as Record<string, unknown>
+    expect('structured_anamnesis' in payload).toBe(false)
+  })
+
   it('refunds bonus wallet when debit_source is bonus and aiWasUsed is false', async () => {
     mockSingle.mockResolvedValueOnce({ data: { debit_source: 'bonus' }, error: null })
     await abandonConsultation('patient-1', 3, false)
@@ -286,6 +292,12 @@ describe('debitConsultationCredit', () => {
   it('returns empty object on success', async () => {
     const result = await debitConsultationCredit('patient-1')
     expect(result).toEqual({})
+  })
+
+  it('NÃO inclui structured_anamnesis no upsert (iniciar atendimento preserva a anamnese anterior)', async () => {
+    await debitConsultationCredit('patient-1')
+    const payload = mockUpsert.mock.calls[0][0] as Record<string, unknown>
+    expect('structured_anamnesis' in payload).toBe(false)
   })
 })
 

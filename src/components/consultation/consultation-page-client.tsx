@@ -100,7 +100,7 @@ export function ConsultationPageClient({ initialPatients, clinicComplete }: Cons
   }
 
   function handlePatientCreated(patient: Patient) {
-    setPatients(prev => [{ ...patient, consultationCount: 0, lastConsultationAt: undefined }, ...prev])
+    setPatients(prev => [{ ...patient, consultationCount: 0, lastConsultationAt: undefined, hasAnamnesis: false }, ...prev])
   }
 
   function handlePatientUpdated(updated: PatientWithStats) {

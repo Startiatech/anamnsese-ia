@@ -97,6 +97,32 @@ describe('PatientRepository.findAllWithStats', () => {
     expect(result).toHaveLength(0)
   })
 
+  it('marks hasAnamnesis true when a consultation has structured_anamnesis', async () => {
+    const patientsChain = makeChain({ data: [patientRow] })
+    const consultationsChain = makeChain({
+      data: [
+        { patient_id: 'patient-1', created_at: '2026-03-01T00:00:00Z', structured_anamnesis: { sections: [] } },
+      ],
+    })
+    mockFrom.mockReturnValueOnce(patientsChain).mockReturnValueOnce(consultationsChain)
+
+    const result = await PatientRepository.findAllWithStats('user-1')
+    expect(result[0].hasAnamnesis).toBe(true)
+  })
+
+  it('marks hasAnamnesis false when consultations have null structured_anamnesis (abandonado)', async () => {
+    const patientsChain = makeChain({ data: [patientRow] })
+    const consultationsChain = makeChain({
+      data: [
+        { patient_id: 'patient-1', created_at: '2026-03-01T00:00:00Z', structured_anamnesis: null },
+      ],
+    })
+    mockFrom.mockReturnValueOnce(patientsChain).mockReturnValueOnce(consultationsChain)
+
+    const result = await PatientRepository.findAllWithStats('user-1')
+    expect(result[0].hasAnamnesis).toBe(false)
+  })
+
   it('uses first (most recent) consultation date from ordered results', async () => {
     const patientsChain = makeChain({ data: [patientRow] })
     // ordered by created_at desc — first is the most recent

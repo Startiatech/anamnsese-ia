@@ -22,6 +22,7 @@ const patient: PatientWithStats = {
   externalId: 'PRONT-99',
   createdAt: '2024-01-01T00:00:00Z',
   consultationCount: 2,
+  hasAnamnesis: true,
 }
 
 describe('EditPatientSheet', () => {

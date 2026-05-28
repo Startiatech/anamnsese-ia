@@ -39,7 +39,7 @@ export function PatientRowActions({ patient, onUpdated, onDeleted, onViewAnamnes
             <Pencil className="h-3.5 w-3.5 mr-2" />
             Editar
           </DropdownMenuItem>
-          {patient.consultationCount > 0 && (
+          {patient.hasAnamnesis && (
             <>
               <DropdownMenuItem onClick={onViewAnamnesis}>
                 <FileText className="h-3.5 w-3.5 mr-2" />

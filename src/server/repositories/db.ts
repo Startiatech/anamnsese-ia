@@ -90,20 +90,24 @@ export const PatientRepository = {
 
     if (err1) console.error('[findAllWithStats] query1 error:', err1)
 
-    // Query 2: latest consultation date per patient
+    // Query 2: latest consultation date per patient + presença de anamnese
     const { data: latestConsultations, error: err2 } = await supabase
       .from('consultations')
-      .select('patient_id, created_at')
+      .select('patient_id, created_at, structured_anamnesis')
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
 
     if (err2) console.error('[findAllWithStats] query2 error:', err2)
 
-    // Build a map: patientId -> latest created_at
+    // Build a map: patientId -> latest created_at; e set de quem tem anamnese gerada
     const latestDateMap = new Map<string, string>()
+    const anamnesisSet = new Set<string>()
     for (const c of latestConsultations ?? []) {
       if (!latestDateMap.has(c.patient_id)) {
         latestDateMap.set(c.patient_id, c.created_at)
+      }
+      if (c.structured_anamnesis != null) {
+        anamnesisSet.add(c.patient_id)
       }
     }
 
@@ -113,6 +117,7 @@ export const PatientRepository = {
         ...toPatient(row),
         consultationCount: consultations[0]?.count ?? 0,
         lastConsultationAt: latestDateMap.get(row.id),
+        hasAnamnesis: anamnesisSet.has(row.id),
       }
     })
   },
@@ -171,14 +176,17 @@ export const ConsultationRepository = {
   },
 
   async findLatestByPatientId(userId: string, patientId: string): Promise<Consultation | null> {
+    // Só consultas com anamnese gerada — "Ver anamnese" nunca deve abrir um atendimento
+    // abandonado/em andamento (que não tem structured_anamnesis) e cair em 404.
     const { data } = await supabase
       .from('consultations')
       .select('*')
       .eq('user_id', userId)
       .eq('patient_id', patientId)
+      .not('structured_anamnesis', 'is', null)
       .order('created_at', { ascending: false })
       .limit(1)
-      .single()
+      .maybeSingle()
     return data ? toConsultation(data) : null
   },
 
