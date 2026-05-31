@@ -13,6 +13,7 @@ import {
   TableRow,
   TableCell,
   WidthType,
+  VerticalAlign,
   PageNumber,
 } from 'docx'
 import type { Patient, Consultation } from '@/types'
@@ -70,33 +71,30 @@ async function fetchLogoBytes(url: string): Promise<Uint8Array | null> {
 }
 
 async function buildHeader(clinic: ClinicData): Promise<Header> {
-  const children: Paragraph[] = []
-
-  if (clinic.clinicLogoUrl) {
-    const bytes = await fetchLogoBytes(clinic.clinicLogoUrl)
-    if (bytes) {
-      children.push(
-        new Paragraph({
-          children: [
-            new ImageRun({
-              data: bytes,
-              transformation: { width: 56, height: 56 },
-              type: 'png',
-            }),
-          ],
-          spacing: { after: 60 },
-        }),
-      )
-    }
-  }
+  // Bloco de texto da clínica, centralizado.
+  const textParagraphs: Paragraph[] = []
 
   if (clinic.clinicName) {
-    children.push(
+    textParagraphs.push(
       new Paragraph({
+        alignment: AlignmentType.CENTER,
         children: [
-          new TextRun({ text: clinic.clinicName, bold: true, size: 28, color: TEXT_HEX, font: 'Calibri' }),
+          new TextRun({ text: clinic.clinicName, bold: true, size: 28, color: TEXT_HEX, font: 'Times New Roman' }),
         ],
         spacing: { after: 30 },
+      }),
+    )
+  }
+
+  const addressFull = clinic.clinicAddress
+    ? `${clinic.clinicAddress}${clinic.clinicAddressNumber ? `, ${clinic.clinicAddressNumber}` : ''} · CEP ${formatCep(clinic.clinicCep)}`
+    : ''
+  if (addressFull) {
+    textParagraphs.push(
+      new Paragraph({
+        alignment: AlignmentType.CENTER,
+        children: [new TextRun({ text: addressFull, size: 16, color: MUTED_HEX, font: 'Times New Roman' })],
+        spacing: { after: 20 },
       }),
     )
   }
@@ -108,34 +106,73 @@ async function buildHeader(clinic: ClinicData): Promise<Header> {
   ].filter(Boolean).join('  ·  ')
 
   if (contact1) {
-    children.push(
+    textParagraphs.push(
       new Paragraph({
-        children: [new TextRun({ text: contact1, size: 16, color: MUTED_HEX, font: 'Calibri' })],
-        spacing: { after: 20 },
+        alignment: AlignmentType.CENTER,
+        children: [new TextRun({ text: contact1, size: 16, color: MUTED_HEX, font: 'Times New Roman' })],
+        spacing: { after: clinic.clinicWebsite ? 20 : 20 },
       }),
     )
   }
 
   if (clinic.clinicWebsite) {
-    children.push(
+    textParagraphs.push(
       new Paragraph({
-        children: [new TextRun({ text: clinic.clinicWebsite, size: 16, color: MUTED_HEX, font: 'Calibri' })],
-        spacing: { after: 80 },
+        alignment: AlignmentType.CENTER,
+        children: [new TextRun({ text: clinic.clinicWebsite, size: 16, color: MUTED_HEX, font: 'Times New Roman' })],
+        spacing: { after: 20 },
       }),
     )
+  }
+
+  const children: (Paragraph | Table)[] = []
+
+  let logoBytes: Uint8Array | null = null
+  if (clinic.clinicLogoUrl) logoBytes = await fetchLogoBytes(clinic.clinicLogoUrl)
+
+  if (logoBytes) {
+    // Logo à esquerda, texto centralizado: tabela de 2 colunas sem bordas.
+    const noBorder = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' }
+    const cellBorders = { top: noBorder, bottom: noBorder, left: noBorder, right: noBorder }
+    const logoCell = new TableCell({
+      width: { size: 18, type: WidthType.PERCENTAGE },
+      borders: cellBorders,
+      verticalAlign: VerticalAlign.CENTER,
+      children: [
+        new Paragraph({
+          children: [
+            new ImageRun({ data: logoBytes, transformation: { width: 56, height: 56 }, type: 'png' }),
+          ],
+        }),
+      ],
+    })
+    const textCell = new TableCell({
+      width: { size: 82, type: WidthType.PERCENTAGE },
+      borders: cellBorders,
+      verticalAlign: VerticalAlign.CENTER,
+      children: textParagraphs,
+    })
+    children.push(
+      new Table({
+        width: { size: 100, type: WidthType.PERCENTAGE },
+        rows: [new TableRow({ children: [logoCell, textCell] })],
+      }),
+    )
+  } else {
+    children.push(...textParagraphs)
   }
 
   children.push(
     new Paragraph({
       border: { bottom: { style: BorderStyle.SINGLE, size: 4, color: RULE_HEX, space: 1 } },
-      spacing: { after: 0 },
+      spacing: { before: 80, after: 0 },
     }),
   )
 
   return new Header({ children })
 }
 
-function buildFooter(clinic: ClinicData, doctorName: string, doctorCRM: string): Footer {
+function buildFooter(doctorName: string, doctorCRM: string, doctorSpecialty: string): Footer {
   const children: Paragraph[] = []
 
   children.push(
@@ -145,32 +182,23 @@ function buildFooter(clinic: ClinicData, doctorName: string, doctorCRM: string):
     }),
   )
 
-  const addressFull = `${clinic.clinicAddress}${clinic.clinicAddressNumber ? `, ${clinic.clinicAddressNumber}` : ''} · CEP ${formatCep(clinic.clinicCep)}`
-  children.push(
-    new Paragraph({
-      alignment: AlignmentType.CENTER,
-      children: [new TextRun({ text: addressFull, size: 14, color: MUTED_HEX, font: 'Calibri' })],
-      spacing: { after: 20 },
-    }),
-  )
-
-  const rtName = clinic.clinicRtIsSelf ? doctorName : (clinic.clinicRtName ?? '')
-  const rtRegistry = clinic.clinicRtIsSelf ? doctorCRM : (clinic.clinicRtRegistry ?? '')
-  if (rtName) {
+  // Dados do profissional, centralizados.
+  const nameLine = [doctorName, doctorSpecialty].filter(Boolean).join(' — ')
+  if (nameLine) {
     children.push(
       new Paragraph({
         alignment: AlignmentType.CENTER,
-        children: [new TextRun({ text: `Responsável Técnico: ${rtName} — ${rtRegistry}`, size: 14, color: MUTED_HEX, font: 'Calibri' })],
+        children: [new TextRun({ text: nameLine, size: 16, color: MUTED_HEX, font: 'Times New Roman' })],
         spacing: { after: 20 },
       }),
     )
   }
 
-  if (clinic.clinicBusinessHours) {
+  if (doctorCRM) {
     children.push(
       new Paragraph({
         alignment: AlignmentType.CENTER,
-        children: [new TextRun({ text: clinic.clinicBusinessHours, size: 14, color: MUTED_HEX, font: 'Calibri' })],
+        children: [new TextRun({ text: doctorCRM, size: 16, color: MUTED_HEX, font: 'Times New Roman' })],
         spacing: { after: 60 },
       }),
     )
@@ -181,10 +209,10 @@ function buildFooter(clinic: ClinicData, doctorName: string, doctorCRM: string):
     new Paragraph({
       alignment: AlignmentType.RIGHT,
       children: [
-        new TextRun({ text: 'Página ', size: 14, color: MUTED_HEX, font: 'Calibri' }),
-        new TextRun({ children: [PageNumber.CURRENT], size: 14, color: MUTED_HEX, font: 'Calibri' }),
-        new TextRun({ text: ' de ', size: 14, color: MUTED_HEX, font: 'Calibri' }),
-        new TextRun({ children: [PageNumber.TOTAL_PAGES], size: 14, color: MUTED_HEX, font: 'Calibri' }),
+        new TextRun({ text: 'Página ', size: 14, color: MUTED_HEX, font: 'Times New Roman' }),
+        new TextRun({ children: [PageNumber.CURRENT], size: 14, color: MUTED_HEX, font: 'Times New Roman' }),
+        new TextRun({ text: ' de ', size: 14, color: MUTED_HEX, font: 'Times New Roman' }),
+        new TextRun({ children: [PageNumber.TOTAL_PAGES], size: 14, color: MUTED_HEX, font: 'Times New Roman' }),
       ],
     }),
   )
@@ -203,7 +231,7 @@ function metaCell(label: string, value: string): TableCell {
     },
     children: [
       new Paragraph({
-        children: [new TextRun({ text: label.toUpperCase(), size: 14, color: TEXT_HEX, font: 'Calibri', bold: true })],
+        children: [new TextRun({ text: label.toUpperCase(), size: 14, color: TEXT_HEX, font: 'Times New Roman', bold: true })],
         spacing: { after: 40 },
       }),
       ...(value
@@ -222,7 +250,7 @@ function buildMetaBlock(
 ): Paragraph[] {
   const out: Paragraph[] = [
     new Paragraph({
-      children: [new TextRun({ text: title.toUpperCase(), size: 16, color: TEXT_HEX, bold: true, font: 'Calibri' })],
+      children: [new TextRun({ text: title.toUpperCase(), size: 16, color: TEXT_HEX, bold: true, font: 'Times New Roman' })],
       spacing: { after: 80 },
     }),
   ]
@@ -252,12 +280,12 @@ export async function generateDOCXBlob({
   children.push(
     new Paragraph({
       alignment: AlignmentType.CENTER,
-      children: [new TextRun({ text: 'ANAMNESE CLÍNICA', bold: true, size: 34, color: TEXT_HEX, font: 'Calibri' })],
+      children: [new TextRun({ text: 'ANAMNESE CLÍNICA', bold: true, size: 34, color: TEXT_HEX, font: 'Times New Roman' })],
       spacing: { before: 200, after: 240 },
     }),
     new Paragraph({
       alignment: AlignmentType.RIGHT,
-      children: [new TextRun({ text: formatDateLong(consultation.updatedAt), size: 18, color: MUTED_HEX, font: 'Calibri' })],
+      children: [new TextRun({ text: formatDateLong(consultation.updatedAt), size: 18, color: MUTED_HEX, font: 'Times New Roman' })],
       spacing: { after: 200 },
     }),
   )
@@ -314,7 +342,7 @@ export async function generateDOCXBlob({
   for (const s of consultation.structuredAnamnesis.sections) {
     children.push(
       new Paragraph({
-        children: [new TextRun({ text: s.title.toUpperCase(), bold: true, size: 22, color: TEXT_HEX, font: 'Calibri' })],
+        children: [new TextRun({ text: s.title.toUpperCase(), bold: true, size: 22, color: TEXT_HEX, font: 'Times New Roman' })],
         spacing: { before: 200, after: 120 },
       }),
       new Paragraph({
@@ -325,7 +353,7 @@ export async function generateDOCXBlob({
   }
 
   const header = clinic ? await buildHeader(clinic) : undefined
-  const footer = clinic ? buildFooter(clinic, doctorName, doctorCRM) : undefined
+  const footer = doctorName ? buildFooter(doctorName, doctorCRM, doctorSpecialty) : undefined
 
   const doc = new Document({
     sections: [{

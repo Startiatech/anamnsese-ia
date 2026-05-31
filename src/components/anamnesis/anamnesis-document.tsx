@@ -45,9 +45,6 @@ export function AnamnesisDocument({
   structuredAnamnesis,
   updatedAt,
 }: AnamnesisDocumentProps) {
-  const rtName = clinic?.clinicRtIsSelf ? professional.name : (clinic?.clinicRtName ?? '')
-  const rtRegistry = clinic?.clinicRtIsSelf ? professional.crm : (clinic?.clinicRtRegistry ?? '')
-
   const profLines: { label: string; value: string }[] = [
     { label: 'Nome', value: professional.name },
     { label: 'Especialidade', value: professional.specialty },
@@ -60,33 +57,48 @@ export function AnamnesisDocument({
     { label: 'Telefone', value: patient.phone ?? '' },
   ]
 
+  const clinicAddressLine = clinic?.clinicAddress
+    ? `${clinic.clinicAddress}${clinic.clinicAddressNumber ? `, ${clinic.clinicAddressNumber}` : ''} · CEP ${formatCep(clinic.clinicCep)}`
+    : ''
+  const clinicContactLine = clinic
+    ? [
+        clinic.clinicCnpj && `CNPJ ${formatCnpj(clinic.clinicCnpj)}`,
+        clinic.clinicPhone,
+        clinic.clinicEmail,
+      ].filter(Boolean).join('  ·  ')
+    : ''
+  const profFooterLine = [professional.name, professional.specialty].filter(Boolean).join(' — ')
+
   return (
-    <div className="mx-auto w-full max-w-[210mm] bg-white text-neutral-900 shadow-2xl rounded-sm px-12 py-12 print:shadow-none print:rounded-none">
-      {/* Cabeçalho institucional */}
+    // Fonte fixada em Times New Roman para a tela/PDF baterem exatamente com o DOCX.
+    <div
+      className="mx-auto w-full max-w-[210mm] bg-white text-neutral-900 shadow-2xl rounded-sm px-12 py-12 print:shadow-none print:rounded-none"
+      style={{ fontFamily: '"Times New Roman", Times, serif' }}
+    >
+      {/* Cabeçalho institucional — dados centralizados, logo à esquerda */}
       {clinic?.clinicName && (
         <>
-          <div className="flex items-start gap-5">
+          <div className="relative">
             {clinic.clinicLogoUrl && (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={clinic.clinicLogoUrl}
                 alt="Logo da clínica"
-                className="h-16 w-16 object-contain shrink-0"
+                className="absolute left-0 top-0 h-16 w-16 object-contain"
               />
             )}
-            <div className="min-w-0">
-              <p className="font-sans font-bold text-[15pt] text-neutral-900 leading-snug">
+            <div className="text-center">
+              <p className="font-bold text-[15pt] text-neutral-900 leading-snug">
                 {clinic.clinicName}
               </p>
-              <p className="font-sans text-[9pt] text-neutral-500 mt-1">
-                {[
-                  clinic.clinicCnpj && `CNPJ ${formatCnpj(clinic.clinicCnpj)}`,
-                  clinic.clinicPhone,
-                  clinic.clinicEmail,
-                ].filter(Boolean).join('  ·  ')}
-              </p>
+              {clinicAddressLine && (
+                <p className="text-[9pt] text-neutral-500 mt-1">{clinicAddressLine}</p>
+              )}
+              {clinicContactLine && (
+                <p className="text-[9pt] text-neutral-500">{clinicContactLine}</p>
+              )}
               {clinic.clinicWebsite && (
-                <p className="font-sans text-[9pt] text-neutral-500">{clinic.clinicWebsite}</p>
+                <p className="text-[9pt] text-neutral-500">{clinic.clinicWebsite}</p>
               )}
             </div>
           </div>
@@ -95,12 +107,12 @@ export function AnamnesisDocument({
       )}
 
       {/* Título */}
-      <h1 className="mt-8 text-center font-sans font-bold text-[17pt] text-neutral-900 tracking-wide">
+      <h1 className="mt-8 text-center font-bold text-[17pt] text-neutral-900 tracking-wide">
         ANAMNESE CLÍNICA
       </h1>
 
       {/* Data */}
-      <p className="mt-6 text-right font-sans text-[10pt] text-neutral-500">
+      <p className="mt-6 text-right text-[10pt] text-neutral-500">
         {formatDateLong(updatedAt)}
       </p>
 
@@ -116,27 +128,21 @@ export function AnamnesisDocument({
       <div className="mt-6 space-y-6">
         {structuredAnamnesis.sections.map((section) => (
           <section key={section.title}>
-            <h2 className="font-sans font-bold text-[10.5pt] text-neutral-900 uppercase tracking-wider">
+            <h2 className="font-bold text-[10.5pt] text-neutral-900 uppercase tracking-wider">
               {section.title}
             </h2>
-            <p className="mt-2 font-serif text-[11pt] leading-relaxed text-neutral-800 whitespace-pre-wrap">
+            <p className="mt-2 text-[11pt] leading-relaxed text-neutral-800 whitespace-pre-wrap">
               {section.content}
             </p>
           </section>
         ))}
       </div>
 
-      {/* Rodapé */}
-      {clinic?.clinicName && (
-        <footer className="mt-12 pt-4 border-t border-neutral-200 text-center font-sans text-[8pt] text-neutral-500 space-y-1">
-          <p>
-            {clinic.clinicAddress}
-            {clinic.clinicAddressNumber ? `, ${clinic.clinicAddressNumber}` : ''}
-            {' · CEP '}
-            {formatCep(clinic.clinicCep)}
-          </p>
-          {rtName && <p>Responsável Técnico: {rtName} — {rtRegistry}</p>}
-          {clinic.clinicBusinessHours && <p>{clinic.clinicBusinessHours}</p>}
+      {/* Rodapé — dados do profissional, centralizados */}
+      {profFooterLine && (
+        <footer className="mt-12 pt-4 border-t border-neutral-200 text-center text-[9pt] text-neutral-600 space-y-0.5">
+          <p>{profFooterLine}</p>
+          {professional.crm && <p>{professional.crm}</p>}
         </footer>
       )}
     </div>
@@ -146,10 +152,10 @@ export function AnamnesisDocument({
 function MetaBlock({ title, lines }: { title: string; lines: { label: string; value: string }[] }) {
   return (
     <div>
-      <p className="font-sans font-bold text-[9pt] text-neutral-900 uppercase tracking-wider">
+      <p className="font-bold text-[9pt] text-neutral-900 uppercase tracking-wider">
         {title}
       </p>
-      <div className="mt-2 space-y-1.5 font-serif text-[10.5pt] text-neutral-800">
+      <div className="mt-2 space-y-1.5 text-[10.5pt] text-neutral-800">
         {lines.map(({ label, value }) =>
           value
             ? <p key={label}>{label}: {value}</p>
