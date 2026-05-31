@@ -881,4 +881,12 @@ describe('StepAudio — onda sonora ao vivo', () => {
     await switchToRecordMode()
     expect(screen.queryByTestId('audio-waveform')).not.toBeInTheDocument()
   })
+
+  it('atualiza sem quebrar quando o nível de áudio muda', async () => {
+    renderStepAudio()
+    await switchToRecordMode()
+    await startRecording(makeMockStream())
+    await act(async () => { _triggerLevel?.(0.8) })
+    expect(screen.getByTestId('audio-waveform')).toHaveAttribute('data-variant', 'recording')
+  })
 })

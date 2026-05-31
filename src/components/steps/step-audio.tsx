@@ -98,7 +98,7 @@ export function StepAudio({
   // hooks (!active || !stream) cobre o estado transitório.
   useAudioLevel({
     stream: mediaStreamRef.current,
-    active: isRecordingActive,
+    active: recordState === 'recording',
     onLevel: setAudioLevel,
   })
 
@@ -618,7 +618,7 @@ export function StepAudio({
                   </span>
                   <span className="text-sm text-muted-foreground">Pausado</span>
                 </div>
-                <AudioWaveform level={audioLevel} variant="paused" />
+                <AudioWaveform level={audioLevel} variant={waveformVariant} />
                 <div className="flex gap-2">
                   <Button onClick={handleResumeRecording}>
                     Retomar

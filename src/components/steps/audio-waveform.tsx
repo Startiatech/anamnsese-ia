@@ -11,8 +11,9 @@ interface AudioWaveformProps {
 
 const BAR_COUNT = 48
 
-// Mapeia o token shadcn muted-foreground a ~50% de opacidade. Canvas 2D não
-// consome CSS vars; manter sincronizado com o token se ele mudar.
+// Exceção consciente à regra de UI (proibido rgba hardcoded em componentes
+// reutilizáveis): o Canvas 2D não consome CSS vars. Manter sincronizado com o
+// token shadcn muted-foreground (~50% de opacidade) caso ele mude.
 const PAUSED_FILL = 'rgba(148,148,160,0.5)'
 
 /**
