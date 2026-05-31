@@ -11,10 +11,18 @@ interface AudioWaveformProps {
 
 const BAR_COUNT = 48
 
-// Exceção consciente à regra de UI (proibido rgba hardcoded em componentes
-// reutilizáveis): o Canvas 2D não consome CSS vars. Manter sincronizado com o
-// token shadcn muted-foreground (~50% de opacidade) caso ele mude.
-const PAUSED_FILL = 'rgba(148,148,160,0.5)'
+// Exceção consciente à regra de UI (proibido cor hardcoded em componentes
+// reutilizáveis): o Canvas 2D não consome CSS custom properties. Estes valores
+// são aproximações visuais dos tokens da marca (--gradient-brand, em oklch) e do
+// muted-foreground; manter sincronizados caso os tokens mudem.
+const WAVEFORM_GRADIENT_FROM = '#8B5CF6' // ≈ início do --gradient-brand
+const WAVEFORM_GRADIENT_TO = '#06B6D4'   // ≈ fim do --gradient-brand
+const PAUSED_FILL = 'rgba(148,148,160,0.5)' // ≈ muted-foreground a ~50% de opacidade
+
+const WAVEFORM_GAIN = 3 // amplifica o nível (0..1) para a onda preencher melhor a altura
+
+const FALLBACK_WIDTH = 600
+const FALLBACK_HEIGHT = 64
 
 /**
  * Onda sonora ao vivo desenhada em canvas. Apenas apresentação: recebe o nível
@@ -41,8 +49,8 @@ export function AudioWaveform({ level, variant }: AudioWaveformProps) {
 
     // HiDPI: ajusta o buffer de rasterização ao tamanho físico da tela
     const dpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1
-    const cssW = canvas.clientWidth || 600
-    const cssH = canvas.clientHeight || 64
+    const cssW = canvas.clientWidth || FALLBACK_WIDTH
+    const cssH = canvas.clientHeight || FALLBACK_HEIGHT
     canvas.width = Math.round(cssW * dpr)
     canvas.height = Math.round(cssH * dpr)
     ctx.scale(dpr, dpr)
@@ -56,7 +64,7 @@ export function AudioWaveform({ level, variant }: AudioWaveformProps) {
       ctx.clearRect(0, 0, cssW, cssH)
 
       const bars = barsRef.current
-      const sample = currentVariant === 'recording' ? Math.min(1, levelRef.current * 3) : 0
+      const sample = currentVariant === 'recording' ? Math.min(1, levelRef.current * WAVEFORM_GAIN) : 0
       bars.push(sample)
       bars.shift()
 
@@ -67,8 +75,8 @@ export function AudioWaveform({ level, variant }: AudioWaveformProps) {
         ctx.fillStyle = PAUSED_FILL
       } else {
         const grad = ctx.createLinearGradient(0, 0, cssW, 0)
-        grad.addColorStop(0, '#8B5CF6')
-        grad.addColorStop(1, '#06B6D4')
+        grad.addColorStop(0, WAVEFORM_GRADIENT_FROM)
+        grad.addColorStop(1, WAVEFORM_GRADIENT_TO)
         ctx.fillStyle = grad
       }
 
@@ -95,8 +103,8 @@ export function AudioWaveform({ level, variant }: AudioWaveformProps) {
       data-variant={variant}
       aria-label="Visualizador de áudio da gravação"
       role="img"
-      width={600}
-      height={64}
+      width={FALLBACK_WIDTH}
+      height={FALLBACK_HEIGHT}
       className="w-full h-16 rounded-lg bg-white/[0.03] border border-border"
     />
   )
