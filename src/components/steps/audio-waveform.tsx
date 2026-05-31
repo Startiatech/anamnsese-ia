@@ -1,0 +1,84 @@
+'use client'
+import { useEffect, useRef } from 'react'
+
+export type WaveformVariant = 'recording' | 'silence' | 'paused'
+
+interface AudioWaveformProps {
+  /** Nível de volume atual, 0..1. */
+  level: number
+  variant: WaveformVariant
+}
+
+const BAR_COUNT = 48
+
+/**
+ * Onda sonora ao vivo desenhada em canvas. Apenas apresentação: recebe o nível
+ * e o estado, desenha. Não conhece gravação nem transcrição. Se o contexto 2d
+ * não existir (jsdom/ambiente sem canvas), apenas não desenha — não quebra.
+ */
+export function AudioWaveform({ level, variant }: AudioWaveformProps) {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const levelRef = useRef(level)
+  levelRef.current = level
+  const barsRef = useRef<number[]>(new Array(BAR_COUNT).fill(0))
+  const rafRef = useRef<number | null>(null)
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return // degradação graciosa (jsdom)
+
+    let running = true
+
+    const draw = () => {
+      if (!running) return
+      const { width, height } = canvas
+      ctx.clearRect(0, 0, width, height)
+
+      const bars = barsRef.current
+      const sample = variant === 'recording' ? Math.min(1, levelRef.current * 3) : 0
+      bars.push(sample)
+      bars.shift()
+
+      const barWidth = width / BAR_COUNT
+      const mid = height / 2
+
+      if (variant === 'paused') {
+        ctx.fillStyle = 'rgba(148,148,160,0.5)'
+      } else {
+        const grad = ctx.createLinearGradient(0, 0, width, 0)
+        grad.addColorStop(0, '#8B5CF6')
+        grad.addColorStop(1, '#06B6D4')
+        ctx.fillStyle = grad
+      }
+
+      for (let i = 0; i < bars.length; i++) {
+        const amp = variant === 'silence' || variant === 'paused' ? 0.02 : bars[i]
+        const barHeight = Math.max(2, amp * height)
+        ctx.fillRect(i * barWidth, mid - barHeight / 2, barWidth * 0.6, barHeight)
+      }
+
+      rafRef.current = requestAnimationFrame(draw)
+    }
+
+    rafRef.current = requestAnimationFrame(draw)
+    return () => {
+      running = false
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current)
+    }
+  }, [variant])
+
+  return (
+    <canvas
+      ref={canvasRef}
+      data-testid="audio-waveform"
+      data-variant={variant}
+      aria-label="Visualizador de áudio da gravação"
+      role="img"
+      width={600}
+      height={64}
+      className="w-full h-16 rounded-lg bg-white/[0.03] border border-border"
+    />
+  )
+}
