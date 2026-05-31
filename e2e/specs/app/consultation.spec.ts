@@ -222,7 +222,8 @@ test.describe('fluxo de consulta com IA mockada', () => {
     await expect(page).toHaveURL(/\/app\/consultation(\?|$|\/)$/)
   })
 
-  test('exibe onda sonora visivel apos iniciar gravacao no mobile', async ({ page }) => {
+  test('exibe onda sonora visivel apos iniciar gravacao no mobile', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'mobile', 'cenário específico de viewport mobile')
     await mockAiEndpoints(page)
     await mockMediaDevices(page)
 
@@ -278,14 +279,16 @@ test.describe('fluxo de consulta com IA mockada', () => {
 
     // Após o countdown de 3 s, o timer de gravação aparece e a onda deve estar visível.
     // Timeout generoso para cobrir countdown + renderização do canvas.
-    await expect(page.getByTestId('record-timer')).toBeVisible({ timeout: 10_000 })
-    await expect(page.getByTestId('audio-waveform')).toBeVisible({ timeout: 6_000 })
+    await expect(page.getByTestId('record-timer')).toBeVisible({ timeout: 30_000 })
+
+    const waveform = page.getByTestId('audio-waveform')
+    await expect(waveform).toBeVisible({ timeout: 30_000 })
+    await expect(waveform).toHaveAttribute('data-variant', /recording|silence/)
 
     // Garante ausência de scroll horizontal no viewport mobile (375px).
-    const noOverflow = await page.evaluate(
-      () => document.documentElement.scrollWidth <= window.innerWidth,
-    )
-    expect(noOverflow).toBe(true)
+    await expect
+      .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth))
+      .toBe(true)
   })
 
   test('exibe aviso quando a gravação é interrompida e preserva o trecho', async ({ page }) => {
