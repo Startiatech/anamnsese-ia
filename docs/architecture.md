@@ -109,6 +109,8 @@ sequenceDiagram
     actor Médico
     participant SA as StepAudio
     participant VAD as use-silence-detection
+    participant UAL as use-audio-level
+    participant AW as AudioWaveform
     participant WL as use-wake-lock
     participant RI as use-recording-interruption
     participant MR as MediaRecorder
@@ -118,6 +120,7 @@ sequenceDiagram
     WL-->>SA: WakeLock ativo (tela não dorme)
     SA->>MR: recorder.start(1000)
     SA->>VAD: conecta AnalyserNode (Web Audio API)
+    SA->>UAL: conecta mesmo MediaStream (somente leitura)
 
     loop Monitoramento contínuo
         VAD->>VAD: calcula RMS do buffer de áudio
@@ -128,6 +131,11 @@ sequenceDiagram
             VAD->>SA: onSpeech()
             SA->>MR: recorder.resume()
         end
+        UAL->>UAL: calcula RMS (AudioContext/AnalyserNode)
+        UAL->>SA: onLevel(rms 0..1) [somente medição — sem reter áudio]
+        SA->>AW: level + variant (recording|silence|paused)
+        AW->>AW: desenha onda no canvas [visual local apenas]
+        Note over SA,AW: Aviso de microfone baixo (amber) se 0.05 < level < 0.12 por ~3s
     end
 
     alt Track encerrada (watchdog detecta clock-jump = suspensão)
@@ -168,6 +176,7 @@ flowchart TD
 - Multi-segmento: `segmentsRef: Blob[]` acumula todos os trechos; cada WebM é enviado **separadamente** ao servidor (`transcribeSegments`) e as transcrições são juntadas — concatenar os bytes produziria um WebM inválido (só o 1º segmento seria lido).
 - Filtro de alucinações só remove frase quando ela está **isolada** no chunk — preserva menções legítimas.
 - `temperature: 0` e `TRANSCRIPTION_PROMPT` também protegem consultas no modo upload direto.
+- Monitor de onda sonora ao vivo (`useAudioLevel` + `AudioWaveform`): lê o mesmo `MediaStream` do microfone apenas para medir volume (RMS via `AudioContext/AnalyserNode`) e exibir a onda animada no canvas. Nenhum áudio é retido ou enviado por esse caminho — a transcrição via Groq/Whisper continua ocorrendo **somente** no clique manual "Transcrever", inalterada. Um aviso discreto (texto amber, `role=status`) aparece se o nível ficar entre 0,05 e 0,12 por ~3 s (microfone muito baixo).
 
 ---
 
