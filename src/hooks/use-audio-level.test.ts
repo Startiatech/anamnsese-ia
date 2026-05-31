@@ -17,13 +17,15 @@ function makeFakeAnalyser(sampleValue: number) {
 function stubAudioContext(sampleValue: number) {
   const analyser = makeFakeAnalyser(sampleValue)
   const closeSpy = vi.fn(() => Promise.resolve())
+  const resumeSpy = vi.fn(() => Promise.resolve())
   class FakeAudioContext {
     createMediaStreamSource() { return { connect: vi.fn(), disconnect: vi.fn() } }
     createAnalyser() { return analyser }
     close = closeSpy
+    resume = resumeSpy
   }
   vi.stubGlobal('AudioContext', FakeAudioContext)
-  return { analyser, closeSpy }
+  return { analyser, closeSpy, resumeSpy }
 }
 
 const fakeStream = { } as unknown as MediaStream
@@ -83,6 +85,14 @@ describe('useAudioLevel', () => {
     renderHook(() => useAudioLevel({ stream: null, active: true, onLevel }))
     vi.advanceTimersByTime(500)
     expect(onLevel).not.toHaveBeenCalled()
+  })
+
+  it('chama resume() para destravar o AudioContext suspenso (política de autoplay)', () => {
+    vi.useFakeTimers()
+    const { resumeSpy } = stubAudioContext(200)
+    const onLevel = vi.fn()
+    renderHook(() => useAudioLevel({ stream: fakeStream, active: true, onLevel }))
+    expect(resumeSpy).toHaveBeenCalled()
   })
 
   it('limpa o AudioContext no unmount', () => {

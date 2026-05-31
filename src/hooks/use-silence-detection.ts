@@ -33,6 +33,12 @@ export function useSilenceDetection({
     if (typeof AudioContext === 'undefined') return // degradação graciosa
 
     const ctx = new AudioContext()
+    // Política de autoplay do Chrome: um AudioContext criado fora de um gesto
+    // direto (aqui, após o countdown via setTimeout) pode nascer 'suspended' e
+    // não processar áudio. Sem isto, o analisador lê sempre silêncio: onSilence
+    // dispara mas onSpeech nunca, e a gravação não retoma ao voltar a falar.
+    // A ativação fixa da página permite reativá-lo com resume() (fire-and-forget).
+    void ctx.resume()
     const source = ctx.createMediaStreamSource(stream)
     const analyser = ctx.createAnalyser()
     analyser.fftSize = 2048

@@ -22,6 +22,11 @@ export function useAudioLevel({ stream, active, onLevel }: UseAudioLevelArgs) {
     if (typeof AudioContext === 'undefined') return // degradação graciosa
 
     const ctx = new AudioContext()
+    // Política de autoplay do Chrome: um AudioContext criado fora de um gesto
+    // direto (aqui, após o countdown via setTimeout) pode nascer 'suspended' e
+    // não processar áudio — o analisador leria linha reta. A ativação fixa da
+    // página permite reativá-lo com resume(); fire-and-forget é seguro.
+    void ctx.resume()
     const source = ctx.createMediaStreamSource(stream)
     const analyser = ctx.createAnalyser()
     analyser.fftSize = 2048

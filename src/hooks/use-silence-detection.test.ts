@@ -17,14 +17,18 @@ class FakeAnalyser {
   disconnect() {}
 }
 
+const resumeSpy = vi.fn(() => Promise.resolve())
+
 class FakeAudioContext {
   createAnalyser() { return new FakeAnalyser() }
   createMediaStreamSource() { return { connect: vi.fn(), disconnect: vi.fn() } }
   close() { return Promise.resolve() }
+  resume = resumeSpy
 }
 
 beforeEach(() => {
   mockVolume = 0
+  resumeSpy.mockClear()
   vi.stubGlobal('AudioContext', FakeAudioContext)
   vi.useFakeTimers()
 })
@@ -80,6 +84,20 @@ describe('useSilenceDetection', () => {
     mockVolume = 0.5 // voz
     vi.advanceTimersByTime(300)
     expect(onSpeech).toHaveBeenCalledTimes(1)
+  })
+
+  it('chama resume() para destravar o AudioContext suspenso (política de autoplay)', () => {
+    renderHook(() =>
+      useSilenceDetection({
+        stream: fakeStream(),
+        active: true,
+        silenceMs: 2500,
+        threshold: 0.05,
+        onSilence: vi.fn(),
+        onSpeech: vi.fn(),
+      }),
+    )
+    expect(resumeSpy).toHaveBeenCalled()
   })
 
   it('does nothing when active is false', () => {
