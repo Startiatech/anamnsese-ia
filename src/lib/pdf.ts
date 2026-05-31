@@ -2,6 +2,7 @@
 import jsPDF from 'jspdf'
 import type { Patient, Consultation } from '@/types'
 import type { ClinicData } from './clinic'
+import { buildAnamnesisDocModel, computeLogoBox } from '@/lib/anamnesis-document-model'
 
 interface PDFProps {
   patient: Patient
@@ -10,29 +11,6 @@ interface PDFProps {
   doctorCRM: string
   doctorSpecialty: string
   clinic?: ClinicData
-}
-
-const MONTHS_PT = [
-  'janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
-  'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro',
-]
-
-function formatCnpj(v: string): string {
-  return v.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5')
-}
-
-function formatCep(v: string): string {
-  return v.replace(/^(\d{5})(\d{3})$/, '$1-$2')
-}
-
-function formatDateLong(iso: string): string {
-  const d = new Date(iso)
-  return `${d.getDate()} de ${MONTHS_PT[d.getMonth()]} de ${d.getFullYear()}`
-}
-
-function formatBirthDate(iso: string): string {
-  const [yyyy, mm, dd] = iso.split('-')
-  return `${dd}/${mm}/${yyyy}`
 }
 
 async function loadImageAsDataUrl(url: string): Promise<{ data: string; format: 'PNG' | 'JPEG' | 'WEBP' } | null> {
@@ -59,9 +37,20 @@ const COLORS = {
   rule:  [200, 200, 200] as [number, number, number],
 }
 
+// Altura-alvo da logo no PDF (mm). A largura é proporcional à imagem real.
+const LOGO_TARGET_HEIGHT_MM = 22
+
 export async function generatePDFBlob({
   patient, consultation, doctorName, doctorCRM, doctorSpecialty, clinic,
 }: PDFProps): Promise<Blob> {
+  const model = buildAnamnesisDocModel({
+    patient,
+    professional: { name: doctorName, specialty: doctorSpecialty, crm: doctorCRM },
+    clinic,
+    structuredAnamnesis: consultation.structuredAnamnesis,
+    updatedAt: consultation.updatedAt,
+  })
+
   const doc = new jsPDF({ unit: 'mm', format: 'a4' })
   const pageW = doc.internal.pageSize.getWidth()
   const pageH = doc.internal.pageSize.getHeight()
@@ -69,8 +58,10 @@ export async function generatePDFBlob({
   const MARGIN_TOP = 20
   const MARGIN_BOTTOM = 28
   const contentW = pageW - MARGIN_X * 2
+  const centerX = pageW / 2
   let y = MARGIN_TOP
 
+  // Fonte única serifada em todo o documento (equivale ao Times New Roman).
   function setColor(rgb: [number, number, number]) {
     doc.setTextColor(rgb[0], rgb[1], rgb[2])
   }
@@ -82,121 +73,91 @@ export async function generatePDFBlob({
     }
   }
 
-  // ─── Cabeçalho institucional ───────────────────────────────────────────────
-  if (clinic?.clinicName) {
+  // ─── Cabeçalho institucional — dados centralizados, logo à esquerda ─────────
+  if (model.clinic) {
     const headerStart = y
-    let textX = MARGIN_X
     let logoH = 0
 
-    if (clinic.clinicLogoUrl) {
-      const img = await loadImageAsDataUrl(clinic.clinicLogoUrl)
+    if (model.clinic.logoUrl) {
+      const img = await loadImageAsDataUrl(model.clinic.logoUrl)
       if (img) {
         try {
-          doc.addImage(img.data, img.format, MARGIN_X, headerStart, 22, 22)
-          textX = MARGIN_X + 26
-          logoH = 22
+          const props = doc.getImageProperties(img.data)
+          const box = computeLogoBox(props.width, props.height, LOGO_TARGET_HEIGHT_MM)
+          doc.addImage(img.data, img.format, MARGIN_X, headerStart, box.width, box.height)
+          logoH = box.height
         } catch { /* logo malformado */ }
       }
     }
 
-    // Nome da clínica
+    // Bloco de texto centralizado na página.
+    let ty = headerStart + 5
     setColor(COLORS.text)
-    doc.setFont('helvetica', 'bold').setFontSize(15)
-    doc.text(clinic.clinicName, textX, headerStart + 6)
+    doc.setFont('times', 'bold').setFontSize(15)
+    doc.text(model.clinic.name, centerX, ty, { align: 'center' })
+    ty += 5.5
 
-    // Contato (linha 1)
     setColor(COLORS.muted)
-    doc.setFont('helvetica', 'normal').setFontSize(8.5)
-    const contact1 = [
-      `CNPJ ${formatCnpj(clinic.clinicCnpj)}`,
-      clinic.clinicPhone,
-      clinic.clinicEmail,
-    ].filter(Boolean).join('  ·  ')
-    doc.text(contact1, textX, headerStart + 11)
-
-    // Site (linha 2)
-    if (clinic.clinicWebsite) {
-      doc.text(clinic.clinicWebsite, textX, headerStart + 15.5)
+    doc.setFont('times', 'normal').setFontSize(8.5)
+    if (model.clinic.addressLine) {
+      doc.text(model.clinic.addressLine, centerX, ty, { align: 'center' })
+      ty += 4.5
+    }
+    if (model.clinic.contactLine) {
+      doc.text(model.clinic.contactLine, centerX, ty, { align: 'center' })
+      ty += 4.5
+    }
+    if (model.clinic.website) {
+      doc.text(model.clinic.website, centerX, ty, { align: 'center' })
+      ty += 4.5
     }
 
-    y = headerStart + Math.max(logoH, 18) + 4
+    y = Math.max(headerStart + logoH, ty) + 4
 
-    // Linha sutil sob cabeçalho
     doc.setDrawColor(COLORS.rule[0], COLORS.rule[1], COLORS.rule[2]).setLineWidth(0.3)
     doc.line(MARGIN_X, y, pageW - MARGIN_X, y)
     y += 10
   }
 
-  // ─── Título do documento ───────────────────────────────────────────────────
+  // ─── Título à esquerda + data à direita, na mesma linha ─────────────────────
   setColor(COLORS.text)
-  doc.setFont('helvetica', 'bold').setFontSize(17)
-  doc.text('ANAMNESE CLÍNICA', pageW / 2, y, { align: 'center' })
+  doc.setFont('times', 'bold').setFontSize(17)
+  doc.text(model.title, MARGIN_X, y)
+  setColor(COLORS.muted)
+  doc.setFont('times', 'normal').setFontSize(9.5)
+  doc.text(model.dateLong, pageW - MARGIN_X, y, { align: 'right' })
   y += 10
 
-  // ─── Data e local (estilo carta) ───────────────────────────────────────────
-  setColor(COLORS.muted)
-  doc.setFont('helvetica', 'normal').setFontSize(9.5)
-  doc.text(formatDateLong(consultation.updatedAt), pageW - MARGIN_X, y, { align: 'right' })
-  y += 8
+  // ─── Bloco do paciente ──────────────────────────────────────────────────────
+  setColor(COLORS.text)
+  doc.setFont('times', 'bold').setFontSize(9)
+  doc.text('PACIENTE', MARGIN_X, y)
+  y += 6
 
-  // ─── Blocos Profissional / Paciente lado a lado ────────────────────────────
-  const blockW = (contentW - 6) / 2
-  const blockStartY = y
-
-  function drawBlock(label: string, lines: { label: string; value: string }[], xOffset: number) {
-    let by = blockStartY
-    // Header do bloco
-    setColor(COLORS.text)
-    doc.setFont('helvetica', 'bold').setFontSize(9)
-    doc.text(label.toUpperCase(), MARGIN_X + xOffset, by)
-    by += 6
-
-    // Conteúdo inline: "Label: valor"
-    doc.setFont('times', 'normal').setFontSize(10.5)
-    lines.forEach(({ label: l, value }) => {
-      if (!value) return
-      const text = `${l}: ${value}`
-      const wrapped = doc.splitTextToSize(text, blockW) as string[]
-      wrapped.forEach((w) => {
-        setColor(COLORS.text)
-        doc.text(w, MARGIN_X + xOffset, by)
-        by += 4.5
-      })
+  doc.setFont('times', 'normal').setFontSize(10.5)
+  model.patientLines.forEach(({ label, value }) => {
+    const wrapped = doc.splitTextToSize(`${label}: ${value}`, contentW) as string[]
+    wrapped.forEach((w) => {
+      setColor(COLORS.text)
+      doc.text(w, MARGIN_X, y)
+      y += 4.5
     })
-    return by
-  }
-
-  const profLines = [
-    { label: 'Nome',         value: doctorName },
-    { label: 'Especialidade', value: doctorSpecialty },
-    { label: 'Registro',     value: doctorCRM },
-  ]
-  const patLines = [
-    { label: 'Nome',           value: patient.name },
-    { label: 'CPF',            value: patient.cpf ?? '' },
-    { label: 'Nascimento',     value: patient.birthDate ? formatBirthDate(patient.birthDate) : '' },
-    { label: 'Telefone',       value: patient.phone ?? '' },
-  ]
-
-  const profEndY = drawBlock('Profissional', profLines, 0)
-  const patEndY  = drawBlock('Paciente',     patLines, blockW + 6)
-  y = Math.max(profEndY, patEndY) + 4
+  })
+  y += 4
 
   // Separador antes do corpo
   doc.setDrawColor(COLORS.rule[0], COLORS.rule[1], COLORS.rule[2]).setLineWidth(0.2)
   doc.line(MARGIN_X, y, pageW - MARGIN_X, y)
   y += 8
 
-  // ─── Seções da anamnese ────────────────────────────────────────────────────
-  consultation.structuredAnamnesis.sections.forEach((section) => {
+  // ─── Seções da anamnese ─────────────────────────────────────────────────────
+  model.sections.forEach((section) => {
     checkPageBreak(14)
-    // Título da seção (sem linha)
     setColor(COLORS.text)
-    doc.setFont('helvetica', 'bold').setFontSize(10.5)
+    doc.setFont('times', 'bold').setFontSize(10.5)
     doc.text(section.title.toUpperCase(), MARGIN_X, y)
     y += 6
 
-    // Corpo
     doc.setFont('times', 'normal').setFontSize(11)
     const wrapped = doc.splitTextToSize(section.content, contentW) as string[]
     wrapped.forEach((line) => {
@@ -207,36 +168,30 @@ export async function generatePDFBlob({
     y += 6
   })
 
-  // ─── Rodapé em cada página ─────────────────────────────────────────────────
+  // ─── Rodapé em cada página — dados do profissional, centralizados ───────────
   const pageCount = doc.getNumberOfPages()
-  const rtName     = clinic?.clinicRtIsSelf ? doctorName : (clinic?.clinicRtName ?? '')
-  const rtRegistry = clinic?.clinicRtIsSelf ? doctorCRM  : (clinic?.clinicRtRegistry ?? '')
+  const footer = model.professionalFooter
 
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i)
 
-    if (clinic?.clinicName) {
+    if (footer) {
       doc.setDrawColor(COLORS.rule[0], COLORS.rule[1], COLORS.rule[2]).setLineWidth(0.2)
-      doc.line(MARGIN_X, pageH - 22, pageW - MARGIN_X, pageH - 22)
+      doc.line(MARGIN_X, pageH - 20, pageW - MARGIN_X, pageH - 20)
 
       setColor(COLORS.muted)
-      doc.setFont('helvetica', 'normal').setFontSize(7.5)
-
-      const addressFull = `${clinic.clinicAddress}${clinic.clinicAddressNumber ? `, ${clinic.clinicAddressNumber}` : ''} · CEP ${formatCep(clinic.clinicCep)}`
-      doc.text(addressFull, pageW / 2, pageH - 18, { align: 'center' })
-
-      if (rtName) {
-        doc.text(`Responsável Técnico: ${rtName} — ${rtRegistry}`, pageW / 2, pageH - 14.5, { align: 'center' })
+      doc.setFont('times', 'normal').setFontSize(8.5)
+      if (footer.nameLine) {
+        doc.text(footer.nameLine, centerX, pageH - 15, { align: 'center' })
       }
-
-      if (clinic.clinicBusinessHours) {
-        doc.text(clinic.clinicBusinessHours, pageW / 2, pageH - 11, { align: 'center' })
+      if (footer.crm) {
+        doc.text(footer.crm, centerX, pageH - 11, { align: 'center' })
       }
     }
 
-    // Paginação (sempre, mesmo sem clinic)
+    // Paginação (sempre)
     setColor(COLORS.muted)
-    doc.setFont('helvetica', 'normal').setFontSize(7.5)
+    doc.setFont('times', 'normal').setFontSize(7.5)
     doc.text(`Página ${i} de ${pageCount}`, pageW - MARGIN_X, pageH - 7, { align: 'right' })
   }
 

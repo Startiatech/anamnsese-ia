@@ -18,6 +18,14 @@ import {
 } from 'docx'
 import type { Patient, Consultation } from '@/types'
 import type { ClinicData } from '@/lib/clinic'
+import {
+  buildAnamnesisDocModel,
+  computeLogoBox,
+  type AnamnesisDocModel,
+  type AnamnesisDocClinic,
+  type AnamnesisDocFooter,
+  type AnamnesisDocLine,
+} from '@/lib/anamnesis-document-model'
 
 interface DOCXProps {
   patient: Patient
@@ -28,105 +36,80 @@ interface DOCXProps {
   clinic?: ClinicData
 }
 
-const MONTHS_PT = [
-  'janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
-  'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro',
-]
-
 const MUTED_HEX = '6E6E78'
 const TEXT_HEX = '1E1E23'
 const RULE_HEX = 'C8C8D2'
+const FONT = 'Times New Roman'
 
-function formatCnpj(raw: string): string {
-  const d = raw.replace(/\D/g, '')
-  if (d.length !== 14) return raw
-  return `${d.slice(0, 2)}.${d.slice(2, 5)}.${d.slice(5, 8)}/${d.slice(8, 12)}-${d.slice(12)}`
+// Altura-alvo da logo (~22mm a 96dpi). A largura é proporcional à imagem real.
+const LOGO_TARGET_HEIGHT_PX = 83
+
+interface LoadedLogo {
+  bytes: Uint8Array
+  width: number
+  height: number
+  type: 'png' | 'jpg'
 }
 
-function formatCep(raw: string): string {
-  const d = raw.replace(/\D/g, '')
-  if (d.length !== 8) return raw
-  return `${d.slice(0, 5)}-${d.slice(5)}`
-}
-
-function formatDateLong(iso: string): string {
-  const d = new Date(iso)
-  return `${d.getDate()} de ${MONTHS_PT[d.getMonth()]} de ${d.getFullYear()}`
-}
-
-function formatBirthDate(iso: string): string {
-  const [yyyy, mm, dd] = iso.split('-')
-  return `${dd}/${mm}/${yyyy}`
-}
-
-// Move a letra entre parênteses do fim para o início do título da seção:
-// "Subjetivo (S)" → "(S) Subjetivo". Títulos sem parênteses passam intactos.
-function formatSectionTitle(title: string): string {
-  const m = title.match(/^(.*?)\s*\(([^)]+)\)\s*$/)
-  return m ? `(${m[2]}) ${m[1]}` : title
-}
-
-async function fetchLogoBytes(url: string): Promise<Uint8Array | null> {
+async function loadLogo(url: string): Promise<LoadedLogo | null> {
   try {
     const res = await fetch(url)
     if (!res.ok) return null
-    const buf = await res.arrayBuffer()
-    return new Uint8Array(buf)
+    const blob = await res.blob()
+    const buf = await blob.arrayBuffer()
+    const bytes = new Uint8Array(buf)
+    let natW = 0
+    let natH = 0
+    try {
+      const bmp = await createImageBitmap(blob)
+      natW = bmp.width
+      natH = bmp.height
+      bmp.close()
+    } catch { /* sem dimensões → cai para quadrado */ }
+    const type = blob.type === 'image/jpeg' ? 'jpg' : 'png'
+    return { bytes, width: natW, height: natH, type }
   } catch {
     return null
   }
 }
 
-async function buildHeader(clinic: ClinicData): Promise<Header> {
+async function buildHeader(clinic: AnamnesisDocClinic): Promise<Header> {
   // Bloco de texto da clínica, centralizado.
   const textParagraphs: Paragraph[] = []
 
-  if (clinic.clinicName) {
-    textParagraphs.push(
-      new Paragraph({
-        alignment: AlignmentType.CENTER,
-        children: [
-          new TextRun({ text: clinic.clinicName, bold: true, size: 28, color: TEXT_HEX, font: 'Times New Roman' }),
-        ],
-        spacing: { after: 30 },
-      }),
-    )
-  }
+  textParagraphs.push(
+    new Paragraph({
+      alignment: AlignmentType.CENTER,
+      children: [new TextRun({ text: clinic.name, bold: true, size: 28, color: TEXT_HEX, font: FONT })],
+      spacing: { after: 30 },
+    }),
+  )
 
-  const addressFull = clinic.clinicAddress
-    ? `${clinic.clinicAddress}${clinic.clinicAddressNumber ? `, ${clinic.clinicAddressNumber}` : ''} · CEP ${formatCep(clinic.clinicCep)}`
-    : ''
-  if (addressFull) {
+  if (clinic.addressLine) {
     textParagraphs.push(
       new Paragraph({
         alignment: AlignmentType.CENTER,
-        children: [new TextRun({ text: addressFull, size: 16, color: MUTED_HEX, font: 'Times New Roman' })],
+        children: [new TextRun({ text: clinic.addressLine, size: 16, color: MUTED_HEX, font: FONT })],
         spacing: { after: 20 },
       }),
     )
   }
 
-  const contact1 = [
-    clinic.clinicCnpj ? `CNPJ ${formatCnpj(clinic.clinicCnpj)}` : '',
-    clinic.clinicPhone,
-    clinic.clinicEmail,
-  ].filter(Boolean).join('  ·  ')
-
-  if (contact1) {
+  if (clinic.contactLine) {
     textParagraphs.push(
       new Paragraph({
         alignment: AlignmentType.CENTER,
-        children: [new TextRun({ text: contact1, size: 16, color: MUTED_HEX, font: 'Times New Roman' })],
-        spacing: { after: clinic.clinicWebsite ? 20 : 20 },
+        children: [new TextRun({ text: clinic.contactLine, size: 16, color: MUTED_HEX, font: FONT })],
+        spacing: { after: 20 },
       }),
     )
   }
 
-  if (clinic.clinicWebsite) {
+  if (clinic.website) {
     textParagraphs.push(
       new Paragraph({
         alignment: AlignmentType.CENTER,
-        children: [new TextRun({ text: clinic.clinicWebsite, size: 16, color: MUTED_HEX, font: 'Times New Roman' })],
+        children: [new TextRun({ text: clinic.website, size: 16, color: MUTED_HEX, font: FONT })],
         spacing: { after: 20 },
       }),
     )
@@ -134,27 +117,27 @@ async function buildHeader(clinic: ClinicData): Promise<Header> {
 
   const children: (Paragraph | Table)[] = []
 
-  let logoBytes: Uint8Array | null = null
-  if (clinic.clinicLogoUrl) logoBytes = await fetchLogoBytes(clinic.clinicLogoUrl)
+  const logo = clinic.logoUrl ? await loadLogo(clinic.logoUrl) : null
 
-  if (logoBytes) {
+  if (logo) {
+    const box = computeLogoBox(logo.width, logo.height, LOGO_TARGET_HEIGHT_PX)
     // Logo à esquerda, texto centralizado: tabela de 2 colunas sem bordas.
     const noBorder = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' }
     const cellBorders = { top: noBorder, bottom: noBorder, left: noBorder, right: noBorder }
     const logoCell = new TableCell({
-      width: { size: 18, type: WidthType.PERCENTAGE },
+      width: { size: 25, type: WidthType.PERCENTAGE },
       borders: cellBorders,
       verticalAlign: VerticalAlign.CENTER,
       children: [
         new Paragraph({
           children: [
-            new ImageRun({ data: logoBytes, transformation: { width: 56, height: 56 }, type: 'png' }),
+            new ImageRun({ data: logo.bytes, transformation: { width: box.width, height: box.height }, type: logo.type }),
           ],
         }),
       ],
     })
     const textCell = new TableCell({
-      width: { size: 82, type: WidthType.PERCENTAGE },
+      width: { size: 75, type: WidthType.PERCENTAGE },
       borders: cellBorders,
       verticalAlign: VerticalAlign.CENTER,
       children: textParagraphs,
@@ -179,7 +162,7 @@ async function buildHeader(clinic: ClinicData): Promise<Header> {
   return new Header({ children })
 }
 
-function buildFooter(doctorName: string, doctorCRM: string, doctorSpecialty: string): Footer {
+function buildFooter(footer: AnamnesisDocFooter | null): Footer {
   const children: Paragraph[] = []
 
   children.push(
@@ -190,22 +173,21 @@ function buildFooter(doctorName: string, doctorCRM: string, doctorSpecialty: str
   )
 
   // Dados do profissional, centralizados.
-  const nameLine = [doctorName, doctorSpecialty].filter(Boolean).join(' — ')
-  if (nameLine) {
+  if (footer?.nameLine) {
     children.push(
       new Paragraph({
         alignment: AlignmentType.CENTER,
-        children: [new TextRun({ text: nameLine, size: 16, color: MUTED_HEX, font: 'Times New Roman' })],
+        children: [new TextRun({ text: footer.nameLine, size: 16, color: MUTED_HEX, font: FONT })],
         spacing: { after: 20 },
       }),
     )
   }
 
-  if (doctorCRM) {
+  if (footer?.crm) {
     children.push(
       new Paragraph({
         alignment: AlignmentType.CENTER,
-        children: [new TextRun({ text: doctorCRM, size: 16, color: MUTED_HEX, font: 'Times New Roman' })],
+        children: [new TextRun({ text: footer.crm, size: 16, color: MUTED_HEX, font: FONT })],
         spacing: { after: 60 },
       }),
     )
@@ -216,10 +198,10 @@ function buildFooter(doctorName: string, doctorCRM: string, doctorSpecialty: str
     new Paragraph({
       alignment: AlignmentType.RIGHT,
       children: [
-        new TextRun({ text: 'Página ', size: 14, color: MUTED_HEX, font: 'Times New Roman' }),
-        new TextRun({ children: [PageNumber.CURRENT], size: 14, color: MUTED_HEX, font: 'Times New Roman' }),
-        new TextRun({ text: ' de ', size: 14, color: MUTED_HEX, font: 'Times New Roman' }),
-        new TextRun({ children: [PageNumber.TOTAL_PAGES], size: 14, color: MUTED_HEX, font: 'Times New Roman' }),
+        new TextRun({ text: 'Página ', size: 14, color: MUTED_HEX, font: FONT }),
+        new TextRun({ children: [PageNumber.CURRENT], size: 14, color: MUTED_HEX, font: FONT }),
+        new TextRun({ text: ' de ', size: 14, color: MUTED_HEX, font: FONT }),
+        new TextRun({ children: [PageNumber.TOTAL_PAGES], size: 14, color: MUTED_HEX, font: FONT }),
       ],
     }),
   )
@@ -227,21 +209,17 @@ function buildFooter(doctorName: string, doctorCRM: string, doctorSpecialty: str
   return new Footer({ children })
 }
 
-function buildMetaBlock(
-  title: string,
-  rows: { label: string; value: string }[],
-): Paragraph[] {
+function buildMetaBlock(title: string, lines: AnamnesisDocLine[]): Paragraph[] {
   const out: Paragraph[] = [
     new Paragraph({
-      children: [new TextRun({ text: title.toUpperCase(), size: 16, color: TEXT_HEX, bold: true, font: 'Times New Roman' })],
+      children: [new TextRun({ text: title.toUpperCase(), size: 16, color: TEXT_HEX, bold: true, font: FONT })],
       spacing: { after: 80 },
     }),
   ]
-  for (const { label, value } of rows) {
-    if (!value) continue
+  for (const { label, value } of lines) {
     out.push(
       new Paragraph({
-        children: [new TextRun({ text: `${label}: ${value}`, size: 20, color: TEXT_HEX, font: 'Times New Roman' })],
+        children: [new TextRun({ text: `${label}: ${value}`, size: 20, color: TEXT_HEX, font: FONT })],
         spacing: { after: 40 },
       }),
     )
@@ -249,19 +227,12 @@ function buildMetaBlock(
   return out
 }
 
-export async function generateDOCXBlob({
-  patient,
-  consultation,
-  doctorName,
-  doctorCRM,
-  doctorSpecialty,
-  clinic,
-}: DOCXProps): Promise<Blob> {
+function buildBody(model: AnamnesisDocModel): (Paragraph | Table)[] {
   const children: (Paragraph | Table)[] = []
 
   // Título à esquerda + data à direita, na mesma linha (tabela invisível).
-  const noBorderTitle = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' }
-  const titleCellBorders = { top: noBorderTitle, bottom: noBorderTitle, left: noBorderTitle, right: noBorderTitle }
+  const noBorder = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' }
+  const titleCellBorders = { top: noBorder, bottom: noBorder, left: noBorder, right: noBorder }
   children.push(
     new Table({
       width: { size: 100, type: WidthType.PERCENTAGE },
@@ -275,7 +246,7 @@ export async function generateDOCXBlob({
               children: [
                 new Paragraph({
                   alignment: AlignmentType.LEFT,
-                  children: [new TextRun({ text: 'ANAMNESE CLÍNICA', bold: true, size: 34, color: TEXT_HEX, font: 'Times New Roman' })],
+                  children: [new TextRun({ text: model.title, bold: true, size: 34, color: TEXT_HEX, font: FONT })],
                 }),
               ],
             }),
@@ -286,7 +257,7 @@ export async function generateDOCXBlob({
               children: [
                 new Paragraph({
                   alignment: AlignmentType.RIGHT,
-                  children: [new TextRun({ text: formatDateLong(consultation.updatedAt), size: 18, color: MUTED_HEX, font: 'Times New Roman' })],
+                  children: [new TextRun({ text: model.dateLong, size: 18, color: MUTED_HEX, font: FONT })],
                 }),
               ],
             }),
@@ -299,12 +270,7 @@ export async function generateDOCXBlob({
   // Dados do paciente (o profissional fica no rodapé).
   children.push(
     new Paragraph({ spacing: { after: 120 } }),
-    ...buildMetaBlock('Paciente', [
-      { label: 'Nome',       value: patient.name },
-      { label: 'CPF',        value: patient.cpf ?? '' },
-      { label: 'Nascimento', value: patient.birthDate ? formatBirthDate(patient.birthDate) : '' },
-      { label: 'Telefone',   value: patient.phone ?? '' },
-    ]),
+    ...buildMetaBlock('Paciente', model.patientLines),
   )
 
   // Separador entre meta e seções
@@ -316,21 +282,40 @@ export async function generateDOCXBlob({
   )
 
   // Seções
-  for (const s of consultation.structuredAnamnesis.sections) {
+  for (const s of model.sections) {
     children.push(
       new Paragraph({
-        children: [new TextRun({ text: formatSectionTitle(s.title).toUpperCase(), bold: true, size: 22, color: TEXT_HEX, font: 'Times New Roman' })],
+        children: [new TextRun({ text: s.title.toUpperCase(), bold: true, size: 22, color: TEXT_HEX, font: FONT })],
         spacing: { before: 200, after: 120 },
       }),
       new Paragraph({
-        children: [new TextRun({ text: s.content, size: 22, color: TEXT_HEX, font: 'Times New Roman' })],
+        children: [new TextRun({ text: s.content, size: 22, color: TEXT_HEX, font: FONT })],
         spacing: { after: 200 },
       }),
     )
   }
 
-  const header = clinic ? await buildHeader(clinic) : undefined
-  const footer = doctorName ? buildFooter(doctorName, doctorCRM, doctorSpecialty) : undefined
+  return children
+}
+
+export async function generateDOCXBlob({
+  patient,
+  consultation,
+  doctorName,
+  doctorCRM,
+  doctorSpecialty,
+  clinic,
+}: DOCXProps): Promise<Blob> {
+  const model = buildAnamnesisDocModel({
+    patient,
+    professional: { name: doctorName, specialty: doctorSpecialty, crm: doctorCRM },
+    clinic,
+    structuredAnamnesis: consultation.structuredAnamnesis,
+    updatedAt: consultation.updatedAt,
+  })
+
+  const header = model.clinic ? await buildHeader(model.clinic) : undefined
+  const footer = model.professionalFooter ? buildFooter(model.professionalFooter) : undefined
 
   const doc = new Document({
     sections: [{
@@ -339,7 +324,7 @@ export async function generateDOCXBlob({
       properties: {
         page: { margin: { top: 1100, right: 1300, bottom: 1100, left: 1300 } },
       },
-      children,
+      children: buildBody(model),
     }],
   })
 

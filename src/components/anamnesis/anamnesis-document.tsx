@@ -1,35 +1,9 @@
 import type { Patient, StructuredAnamnesis } from '@/types'
 import type { ClinicData } from '@/lib/clinic'
-
-const MONTHS_PT = [
-  'janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
-  'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro',
-]
-
-function formatCnpj(v: string): string {
-  return v.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5')
-}
-
-function formatCep(v: string): string {
-  return v.replace(/^(\d{5})(\d{3})$/, '$1-$2')
-}
-
-function formatDateLong(iso: string): string {
-  const d = new Date(iso)
-  return `${d.getDate()} de ${MONTHS_PT[d.getMonth()]} de ${d.getFullYear()}`
-}
-
-function formatBirthDate(iso: string): string {
-  const [yyyy, mm, dd] = iso.split('-')
-  return `${dd}/${mm}/${yyyy}`
-}
-
-// Move a letra entre parênteses do fim para o início do título da seção:
-// "Subjetivo (S)" → "(S) Subjetivo". Títulos sem parênteses passam intactos.
-function formatSectionTitle(title: string): string {
-  const m = title.match(/^(.*?)\s*\(([^)]+)\)\s*$/)
-  return m ? `(${m[2]}) ${m[1]}` : title
-}
+import {
+  buildAnamnesisDocModel,
+  type AnamnesisDocLine,
+} from '@/lib/anamnesis-document-model'
 
 interface Professional {
   name: string
@@ -52,24 +26,7 @@ export function AnamnesisDocument({
   structuredAnamnesis,
   updatedAt,
 }: AnamnesisDocumentProps) {
-  const patLines: { label: string; value: string }[] = [
-    { label: 'Nome', value: patient.name },
-    { label: 'CPF', value: patient.cpf ?? '' },
-    { label: 'Nascimento', value: patient.birthDate ? formatBirthDate(patient.birthDate) : '' },
-    { label: 'Telefone', value: patient.phone ?? '' },
-  ]
-
-  const clinicAddressLine = clinic?.clinicAddress
-    ? `${clinic.clinicAddress}${clinic.clinicAddressNumber ? `, ${clinic.clinicAddressNumber}` : ''} · CEP ${formatCep(clinic.clinicCep)}`
-    : ''
-  const clinicContactLine = clinic
-    ? [
-        clinic.clinicCnpj && `CNPJ ${formatCnpj(clinic.clinicCnpj)}`,
-        clinic.clinicPhone,
-        clinic.clinicEmail,
-      ].filter(Boolean).join('  ·  ')
-    : ''
-  const profFooterLine = [professional.name, professional.specialty].filter(Boolean).join(' — ')
+  const model = buildAnamnesisDocModel({ patient, professional, clinic, structuredAnamnesis, updatedAt })
 
   return (
     // Fonte fixada em Times New Roman para a tela/PDF baterem exatamente com o DOCX.
@@ -78,29 +35,29 @@ export function AnamnesisDocument({
       style={{ fontFamily: '"Times New Roman", Times, serif' }}
     >
       {/* Cabeçalho institucional — dados centralizados, logo à esquerda */}
-      {clinic?.clinicName && (
+      {model.clinic && (
         <>
           <div className="relative">
-            {clinic.clinicLogoUrl && (
+            {model.clinic.logoUrl && (
               // eslint-disable-next-line @next/next/no-img-element
               <img
-                src={clinic.clinicLogoUrl}
+                src={model.clinic.logoUrl}
                 alt="Logo da clínica"
-                className="absolute left-0 top-0 h-16 w-16 object-contain"
+                className="absolute left-0 top-0 h-[22mm] w-auto max-w-[60mm] object-contain"
               />
             )}
             <div className="text-center">
               <p className="font-bold text-[15pt] text-neutral-900 leading-snug">
-                {clinic.clinicName}
+                {model.clinic.name}
               </p>
-              {clinicAddressLine && (
-                <p className="text-[9pt] text-neutral-500 mt-1">{clinicAddressLine}</p>
+              {model.clinic.addressLine && (
+                <p className="text-[9pt] text-neutral-500 mt-1">{model.clinic.addressLine}</p>
               )}
-              {clinicContactLine && (
-                <p className="text-[9pt] text-neutral-500">{clinicContactLine}</p>
+              {model.clinic.contactLine && (
+                <p className="text-[9pt] text-neutral-500">{model.clinic.contactLine}</p>
               )}
-              {clinic.clinicWebsite && (
-                <p className="text-[9pt] text-neutral-500">{clinic.clinicWebsite}</p>
+              {model.clinic.website && (
+                <p className="text-[9pt] text-neutral-500">{model.clinic.website}</p>
               )}
             </div>
           </div>
@@ -111,26 +68,26 @@ export function AnamnesisDocument({
       {/* Título à esquerda + data à direita, na mesma linha */}
       <div className="mt-8 flex items-baseline justify-between gap-4">
         <h1 className="font-bold text-[17pt] text-neutral-900 tracking-wide">
-          ANAMNESE CLÍNICA
+          {model.title}
         </h1>
         <p className="shrink-0 text-[10pt] text-neutral-500">
-          {formatDateLong(updatedAt)}
+          {model.dateLong}
         </p>
       </div>
 
       {/* Dados do paciente (profissional fica no rodapé) */}
       <div className="mt-6">
-        <MetaBlock title="Paciente" lines={patLines} />
+        <MetaBlock title="Paciente" lines={model.patientLines} />
       </div>
 
       <div className="mt-8 border-t border-neutral-300" />
 
       {/* Seções */}
       <div className="mt-6 space-y-6">
-        {structuredAnamnesis.sections.map((section) => (
+        {model.sections.map((section) => (
           <section key={section.title}>
             <h2 className="font-bold text-[10.5pt] text-neutral-900 uppercase tracking-wider">
-              {formatSectionTitle(section.title)}
+              {section.title}
             </h2>
             <p className="mt-2 text-[11pt] leading-relaxed text-neutral-800 whitespace-pre-wrap">
               {section.content}
@@ -140,28 +97,26 @@ export function AnamnesisDocument({
       </div>
 
       {/* Rodapé — dados do profissional, centralizados */}
-      {profFooterLine && (
+      {model.professionalFooter && (
         <footer className="mt-12 pt-4 border-t border-neutral-200 text-center text-[9pt] text-neutral-600 space-y-0.5">
-          <p>{profFooterLine}</p>
-          {professional.crm && <p>{professional.crm}</p>}
+          <p>{model.professionalFooter.nameLine}</p>
+          {model.professionalFooter.crm && <p>{model.professionalFooter.crm}</p>}
         </footer>
       )}
     </div>
   )
 }
 
-function MetaBlock({ title, lines }: { title: string; lines: { label: string; value: string }[] }) {
+function MetaBlock({ title, lines }: { title: string; lines: AnamnesisDocLine[] }) {
   return (
     <div>
       <p className="font-bold text-[9pt] text-neutral-900 uppercase tracking-wider">
         {title}
       </p>
       <div className="mt-2 space-y-1.5 text-[10.5pt] text-neutral-800">
-        {lines.map(({ label, value }) =>
-          value
-            ? <p key={label}>{label}: {value}</p>
-            : null
-        )}
+        {lines.map(({ label, value }) => (
+          <p key={label}>{label}: {value}</p>
+        ))}
       </div>
     </div>
   )
