@@ -77,6 +77,7 @@ export async function generatePDFBlob({
   if (model.clinic) {
     const headerStart = y
     let logoH = 0
+    let textCenter = centerX
 
     if (model.clinic.logoUrl) {
       const img = await loadImageAsDataUrl(model.clinic.logoUrl)
@@ -86,29 +87,32 @@ export async function generatePDFBlob({
           const box = computeLogoBox(props.width, props.height, LOGO_TARGET_HEIGHT_MM)
           doc.addImage(img.data, img.format, MARGIN_X, headerStart, box.width, box.height)
           logoH = box.height
+          // Centraliza o texto no espaço à direita da logo (sem colar nela).
+          const textLeft = MARGIN_X + box.width + 6
+          textCenter = (textLeft + (pageW - MARGIN_X)) / 2
         } catch { /* logo malformado */ }
       }
     }
 
-    // Bloco de texto centralizado na página.
+    // Bloco de texto centralizado (na página, ou à direita da logo se houver).
     let ty = headerStart + 5
     setColor(COLORS.text)
     doc.setFont('times', 'bold').setFontSize(15)
-    doc.text(model.clinic.name, centerX, ty, { align: 'center' })
+    doc.text(model.clinic.name, textCenter, ty, { align: 'center' })
     ty += 5.5
 
     setColor(COLORS.muted)
     doc.setFont('times', 'normal').setFontSize(8.5)
     if (model.clinic.addressLine) {
-      doc.text(model.clinic.addressLine, centerX, ty, { align: 'center' })
+      doc.text(model.clinic.addressLine, textCenter, ty, { align: 'center' })
       ty += 4.5
     }
     if (model.clinic.contactLine) {
-      doc.text(model.clinic.contactLine, centerX, ty, { align: 'center' })
+      doc.text(model.clinic.contactLine, textCenter, ty, { align: 'center' })
       ty += 4.5
     }
     if (model.clinic.website) {
-      doc.text(model.clinic.website, centerX, ty, { align: 'center' })
+      doc.text(model.clinic.website, textCenter, ty, { align: 'center' })
       ty += 4.5
     }
 

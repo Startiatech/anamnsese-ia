@@ -37,16 +37,16 @@ export function AnamnesisDocument({
       {/* Cabeçalho institucional — dados centralizados, logo à esquerda */}
       {model.clinic && (
         <>
-          <div className="relative">
+          <div className="flex items-center gap-6">
             {model.clinic.logoUrl && (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={model.clinic.logoUrl}
                 alt="Logo da clínica"
-                className="absolute left-0 top-0 h-[22mm] w-auto max-w-[60mm] object-contain"
+                className="h-[22mm] w-auto max-w-[55mm] object-contain shrink-0"
               />
             )}
-            <div className="text-center">
+            <div className="flex-1 text-center">
               <p className="font-bold text-[15pt] text-neutral-900 leading-snug">
                 {model.clinic.name}
               </p>
