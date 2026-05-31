@@ -706,7 +706,7 @@ export function StepAudio({
               readOnly
               value={displayedText}
               className="resize-none font-mono text-sm min-h-[26rem] w-full"
-              placeholder="Transcrição aparecerá aqui..."
+              placeholder="Aguarde, a transcrição aparecerá aqui..."
             />
             {audioState === 'streaming' && (
               <p className="text-xs text-muted-foreground animate-pulse">Processando áudio...</p>
