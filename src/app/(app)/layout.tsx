@@ -37,14 +37,16 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
     initialCredits = credits
     initialPlanQuota = isMasterOrAdmin ? 0 : await PlanRepository.getQuotaByPlanId(storedUser.planId)
+    // Nome/iniciais do banco (fresco) — reflete edições de perfil sem relogar.
+    const displayName = storedUser.name ?? payload.name
     initialUser = {
       id: payload.sub,
-      name: payload.name,
+      name: displayName,
       email: payload.email,
       role: payload.role,
       specialty: storedUser?.specialty,
       credits: initialCredits,
-      initials: deriveInitials(payload.name),
+      initials: deriveInitials(displayName),
     }
 
     // Guard de onboarding — não se aplica a master/admin

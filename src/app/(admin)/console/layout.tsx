@@ -45,13 +45,15 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     initialNotifications = notifications
     initialNotificationsUnread = unread
     initialA11yPendingCount = a11yPending
+    // Nome/iniciais do banco (fresco) — reflete edições de perfil sem relogar.
+    const displayName = storedUser?.name ?? payload.name
     initialUser = {
       id: payload.sub,
-      name: payload.name,
+      name: displayName,
       email: payload.email,
       role: payload.role,
       credits: initialCredits,
-      initials: deriveInitials(payload.name),
+      initials: deriveInitials(displayName),
     }
   }
 

@@ -12,7 +12,6 @@ async function getConsultationPageData(
   userId: string,
   patientId: string,
   planId: string,
-  jwtProfessional: { name: string; specialty?: string; crmType?: string; crmNumber?: string; crmUf?: string },
 ) {
   const [planResult, consultationResult] = await Promise.all([
     supabase.from('plans').select('features').eq('id', planId).single(),
@@ -46,11 +45,6 @@ async function getConsultationPageData(
     refinementAttemptsLimit: f6?.limit ?? null,
     initialTranscript: (consultation?.status === 'in_progress' ? (consultation?.raw_transcript ?? '') : '') as string,
     lastConsultationAt: consultation?.status === 'completed' ? (consultation?.updated_at ?? null) : null,
-    professional: {
-      name: jwtProfessional.name,
-      specialty: jwtProfessional.specialty ?? '',
-      crm: formatCrm(jwtProfessional.crmType, jwtProfessional.crmNumber, jwtProfessional.crmUf),
-    },
   }
 }
 
@@ -63,13 +57,7 @@ export default async function ConsultationSessionPage({ params }: { params: Prom
 
   const [patient, data, storedUser] = await Promise.all([
     PatientRepository.findById(user.sub, id),
-    getConsultationPageData(user.sub, id, planId, {
-      name: user.name,
-      specialty: user.specialty,
-      crmType: user.crmType,
-      crmNumber: user.crmNumber,
-      crmUf: user.crmUf,
-    }),
+    getConsultationPageData(user.sub, id, planId),
     findUserById(user.sub),
   ])
 
@@ -77,6 +65,17 @@ export default async function ConsultationSessionPage({ params }: { params: Prom
 
   if (!storedUser || !isClinicComplete(storedUser)) {
     redirect(`${ROUTES.configuracoes}?force=clinica`)
+  }
+
+  // Profissional sempre do banco (fresco), não do JWT — reflete edições de perfil.
+  const professional = {
+    name: storedUser.name ?? user.name ?? '',
+    specialty: storedUser.specialty ?? user.specialty ?? '',
+    crm: formatCrm(
+      storedUser.crmType ?? user.crmType,
+      storedUser.crmNumber ?? user.crmNumber,
+      storedUser.crmUf ?? user.crmUf,
+    ),
   }
 
   const clinic: ClinicData | undefined = storedUser.clinicName
@@ -108,7 +107,7 @@ export default async function ConsultationSessionPage({ params }: { params: Prom
       refinementAttemptsLimit={data.refinementAttemptsLimit}
       initialTranscript={data.initialTranscript}
       lastConsultationAt={data.lastConsultationAt}
-      professional={data.professional}
+      professional={professional}
       clinic={clinic}
       creditsRemaining={storedUser?.creditsRemaining ?? 0}
       planId={storedUser?.planId ?? 'experimental'}
