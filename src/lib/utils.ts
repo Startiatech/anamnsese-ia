@@ -55,6 +55,28 @@ export function generateId(): string {
   return uuidv4()
 }
 
+// Conectores que permanecem em minúsculo no meio do nome (não no início).
+const NAME_CONNECTORS = new Set(['da', 'de', 'di', 'do', 'du', 'das', 'des', 'dos', 'e'])
+
+/**
+ * Capitaliza nomes em pt-br: primeira letra de cada palavra em maiúscula,
+ * mantendo conectores ("da", "de", "do", "dos", "e"...) em minúsculo quando
+ * não são a primeira palavra. Ex.: "joão da silva" → "João da Silva";
+ * "MENTE LIVRE" → "Mente Livre". Espaços extras são normalizados.
+ */
+export function capitalizeName(value: string): string {
+  return value
+    .trim()
+    .toLowerCase()
+    .split(/\s+/)
+    .map((word, i) =>
+      i > 0 && NAME_CONNECTORS.has(word)
+        ? word
+        : word.charAt(0).toUpperCase() + word.slice(1),
+    )
+    .join(' ')
+}
+
 /** "João da Silva Pereira" → "João Pereira" */
 export function abbreviateName(name: string): string {
   const parts = name.trim().split(/\s+/)

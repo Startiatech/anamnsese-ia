@@ -1,5 +1,26 @@
 import { describe, it, expect } from 'vitest'
-import { formatCPF, validateCPFFormat, formatDate, formatDateTime, generateId, formatPhone } from './utils'
+import { formatCPF, validateCPFFormat, formatDate, formatDateTime, generateId, formatPhone, capitalizeName } from './utils'
+
+describe('capitalizeName', () => {
+  it('capitaliza cada palavra mantendo conectores em minúsculo', () => {
+    expect(capitalizeName('joão da silva')).toBe('João da Silva')
+  })
+  it('capitaliza nome simples de clínica', () => {
+    expect(capitalizeName('mente livre')).toBe('Mente Livre')
+  })
+  it('normaliza texto todo em maiúsculo', () => {
+    expect(capitalizeName('CLÍNICA DOS ANJOS')).toBe('Clínica dos Anjos')
+  })
+  it('capitaliza o conector quando é a primeira palavra', () => {
+    expect(capitalizeName('da vinci')).toBe('Da Vinci')
+  })
+  it('normaliza espaços extras', () => {
+    expect(capitalizeName('  joão   silva  ')).toBe('João Silva')
+  })
+  it('lida com string vazia', () => {
+    expect(capitalizeName('')).toBe('')
+  })
+})
 
 describe('formatCPF', () => {
   it('formats raw CPF digits', () => {

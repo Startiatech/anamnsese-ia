@@ -1,6 +1,7 @@
 // src/lib/schemas.ts
 import { z } from 'zod'
 import { isValidCnpj } from './clinic'
+import { capitalizeName } from './utils'
 
 export const loginSchema = z.object({
   email: z.string().min(1, 'Email é obrigatório').email({ message: 'Email inválido' }),
@@ -79,7 +80,7 @@ function isValidCpf(cpf: string): boolean {
 }
 
 export const patientSchema = z.object({
-  name: z.string().min(1, 'Nome é obrigatório').max(100).trim(),
+  name: z.string().min(1, 'Nome é obrigatório').max(100).trim().transform(capitalizeName),
   cpf: z
     .string()
     .regex(/^\d{3}\.\d{3}\.\d{3}-\d{2}$/, 'CPF inválido — use o formato 000.000.000-00')
@@ -123,7 +124,7 @@ export const REGISTRY_TYPES = [
 export type RegistryType = typeof REGISTRY_TYPES[number]
 
 export const profileSchema = z.object({
-  name:                   z.string().min(3, 'Nome obrigatório').max(100).trim(),
+  name:                   z.string().min(3, 'Nome obrigatório').max(100).trim().transform(capitalizeName),
   phone:                  z.string().max(20).trim().optional(),
   specialty:              z.string().min(2, 'Especialidade obrigatória').max(100).trim(),
   crmType:                z.enum(REGISTRY_TYPES),
@@ -158,7 +159,7 @@ export const planInterestSchema = z.object({
 export type PlanInterestFormData = z.infer<typeof planInterestSchema>
 
 export const clinicSchema = z.object({
-  clinicName: z.string().min(2, 'Nome da clínica obrigatório').max(120).trim(),
+  clinicName: z.string().min(2, 'Nome da clínica obrigatório').max(120).trim().transform(capitalizeName),
   clinicCnpj: z
     .string()
     .trim()

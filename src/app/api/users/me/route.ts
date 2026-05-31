@@ -4,6 +4,7 @@ import { supabase } from '@/server/supabase'
 import { comparePassword, hashPassword } from '@/server/services/auth'
 import { findUserById, updateClinicData, updateAccessibilityPrefs } from '@/server/repositories/users'
 import { clinicSchema, accessibilityPrefsSchema } from '@/lib/schemas'
+import { capitalizeName } from '@/lib/utils'
 
 export async function PATCH(req: NextRequest) {
   const payload = await getServerUser()
@@ -90,7 +91,7 @@ export async function PATCH(req: NextRequest) {
     typeof crmUf === 'string' && crmUf.length > 0
 
   const updateData: Record<string, unknown> = {
-    name,
+    name: typeof name === 'string' ? capitalizeName(name) : name,
     phone,
     specialty,
     crm_type:   crmType,
