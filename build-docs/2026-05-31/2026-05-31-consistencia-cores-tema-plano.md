@@ -95,6 +95,20 @@ Cada fase: avisar → alterar → usuário confere → seguir.
 - [src/components/console/resource-card.tsx](../../src/components/console/resource-card.tsx) (L20, 30) —
   `background: glow` por prop + gradiente `oklch` roxo/cyan hardcoded na barra → token.
 
+### Fase 6 — Modais e sheets
+Mesma raiz do `plan-card`: cores de valor único `-300`/`-400` (dark-only) sem par light →
+lavadas no light. Padrão de correção: texto/ícone vira `text-*-600/700 dark:text-*-400`;
+fundos/bordas translúcidos (`bg-*-500/10`) ficam (adaptam aos dois temas). Varrer um a um:
+- Console: [add-user-modal](../../src/app/(admin)/console/users/add-user-modal.tsx) (`text-violet-300`, `text-amber-400`, `text-emerald-400`), edit-user-modal, inject-credits-modal, reset-pin-modal, delete-user-modal, [credentials-dialog](../../src/app/(admin)/console/requests/credentials-dialog.tsx).
+- App/dashboard: welcome-modal, onboarding-intro-modal, no-credits-modal, credit-injected-modal, credit-info-modal.
+- Trial: trial-end-modal.
+- Consulta: delete-patient-dialog, complete-confirm-dialog, new-patient-sheet, edit-patient-sheet, last-anamnesis-sheet.
+- Landing: plan-interest-dialog.
+- **Decisão do usuário:** gradientes de ícone SVG dos modais (`welcome`/`onboarding-intro`/`no-credits`, hoje `#A78BFA→#22D3EE`) → **alinhar ao azul** (trocar o roxo `#A78BFA` por azul `#60A5FA`, mantendo o cyan). Como são `<stop>` de SVG, usa-se hex (não dá `var()`).
+- Neon a tokenizar: `no-credits-modal` (`boxShadow 0 0 24px/20px rgba(124,58,237,...)`) → `var(--glow-brand)`.
+- Referência boa (não tocar): [delete-account-modal](../../src/app/(app)/app/settings/delete-account-modal.tsx) já usa `shadow dark:shadow`.
+- Componentes-base (`app-dialog`/`app-sheet`/`dialog`/`sheet`/`alert-dialog`) já usam tokens — ok.
+
 ---
 
 ## Fora de escopo (registrado, não será feito agora)
@@ -116,9 +130,21 @@ Cada fase: avisar → alterar → usuário confere → seguir.
 
 ## Status de execução
 
-- [ ] Fase 0 — tokens base
-- [ ] Fase 1 — plan-card + onboarding-checklist
-- [ ] Fase 2 — login
-- [ ] Fase 3 — 404 + suspenso
-- [ ] Fase 4 — landing (hero, benefits, how-it-works, plans, cta, demo)
+- [x] Fase 0 — tokens base (`--glow-*` adicionados: light=transparent, dark=neon)
+- [x] Fase 1 — plan-card + onboarding-checklist (`shadow-[...rgba]` → `shadow-[...var(--glow-brand)]`)
+  - Extra: `PLAN_COLORS` ganhou variante light (`text-*-600/700 dark:text-*-400`) no ícone e badge —
+    corrige ícone/badge/checks lavados no light, tanto no card quanto no sheet. Dark intacto.
+- [x] Fase 2 — login
+  - Ambient blobs (violet/cyan) → `hidden dark:block` (somem no light; gradiente `--login-page-bg` cobre).
+  - Ícone `KeyRound` (esqueci a senha): `text-violet-400` → `text-violet-600 dark:text-violet-400` (lavado no light).
+  - Mantido: chips de ícone das `FEATURES` (bg/border `rgba` translúcido `/10`–`/25`) — adaptam bem aos dois temas; texto já era theme-aware. Sem mudança.
+- [x] Fase 3 — 404 + suspenso
+  - not-found: glow de fundo `hidden dark:block`; "404" usa `var(--gradient-brand)` + drop-shadow `var(--glow-violet)`; botão e camada blur → `var(--gradient-brand)`.
+  - suspended: TIPS/ícones `-400` → par light/dark; blobs `hidden dark:block`; divisória e botão "Atualizar página" passam a usar tokens (corrige texto branco invisível no light); botão suporte → `var(--gradient-brand)`; heading multicolor troca `#A78BFA`→`#60A5FA` (tira o roxo).
+- [x] Fase 4 — landing (hero, benefits, how-it-works, plans, cta, demo)
+  - Blobs ambient (hero/benefits/plans/cta) → `hidden dark:block`.
+  - Gradientes `#8B5CF6→#06B6D4` (plans botão/badge/card-bg, demo barra) → `var(--gradient-brand)`/`var(--primary)`.
+  - demo badges PDF/DOCX `-400` → par light/dark.
+  - how-it-works mantido: glows translúcidos `0.12` e cores já theme-aware; sem neon agressivo.
 - [ ] Fase 5 — console resource-card
+- [ ] Fase 6 — modais e sheets (texto `-300/-400` → par light/dark)
