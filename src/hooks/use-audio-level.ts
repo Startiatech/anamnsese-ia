@@ -2,8 +2,8 @@ import { useEffect, useRef } from 'react'
 
 interface UseAudioLevelArgs {
   stream: MediaStream | null
-  active: boolean
-  onLevel: (level: number) => void
+  active: boolean // mede só quando true; para o AudioContext quando false
+  onLevel: (level: number) => void // chamado a cada 100ms com o nível 0..1
 }
 
 const POLL_INTERVAL_MS = 100

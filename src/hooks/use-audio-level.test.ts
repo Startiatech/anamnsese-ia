@@ -16,13 +16,14 @@ function makeFakeAnalyser(sampleValue: number) {
 
 function stubAudioContext(sampleValue: number) {
   const analyser = makeFakeAnalyser(sampleValue)
+  const closeSpy = vi.fn(() => Promise.resolve())
   class FakeAudioContext {
     createMediaStreamSource() { return { connect: vi.fn(), disconnect: vi.fn() } }
     createAnalyser() { return analyser }
-    close() { return Promise.resolve() }
+    close = closeSpy
   }
   vi.stubGlobal('AudioContext', FakeAudioContext)
-  return analyser
+  return { analyser, closeSpy }
 }
 
 const fakeStream = { } as unknown as MediaStream
@@ -36,7 +37,7 @@ afterEach(() => {
 describe('useAudioLevel', () => {
   it('reporta nível ~0 quando o áudio está no centro (silêncio)', () => {
     vi.useFakeTimers()
-    stubAudioContext(128)
+    const { analyser: _a } = stubAudioContext(128)
     const onLevel = vi.fn()
     renderHook(() => useAudioLevel({ stream: fakeStream, active: true, onLevel }))
     vi.advanceTimersByTime(200)
@@ -47,7 +48,7 @@ describe('useAudioLevel', () => {
 
   it('reporta nível > 0 quando há sinal de áudio', () => {
     vi.useFakeTimers()
-    stubAudioContext(200)
+    const { analyser: _b } = stubAudioContext(200)
     const onLevel = vi.fn()
     renderHook(() => useAudioLevel({ stream: fakeStream, active: true, onLevel }))
     vi.advanceTimersByTime(200)
@@ -57,7 +58,7 @@ describe('useAudioLevel', () => {
 
   it('não reporta quando inativo', () => {
     vi.useFakeTimers()
-    stubAudioContext(200)
+    const { analyser: _c } = stubAudioContext(200)
     const onLevel = vi.fn()
     renderHook(() => useAudioLevel({ stream: fakeStream, active: false, onLevel }))
     vi.advanceTimersByTime(500)
@@ -75,14 +76,24 @@ describe('useAudioLevel', () => {
     expect(onLevel).not.toHaveBeenCalled()
   })
 
+  it('não reporta quando stream é null', () => {
+    vi.useFakeTimers()
+    stubAudioContext(200)
+    const onLevel = vi.fn()
+    renderHook(() => useAudioLevel({ stream: null, active: true, onLevel }))
+    vi.advanceTimersByTime(500)
+    expect(onLevel).not.toHaveBeenCalled()
+  })
+
   it('limpa o AudioContext no unmount', () => {
     vi.useFakeTimers()
-    const analyser = stubAudioContext(200)
+    const { analyser, closeSpy } = stubAudioContext(200)
     const onLevel = vi.fn()
     const { unmount } = renderHook(() =>
       useAudioLevel({ stream: fakeStream, active: true, onLevel }),
     )
     unmount()
     expect(analyser.disconnect).toHaveBeenCalled()
+    expect(closeSpy).toHaveBeenCalled()
   })
 })
