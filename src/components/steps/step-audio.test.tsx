@@ -944,4 +944,50 @@ describe('StepAudio — aviso de microfone baixo', () => {
     })
     expect(screen.queryByText(/volume do microfone baixo/i)).not.toBeInTheDocument()
   })
+
+  it('reinicia a janela de 3s se o volume normaliza no meio', async () => {
+    renderStepAudio()
+    await switchToRecordMode()
+    await startRecording(makeMockStream())
+
+    // 2s de volume baixo (insuficiente para disparar)
+    await act(async () => {
+      for (let i = 0; i < 20; i++) {
+        _triggerLevel?.(0.08)
+        await vi.advanceTimersByTimeAsync(100)
+      }
+    })
+    // normaliza por 1 tick (reseta a janela)
+    await act(async () => {
+      _triggerLevel?.(0.3)
+      await vi.advanceTimersByTimeAsync(100)
+    })
+    // mais 2s de baixo (ainda insuficiente após o reset)
+    await act(async () => {
+      for (let i = 0; i < 20; i++) {
+        _triggerLevel?.(0.08)
+        await vi.advanceTimersByTimeAsync(100)
+      }
+    })
+    expect(screen.queryByText(/volume do microfone baixo/i)).not.toBeInTheDocument()
+  })
+
+  it('aviso some ao finalizar a gravação', async () => {
+    renderStepAudio()
+    await switchToRecordMode()
+    await startRecording(makeMockStream())
+
+    await act(async () => {
+      for (let i = 0; i < 35; i++) {
+        _triggerLevel?.(0.08)
+        await vi.advanceTimersByTimeAsync(100)
+      }
+    })
+    expect(screen.getByText(/volume do microfone baixo/i)).toBeInTheDocument()
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /finalizar/i }))
+    })
+    expect(screen.queryByText(/volume do microfone baixo/i)).not.toBeInTheDocument()
+  })
 })

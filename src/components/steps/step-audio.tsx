@@ -102,6 +102,8 @@ export function StepAudio({
   // (setado em beginRecording antes do setRecordState), então o stream passado aos
   // hooks é o stream vivo no render em que `active` fica true. O guard interno dos
   // hooks (!active || !stream) cobre o estado transitório.
+  // Monitor de nível só durante gravação ativa: não acumula tempo de "mic baixo"
+  // nem re-renderiza enquanto pausado (track mudo).
   useAudioLevel({
     stream: mediaStreamRef.current,
     active: recordState === 'recording',
@@ -615,6 +617,8 @@ export function StepAudio({
                 {lowMic && (
                   <p
                     data-testid="low-mic-warning"
+                    role="status"
+                    aria-live="polite"
                     className="text-xs text-amber-400 flex items-start gap-1.5"
                   >
                     <span aria-hidden>⚠️</span>
