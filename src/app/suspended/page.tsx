@@ -10,7 +10,7 @@ const TIPS = [
     icon: Clock,
     title: 'Suspensão temporária',
     text: 'Contas inativas são suspensas automaticamente. Normalmente basta regularizar para reativar.',
-    color: 'text-amber-400',
+    color: 'text-amber-600 dark:text-amber-400',
     glow: 'rgba(245,158,11,0.1)',
     border: 'rgba(245,158,11,0.2)',
   },
@@ -18,7 +18,7 @@ const TIPS = [
     icon: CreditCard,
     title: 'Plano e assinatura',
     text: 'Verifique se há alguma pendência no seu plano. O suporte pode esclarecer a situação.',
-    color: 'text-violet-400',
+    color: 'text-violet-600 dark:text-violet-400',
     glow: 'rgba(139,92,246,0.1)',
     border: 'rgba(139,92,246,0.2)',
   },
@@ -26,7 +26,7 @@ const TIPS = [
     icon: HeadphonesIcon,
     title: 'Suporte rápido',
     text: 'Nossa equipe responde em minutos pelo WhatsApp durante o horário comercial.',
-    color: 'text-cyan-400',
+    color: 'text-cyan-700 dark:text-cyan-400',
     glow: 'rgba(6,182,212,0.1)',
     border: 'rgba(6,182,212,0.2)',
   },
@@ -39,8 +39,8 @@ export default function SuspendedPage() {
     <div className="min-h-screen flex flex-col bg-background">
       <Topbar variant="public" />
 
-      {/* Ambient glows */}
-      <div className="fixed inset-0 -z-10 pointer-events-none overflow-hidden">
+      {/* Ambient glows — só no dark */}
+      <div className="hidden dark:block fixed inset-0 -z-10 pointer-events-none overflow-hidden">
         <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-violet-600/6 rounded-full blur-[120px]" />
         <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-cyan-500/4 rounded-full blur-[100px]" />
       </div>
@@ -49,8 +49,7 @@ export default function SuspendedPage() {
 
         {/* LEFT — info side */}
         <div
-          className="hidden md:flex flex-col w-1/2 px-8 lg:px-16 py-10 relative overflow-hidden"
-          style={{ borderRight: '1px solid rgba(255,255,255,0.03)' }}
+          className="hidden md:flex flex-col w-1/2 px-8 lg:px-16 py-10 relative overflow-hidden border-r border-border"
         >
           <div className="flex-1 flex flex-col justify-center max-w-sm mx-auto w-full">
             <div className="inline-flex items-center gap-3 text-xs text-muted-foreground/50 tracking-widest uppercase font-medium mb-8">
@@ -62,7 +61,7 @@ export default function SuspendedPage() {
               <span className="text-foreground">Sua conta está</span><br />
               <span
                 className="bg-clip-text text-transparent"
-                style={{ backgroundImage: 'linear-gradient(110deg, #A78BFA 0%, #38BDF8 60%, #34D399 100%)', WebkitBackgroundClip: 'text' }}
+                style={{ backgroundImage: 'linear-gradient(110deg, #60A5FA 0%, #38BDF8 60%, #34D399 100%)', WebkitBackgroundClip: 'text' }}
               >
                 temporariamente inativa.
               </span>
@@ -106,7 +105,7 @@ export default function SuspendedPage() {
                   className="h-16 w-16 rounded-2xl flex items-center justify-center"
                   style={{ background: 'rgba(167,139,250,0.1)', border: '1px solid rgba(167,139,250,0.2)' }}
                 >
-                  <ShieldOff className="h-8 w-8 text-violet-400" />
+                  <ShieldOff className="h-8 w-8 text-violet-600 dark:text-violet-400" />
                 </div>
               </div>
               <div>
@@ -122,7 +121,7 @@ export default function SuspendedPage() {
               className="flex items-start gap-3 p-4 rounded-xl"
               style={{ background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.15)' }}
             >
-              <AlertCircle className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
+              <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
               <p className="text-xs text-muted-foreground leading-relaxed">
                 Após regularizar sua situação com o suporte, atualize esta página para voltar ao sistema.
               </p>
@@ -134,8 +133,8 @@ export default function SuspendedPage() {
                 href={whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-semibold transition-opacity hover:opacity-90"
-                style={{ background: 'linear-gradient(135deg, #A78BFA, #22D3EE)', color: '#0d0a1a' }}
+                className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-semibold transition-opacity hover:opacity-90 text-white"
+                style={{ background: 'var(--gradient-brand)' }}
               >
                 <MessageCircle className="h-4 w-4" />
                 Falar com suporte
@@ -143,8 +142,7 @@ export default function SuspendedPage() {
 
               <a
                 href={ROUTES.dashboard}
-                className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-medium transition-colors"
-                style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.6)' }}
+                className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-medium transition-colors bg-muted border border-border text-muted-foreground hover:text-foreground"
               >
                 <RefreshCw className="h-4 w-4" />
                 Atualizar página

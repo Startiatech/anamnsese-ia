@@ -9,9 +9,9 @@ export default async function NotFound() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background px-4">
-      {/* Glow de fundo */}
+      {/* Glow de fundo — só no dark */}
       <div
-        className="absolute inset-0 pointer-events-none"
+        className="hidden dark:block absolute inset-0 pointer-events-none"
         style={{
           background:
             'radial-gradient(ellipse 60% 40% at 50% 40%, rgba(124,58,237,0.08) 0%, transparent 70%)',
@@ -29,10 +29,10 @@ export default async function NotFound() {
           <p
             className="text-[120px] font-black leading-none select-none"
             style={{
-              background: 'linear-gradient(135deg, rgba(139,92,246,0.15), rgba(6,182,212,0.15))',
+              background: 'var(--gradient-brand)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
-              filter: 'drop-shadow(0 0 40px rgba(124,58,237,0.2))',
+              filter: 'drop-shadow(0 0 40px var(--glow-violet))',
             }}
           >
             404
@@ -40,7 +40,7 @@ export default async function NotFound() {
           <div
             className="absolute inset-0 text-[120px] font-black leading-none select-none blur-2xl opacity-20"
             style={{
-              background: 'linear-gradient(135deg, #8B5CF6, #06B6D4)',
+              background: 'var(--gradient-brand)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
             }}
@@ -67,7 +67,7 @@ export default async function NotFound() {
           <Link
             href={dashHref}
             className="flex-1 py-2.5 text-sm font-medium rounded-lg text-center transition-colors"
-            style={{ background: 'linear-gradient(135deg, #7C3AED, #0891B2)', color: '#fff' }}
+            style={{ background: 'var(--gradient-brand)', color: '#fff' }}
           >
             {dashLabel}
           </Link>
