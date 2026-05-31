@@ -94,8 +94,8 @@ export function LoginClient() {
     <div className="min-h-screen flex flex-col bg-background [background:var(--login-page-bg)]">
       <Topbar variant="public" right={backLink} />
 
-      {/* Ambient glows */}
-      <div className="fixed inset-0 -z-10 pointer-events-none overflow-hidden">
+      {/* Ambient glows — só no dark (no light o gradiente --login-page-bg já cobre o fundo) */}
+      <div className="hidden dark:block fixed inset-0 -z-10 pointer-events-none overflow-hidden">
         <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-violet-600/6 rounded-full blur-[120px]" />
         <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-cyan-500/4 rounded-full blur-[100px]" />
       </div>
@@ -237,7 +237,7 @@ export function LoginClient() {
               <div className="mb-8">
                 <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4"
                   style={{ background: 'rgba(124,58,237,0.12)', border: '1px solid rgba(124,58,237,0.25)' }}>
-                  <KeyRound className="h-5 w-5 text-violet-400" />
+                  <KeyRound className="h-5 w-5 text-violet-600 dark:text-violet-400" />
                 </div>
                 <h1 className="text-2xl font-bold text-foreground mb-1">Esqueceu a senha?</h1>
                 <p className="text-sm text-muted-foreground">
