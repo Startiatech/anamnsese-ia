@@ -43,8 +43,8 @@ export function PlansSection() {
 
   return (
     <section id="planos" className="py-24 px-6 relative overflow-hidden">
-      {/* Ambient glow */}
-      <div className="absolute inset-0 -z-10 pointer-events-none">
+      {/* Ambient glow — só no dark */}
+      <div className="hidden dark:block absolute inset-0 -z-10 pointer-events-none">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-violet-600/6 rounded-full blur-[140px]" />
       </div>
 
@@ -116,7 +116,7 @@ export function PlansSection() {
               <Button
                 size="lg"
                 className="w-full h-auto min-h-12 py-2 gap-2 whitespace-normal text-center leading-tight text-white border-0 hover:opacity-90 transition-opacity"
-                style={{ background: 'linear-gradient(110deg, #8B5CF6 0%, #06B6D4 100%)' }}
+                style={{ background: 'var(--gradient-brand)' }}
               >
                 Solicitar acesso gratuito
                 <ArrowRight className="h-4 w-4" />
@@ -129,13 +129,13 @@ export function PlansSection() {
             {...fadeInUp(0.2)}
             className="relative rounded-2xl border border-violet-500/40 p-8 flex flex-col ring-1 ring-violet-500/20"
             style={{
-              background: 'linear-gradient(135deg, color-mix(in srgb, #8B5CF6 6%, transparent) 0%, color-mix(in srgb, #06B6D4 4%, transparent) 100%)',
+              background: 'linear-gradient(135deg, color-mix(in srgb, var(--primary) 6%, transparent) 0%, color-mix(in srgb, #06B6D4 4%, transparent) 100%)',
             }}
           >
             <div className="absolute -top-4 left-1/2 -translate-x-1/2">
               <span
                 className="text-xs font-semibold px-4 py-1.5 rounded-full text-white whitespace-nowrap"
-                style={{ background: 'linear-gradient(110deg, #8B5CF6 0%, #06B6D4 100%)' }}
+                style={{ background: 'var(--gradient-brand)' }}
               >
                 Popular
               </span>

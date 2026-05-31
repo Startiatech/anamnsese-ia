@@ -25,8 +25,8 @@ export function HeroSection() {
   return (
     <section className="relative flex flex-col items-center justify-center px-6 pt-28 pb-16">
 
-      {/* Ambient background glows */}
-      <div className="absolute inset-0 -z-10 pointer-events-none overflow-hidden">
+      {/* Ambient background glows — só no dark */}
+      <div className="hidden dark:block absolute inset-0 -z-10 pointer-events-none overflow-hidden">
         <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-violet-600/7 rounded-full blur-[140px]" />
         <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-cyan-500/5 rounded-full blur-[120px]" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-violet-500/4 rounded-full blur-[80px]" />

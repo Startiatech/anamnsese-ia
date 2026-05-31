@@ -128,7 +128,7 @@ export function DemoWidget() {
                   className="h-0.5 flex-1 rounded-full transition-all duration-700"
                   style={{
                     background: i <= step
-                      ? 'linear-gradient(90deg, #8B5CF6, #06B6D4)'
+                      ? 'var(--gradient-brand)'
                       : 'color-mix(in oklch, currentColor 8%, transparent)',
                   }}
                 />
@@ -188,8 +188,8 @@ export function DemoWidget() {
                 </div>
                 {step === 3 && (
                   <div className="flex gap-2 pt-1">
-                    <span className="px-2 py-0.5 rounded text-xs border border-emerald-500/20 bg-emerald-500/8 text-emerald-400 font-medium">↓ PDF</span>
-                    <span className="px-2 py-0.5 rounded text-xs border border-cyan-500/20 bg-cyan-500/8 text-cyan-400 font-medium">↓ DOCX</span>
+                    <span className="px-2 py-0.5 rounded text-xs border border-emerald-500/20 bg-emerald-500/8 text-emerald-600 dark:text-emerald-400 font-medium">↓ PDF</span>
+                    <span className="px-2 py-0.5 rounded text-xs border border-cyan-500/20 bg-cyan-500/8 text-cyan-700 dark:text-cyan-400 font-medium">↓ DOCX</span>
                   </div>
                 )}
               </div>

@@ -8,8 +8,8 @@ import { ArrowRight } from 'lucide-react'
 export function CTASection() {
   return (
     <section className="py-16 px-6 relative overflow-hidden">
-      {/* Ambient glow */}
-      <div className="absolute inset-0 -z-10 pointer-events-none">
+      {/* Ambient glow — só no dark */}
+      <div className="hidden dark:block absolute inset-0 -z-10 pointer-events-none">
         <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-violet-600/8 rounded-full blur-[120px]" />
       </div>
 
