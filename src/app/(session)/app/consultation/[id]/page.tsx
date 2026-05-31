@@ -5,6 +5,7 @@ import { findUserById } from '@/server/repositories/users'
 import { supabase } from '@/server/supabase'
 import { isClinicComplete, type ClinicData } from '@/lib/clinic'
 import { ROUTES } from '@/lib/routes'
+import { formatCrm } from '@/lib/crm'
 import { ConsultationPageFlow } from './consultation-page-flow'
 
 async function getConsultationPageData(
@@ -34,8 +35,6 @@ async function getConsultationPageData(
   const f6 = features.find(f => f.id === 'f6')
   const consultation = consultationResult.data
 
-  const crmParts = [jwtProfessional.crmType, jwtProfessional.crmNumber, jwtProfessional.crmUf].filter(Boolean)
-
   return {
     planFeatures: {
       audioAttemptsLabel: f5?.label ?? 'Envios de áudio incluídos',
@@ -50,7 +49,7 @@ async function getConsultationPageData(
     professional: {
       name: jwtProfessional.name,
       specialty: jwtProfessional.specialty ?? '',
-      crm: crmParts.length ? crmParts.join(' ') : '',
+      crm: formatCrm(jwtProfessional.crmType, jwtProfessional.crmNumber, jwtProfessional.crmUf),
     },
   }
 }

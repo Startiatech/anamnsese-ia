@@ -8,6 +8,7 @@ import type { ClinicData } from '@/lib/clinic'
 import { ExportButtons } from '@/components/export/export-buttons'
 import { AnamnesisDocument } from '@/components/anamnesis/anamnesis-document'
 import { ROUTES } from '@/lib/routes'
+import { formatCrm } from '@/lib/crm'
 import type { StructuredAnamnesis } from '@/types'
 
 export const dynamic = 'force-dynamic'
@@ -18,11 +19,10 @@ export default async function ResultadoPage({ params }: { params: Promise<{ id: 
   if (!user) redirect(ROUTES.login)
 
   const fullUser = await findUserById(user.sub)
-  const crmParts = [user.crmType, user.crmNumber, user.crmUf].filter(Boolean)
   const professional = {
     name: user.name ?? '',
     specialty: user.specialty ?? '',
-    crm: crmParts.length ? crmParts.join(' ') : '',
+    crm: formatCrm(user.crmType, user.crmNumber, user.crmUf),
   }
 
   const clinic: ClinicData | undefined = fullUser?.clinicName
