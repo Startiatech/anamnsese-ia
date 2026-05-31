@@ -222,6 +222,72 @@ test.describe('fluxo de consulta com IA mockada', () => {
     await expect(page).toHaveURL(/\/app\/consultation(\?|$|\/)$/)
   })
 
+  test('exibe onda sonora visivel apos iniciar gravacao no mobile', async ({ page }) => {
+    await mockAiEndpoints(page)
+    await mockMediaDevices(page)
+
+    const user = await createTestUser({ role: 'user' })
+    await seedClinicForUser(user.id)
+    const patient = await createPatient(user.id, {
+      name: `E2E_Patient_${Date.now()}_waveform`,
+    })
+    await loginAsUser(page, user)
+
+    // ── Navega até /consultation e inicia atendimento ──────────────────────
+    await page.goto('/app/consultation')
+    await page.waitForLoadState('networkidle')
+
+    const row = page.getByRole('row').filter({ hasText: patient.name })
+    await expect(row).toBeVisible({ timeout: 30_000 })
+    await row.getByRole('button', { name: /iniciar atendimento/i }).click()
+
+    // ── Step 1: Confirmar paciente ─────────────────────────────────────────
+    await page.waitForURL(/\/app\/consultation\/[^/]+$/, { timeout: 30_000 })
+    await page.waitForLoadState('networkidle')
+    await expect(page.getByRole('heading', { name: /confirmar paciente/i })).toBeVisible({
+      timeout: 30_000,
+    })
+    const confirmContinuar = page.getByRole('button', { name: /confirmar e continuar/i })
+    await expect(confirmContinuar).toBeEnabled()
+    await confirmContinuar.click()
+
+    // CreditInfoModal -> "Confirmar início"
+    const confirmInicio = page.getByRole('button', { name: /confirmar in[ií]cio/i })
+    await expect(confirmInicio).toBeVisible({ timeout: 10_000 })
+    await expect(confirmInicio).toBeEnabled()
+    await confirmInicio.click()
+
+    // ── Step 2: Autorização de gravação ───────────────────────────────────
+    await expect(
+      page.getByRole('heading', { name: /autoriza[cç][aã]o de grava[cç][aã]o/i }),
+    ).toBeVisible({ timeout: 30_000 })
+    const consentCheckbox = page.getByRole('checkbox')
+    await expect(consentCheckbox).toBeVisible()
+    await consentCheckbox.click()
+    const continuarConsent = page.getByRole('button', { name: /^continuar$/i })
+    await expect(continuarConsent).toBeEnabled()
+    await continuarConsent.click()
+
+    // ── Step 3: Áudio — tab "Gravar consulta" ─────────────────────────────
+    await expect(page.getByRole('heading', { name: /[áa]udio da consulta/i })).toBeVisible({
+      timeout: 30_000,
+    })
+
+    await page.getByRole('tab', { name: /gravar consulta/i }).click()
+    await page.getByRole('button', { name: /iniciar gravação/i }).click()
+
+    // Após o countdown de 3 s, o timer de gravação aparece e a onda deve estar visível.
+    // Timeout generoso para cobrir countdown + renderização do canvas.
+    await expect(page.getByTestId('record-timer')).toBeVisible({ timeout: 10_000 })
+    await expect(page.getByTestId('audio-waveform')).toBeVisible({ timeout: 6_000 })
+
+    // Garante ausência de scroll horizontal no viewport mobile (375px).
+    const noOverflow = await page.evaluate(
+      () => document.documentElement.scrollWidth <= window.innerWidth,
+    )
+    expect(noOverflow).toBe(true)
+  })
+
   test('exibe aviso quando a gravação é interrompida e preserva o trecho', async ({ page }) => {
     await mockAiEndpoints(page)
     // Injeta mock de getUserMedia antes de qualquer navegação
