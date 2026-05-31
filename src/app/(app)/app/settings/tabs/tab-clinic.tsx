@@ -3,7 +3,7 @@
 import { forwardRef, useImperativeHandle, useState } from 'react'
 import { useForm, Controller, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Building2, MapPin, Info, Save, Loader2 } from 'lucide-react'
+import { Building2, MapPin, Info, Save, Loader2, Search } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { FieldInput, FieldLabel } from '@/components/ui/field-input'
@@ -202,24 +202,38 @@ export const TabClinic = forwardRef<ClinicHandle, Props>(function TabClinic({ us
             </div>
           </div>
           <div className="mt-5 space-y-4">
-            <div className="max-w-[200px] space-y-1">
+            <div className="max-w-[340px] space-y-1">
               <FieldLabel>CEP</FieldLabel>
-              <div className="relative">
-                <FieldInput
-                  {...register('clinicCep')}
-                  placeholder="00000-000"
-                  inputMode="numeric"
-                  maxLength={9}
-                  onChange={(e) => setValue('clinicCep', formatCEP(e.target.value), { shouldValidate: true })}
-                  onBlur={(e) => handleCepBlur(e.target.value)}
-                />
-                {cepLoading && (
-                  <Loader2 className="absolute right-0 top-2 h-4 w-4 animate-spin text-muted-foreground" />
-                )}
+              <div className="flex items-end gap-2">
+                <div className="relative flex-1">
+                  <FieldInput
+                    {...register('clinicCep')}
+                    placeholder="00000-000"
+                    inputMode="numeric"
+                    maxLength={9}
+                    onChange={(e) => setValue('clinicCep', formatCEP(e.target.value), { shouldValidate: true })}
+                    onBlur={(e) => handleCepBlur(e.target.value)}
+                  />
+                  {cepLoading && (
+                    <Loader2 className="absolute right-0 top-2 h-4 w-4 animate-spin text-muted-foreground" />
+                  )}
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="shrink-0 gap-1.5"
+                  disabled={cepLoading}
+                  onClick={() => handleCepBlur(getValues('clinicCep'))}
+                >
+                  <Search className="h-3.5 w-3.5" />
+                  Buscar
+                </Button>
               </div>
               {errors.clinicCep && (
                 <p className="text-xs text-destructive">{errors.clinicCep.message}</p>
               )}
+              <p className="text-xs text-muted-foreground">Preenche o endereço automaticamente.</p>
             </div>
             <div className="space-y-1">
               <FieldLabel>Endereço</FieldLabel>
