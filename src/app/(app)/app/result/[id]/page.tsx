@@ -18,11 +18,17 @@ export default async function ResultadoPage({ params }: { params: Promise<{ id: 
   const user = await getServerUser()
   if (!user) redirect(ROUTES.login)
 
+  // Lê o profissional do banco (fresco), não do JWT — que guarda o nome de quando
+  // o usuário logou e ficaria defasado após editar o perfil. Fallback no JWT.
   const fullUser = await findUserById(user.sub)
   const professional = {
-    name: user.name ?? '',
-    specialty: user.specialty ?? '',
-    crm: formatCrm(user.crmType, user.crmNumber, user.crmUf),
+    name: fullUser?.name ?? user.name ?? '',
+    specialty: fullUser?.specialty ?? user.specialty ?? '',
+    crm: formatCrm(
+      fullUser?.crmType ?? user.crmType,
+      fullUser?.crmNumber ?? user.crmNumber,
+      fullUser?.crmUf ?? user.crmUf,
+    ),
   }
 
   const clinic: ClinicData | undefined = fullUser?.clinicName
