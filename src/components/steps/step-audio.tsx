@@ -13,6 +13,8 @@ import {
   INTERRUPTION_MESSAGES,
   type InterruptionReason,
 } from '@/hooks/use-recording-interruption'
+import { useAudioLevel } from '@/hooks/use-audio-level'
+import { AudioWaveform, type WaveformVariant } from '@/components/steps/audio-waveform'
 
 const TYPEWRITER_INTERVAL_MS = 30
 const ACCEPTED_FORMATS = '.mp3,.wav,.m4a,.ogg'
@@ -54,6 +56,7 @@ export function StepAudio({
   const [autoPaused, setAutoPaused] = useState(false)
   const [interruption, setInterruption] = useState<InterruptionReason | null>(null)
   const [savedElapsedMs, setSavedElapsedMs] = useState(0)
+  const [audioLevel, setAudioLevel] = useState(0)
 
   const [file, setFile] = useState<File | null>(null)
   const [partialTranscript, setPartialTranscript] = useState(initialTranscript)
@@ -86,10 +89,19 @@ export function StepAudio({
 
   const isRecordingActive = recordState === 'recording' || recordState === 'paused'
 
+  const waveformVariant: WaveformVariant =
+    recordState === 'paused' ? 'paused' : autoPaused ? 'silence' : 'recording'
+
   // mediaStreamRef.current já está populado quando recordState vira 'recording'
   // (setado em beginRecording antes do setRecordState), então o stream passado aos
   // hooks é o stream vivo no render em que `active` fica true. O guard interno dos
   // hooks (!active || !stream) cobre o estado transitório.
+  useAudioLevel({
+    stream: mediaStreamRef.current,
+    active: isRecordingActive,
+    onLevel: setAudioLevel,
+  })
+
   useSilenceDetection({
     stream: mediaStreamRef.current,
     active: recordState === 'recording',
@@ -578,6 +590,7 @@ export function StepAudio({
                     {autoPaused ? '⏸ Silêncio detectado — pausado automaticamente' : 'Gravando...'}
                   </span>
                 </div>
+                <AudioWaveform level={audioLevel} variant={waveformVariant} />
                 <div className="flex gap-2">
                   <Button variant="outline" onClick={handlePauseRecording}>
                     Pausar
@@ -605,6 +618,7 @@ export function StepAudio({
                   </span>
                   <span className="text-sm text-muted-foreground">Pausado</span>
                 </div>
+                <AudioWaveform level={audioLevel} variant="paused" />
                 <div className="flex gap-2">
                   <Button onClick={handleResumeRecording}>
                     Retomar

@@ -57,6 +57,20 @@ vi.mock('@/hooks/use-silence-detection', () => ({
   },
 }))
 
+let _triggerLevel: ((level: number) => void) | null = null
+
+vi.mock('@/hooks/use-audio-level', () => ({
+  useAudioLevel: ({
+    active,
+    onLevel,
+  }: {
+    active: boolean
+    onLevel: (level: number) => void
+  }) => {
+    _triggerLevel = active ? onLevel : null
+  },
+}))
+
 vi.mock('@/hooks/use-recording-interruption', async () => {
   const actual = await vi.importActual<typeof import('@/hooks/use-recording-interruption')>(
     '@/hooks/use-recording-interruption',
@@ -168,6 +182,7 @@ beforeEach(() => {
   _triggerSilence = null
   _triggerSpeech = null
   _triggerInterrupt = null
+  _triggerLevel = null
   vi.useFakeTimers({ shouldAdvanceTime: true })
   vi.stubGlobal('MediaRecorder', MockMediaRecorder)
   vi.stubGlobal('fetch', vi.fn(() => makeStreamResponse('Paciente relata dor de cabeça.')))
@@ -832,5 +847,38 @@ describe('StepAudio — VAD auto-pausa, wake lock e interrupção', () => {
     await waitFor(() => {
       expect(screen.queryByText(/pausado automaticamente/i)).not.toBeInTheDocument()
     })
+  })
+})
+
+describe('StepAudio — onda sonora ao vivo', () => {
+  it('exibe a onda durante a gravação', async () => {
+    renderStepAudio()
+    await switchToRecordMode()
+    await startRecording(makeMockStream())
+    expect(screen.getByTestId('audio-waveform')).toHaveAttribute('data-variant', 'recording')
+  })
+
+  it('a onda fica em "silence" quando o VAD detecta silêncio', async () => {
+    renderStepAudio()
+    await switchToRecordMode()
+    await startRecording(makeMockStream())
+    await act(async () => { _triggerSilence?.() })
+    expect(screen.getByTestId('audio-waveform')).toHaveAttribute('data-variant', 'silence')
+  })
+
+  it('a onda fica em "paused" na pausa manual', async () => {
+    renderStepAudio()
+    await switchToRecordMode()
+    await startRecording(makeMockStream())
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /^pausar$/i }))
+    })
+    expect(screen.getByTestId('audio-waveform')).toHaveAttribute('data-variant', 'paused')
+  })
+
+  it('não exibe a onda fora da gravação (idle)', async () => {
+    renderStepAudio()
+    await switchToRecordMode()
+    expect(screen.queryByTestId('audio-waveform')).not.toBeInTheDocument()
   })
 })
