@@ -23,6 +23,10 @@ const COUNTDOWN_INTERVAL_MS = 1000
 // VAD: silêncio = RMS abaixo de 5% da escala por 2,5s contínuos antes de auto-pausar.
 const SILENCE_THRESHOLD = 0.05
 const SILENCE_MS = 2500
+// Aviso de mic baixo: voz presente (acima do silêncio) mas fraca, sustentada.
+const LOW_MIC_FLOOR = SILENCE_THRESHOLD // 0.05 — abaixo disso é silêncio (VAD trata)
+const LOW_MIC_CEIL = 0.12 // acima disso é volume saudável
+const LOW_MIC_SUSTAIN_MS = 3000
 
 type InputMode = 'upload' | 'record'
 type RecordState = 'idle' | 'requesting' | 'preparing' | 'recording' | 'paused' | 'recorded'
@@ -57,6 +61,8 @@ export function StepAudio({
   const [interruption, setInterruption] = useState<InterruptionReason | null>(null)
   const [savedElapsedMs, setSavedElapsedMs] = useState(0)
   const [audioLevel, setAudioLevel] = useState(0)
+  const [lowMic, setLowMic] = useState(false)
+  const lowMicSinceRef = useRef<number | null>(null)
 
   const [file, setFile] = useState<File | null>(null)
   const [partialTranscript, setPartialTranscript] = useState(initialTranscript)
@@ -99,7 +105,18 @@ export function StepAudio({
   useAudioLevel({
     stream: mediaStreamRef.current,
     active: recordState === 'recording',
-    onLevel: setAudioLevel,
+    onLevel: (lvl) => {
+      setAudioLevel(lvl)
+      const isLow = lvl > LOW_MIC_FLOOR && lvl < LOW_MIC_CEIL
+      if (isLow) {
+        const now = Date.now()
+        if (lowMicSinceRef.current === null) lowMicSinceRef.current = now
+        if (now - lowMicSinceRef.current >= LOW_MIC_SUSTAIN_MS) setLowMic(true)
+      } else {
+        lowMicSinceRef.current = null
+        setLowMic(false)
+      }
+    },
   })
 
   useSilenceDetection({
@@ -267,6 +284,8 @@ export function StepAudio({
         accumulatedMsRef.current +
         (elapsedStartRef.current !== null ? Date.now() - elapsedStartRef.current : 0)
       resetTimer()
+      setLowMic(false)
+      lowMicSinceRef.current = null
       void releaseWakeLock()
     }
 
@@ -348,6 +367,8 @@ export function StepAudio({
     lastWordCountRef.current = 0
     setSavedElapsedMs(0)
     resetTimer()
+    setLowMic(false)
+    lowMicSinceRef.current = null
   }
 
   // ── Typewriter ─────────────────────────────────────────────────────────────
@@ -591,6 +612,15 @@ export function StepAudio({
                   </span>
                 </div>
                 <AudioWaveform level={audioLevel} variant={waveformVariant} />
+                {lowMic && (
+                  <p
+                    data-testid="low-mic-warning"
+                    className="text-xs text-amber-400 flex items-start gap-1.5"
+                  >
+                    <span aria-hidden>⚠️</span>
+                    Volume do microfone baixo — aproxime-se ou aumente o volume nas configurações.
+                  </p>
+                )}
                 <div className="flex gap-2">
                   <Button variant="outline" onClick={handlePauseRecording}>
                     Pausar

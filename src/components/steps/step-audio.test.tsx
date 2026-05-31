@@ -890,3 +890,58 @@ describe('StepAudio — onda sonora ao vivo', () => {
     expect(screen.getByTestId('audio-waveform')).toHaveAttribute('data-variant', 'recording')
   })
 })
+
+describe('StepAudio — aviso de microfone baixo', () => {
+  const LOW = 0.08 // entre 0.05 (silêncio) e 0.12 (saudável)
+  const OK = 0.3
+
+  it('mostra aviso após volume baixo sustentado por ~3s', async () => {
+    renderStepAudio()
+    await switchToRecordMode()
+    await startRecording(makeMockStream())
+
+    await act(async () => {
+      for (let i = 0; i < 35; i++) {
+        _triggerLevel?.(LOW)
+        await vi.advanceTimersByTimeAsync(100)
+      }
+    })
+
+    expect(screen.getByText(/volume do microfone baixo/i)).toBeInTheDocument()
+  })
+
+  it('não mostra aviso se o volume está saudável', async () => {
+    renderStepAudio()
+    await switchToRecordMode()
+    await startRecording(makeMockStream())
+
+    await act(async () => {
+      for (let i = 0; i < 35; i++) {
+        _triggerLevel?.(OK)
+        await vi.advanceTimersByTimeAsync(100)
+      }
+    })
+
+    expect(screen.queryByText(/volume do microfone baixo/i)).not.toBeInTheDocument()
+  })
+
+  it('aviso some quando o volume normaliza', async () => {
+    renderStepAudio()
+    await switchToRecordMode()
+    await startRecording(makeMockStream())
+
+    await act(async () => {
+      for (let i = 0; i < 35; i++) {
+        _triggerLevel?.(LOW)
+        await vi.advanceTimersByTimeAsync(100)
+      }
+    })
+    expect(screen.getByText(/volume do microfone baixo/i)).toBeInTheDocument()
+
+    await act(async () => {
+      _triggerLevel?.(OK)
+      await vi.advanceTimersByTimeAsync(100)
+    })
+    expect(screen.queryByText(/volume do microfone baixo/i)).not.toBeInTheDocument()
+  })
+})
