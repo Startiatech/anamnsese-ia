@@ -24,6 +24,13 @@ function formatBirthDate(iso: string): string {
   return `${dd}/${mm}/${yyyy}`
 }
 
+// Move a letra entre parênteses do fim para o início do título da seção:
+// "Subjetivo (S)" → "(S) Subjetivo". Títulos sem parênteses passam intactos.
+function formatSectionTitle(title: string): string {
+  const m = title.match(/^(.*?)\s*\(([^)]+)\)\s*$/)
+  return m ? `(${m[2]}) ${m[1]}` : title
+}
+
 interface Professional {
   name: string
   specialty: string
@@ -45,11 +52,6 @@ export function AnamnesisDocument({
   structuredAnamnesis,
   updatedAt,
 }: AnamnesisDocumentProps) {
-  const profLines: { label: string; value: string }[] = [
-    { label: 'Nome', value: professional.name },
-    { label: 'Especialidade', value: professional.specialty },
-    { label: 'Registro', value: professional.crm },
-  ]
   const patLines: { label: string; value: string }[] = [
     { label: 'Nome', value: patient.name },
     { label: 'CPF', value: patient.cpf ?? '' },
@@ -106,19 +108,18 @@ export function AnamnesisDocument({
         </>
       )}
 
-      {/* Título */}
-      <h1 className="mt-8 text-center font-bold text-[17pt] text-neutral-900 tracking-wide">
-        ANAMNESE CLÍNICA
-      </h1>
+      {/* Título à esquerda + data à direita, na mesma linha */}
+      <div className="mt-8 flex items-baseline justify-between gap-4">
+        <h1 className="font-bold text-[17pt] text-neutral-900 tracking-wide">
+          ANAMNESE CLÍNICA
+        </h1>
+        <p className="shrink-0 text-[10pt] text-neutral-500">
+          {formatDateLong(updatedAt)}
+        </p>
+      </div>
 
-      {/* Data */}
-      <p className="mt-6 text-right text-[10pt] text-neutral-500">
-        {formatDateLong(updatedAt)}
-      </p>
-
-      {/* Blocos Profissional / Paciente */}
-      <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-6">
-        <MetaBlock title="Profissional" lines={profLines} />
+      {/* Dados do paciente (profissional fica no rodapé) */}
+      <div className="mt-6">
         <MetaBlock title="Paciente" lines={patLines} />
       </div>
 
@@ -129,7 +130,7 @@ export function AnamnesisDocument({
         {structuredAnamnesis.sections.map((section) => (
           <section key={section.title}>
             <h2 className="font-bold text-[10.5pt] text-neutral-900 uppercase tracking-wider">
-              {section.title}
+              {formatSectionTitle(section.title)}
             </h2>
             <p className="mt-2 text-[11pt] leading-relaxed text-neutral-800 whitespace-pre-wrap">
               {section.content}

@@ -59,6 +59,13 @@ function formatBirthDate(iso: string): string {
   return `${dd}/${mm}/${yyyy}`
 }
 
+// Move a letra entre parênteses do fim para o início do título da seção:
+// "Subjetivo (S)" → "(S) Subjetivo". Títulos sem parênteses passam intactos.
+function formatSectionTitle(title: string): string {
+  const m = title.match(/^(.*?)\s*\(([^)]+)\)\s*$/)
+  return m ? `(${m[2]}) ${m[1]}` : title
+}
+
 async function fetchLogoBytes(url: string): Promise<Uint8Array | null> {
   try {
     const res = await fetch(url)
@@ -220,30 +227,6 @@ function buildFooter(doctorName: string, doctorCRM: string, doctorSpecialty: str
   return new Footer({ children })
 }
 
-function metaCell(label: string, value: string): TableCell {
-  return new TableCell({
-    width: { size: 50, type: WidthType.PERCENTAGE },
-    borders: {
-      top:    { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
-      bottom: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
-      left:   { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
-      right:  { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
-    },
-    children: [
-      new Paragraph({
-        children: [new TextRun({ text: label.toUpperCase(), size: 14, color: TEXT_HEX, font: 'Times New Roman', bold: true })],
-        spacing: { after: 40 },
-      }),
-      ...(value
-        ? [new Paragraph({
-            children: [new TextRun({ text: value, size: 20, color: TEXT_HEX, font: 'Times New Roman' })],
-            spacing: { after: 20 },
-          })]
-        : []),
-    ],
-  })
-}
-
 function buildMetaBlock(
   title: string,
   rows: { label: string; value: string }[],
@@ -276,58 +259,52 @@ export async function generateDOCXBlob({
 }: DOCXProps): Promise<Blob> {
   const children: (Paragraph | Table)[] = []
 
-  // Título
+  // Título à esquerda + data à direita, na mesma linha (tabela invisível).
+  const noBorderTitle = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' }
+  const titleCellBorders = { top: noBorderTitle, bottom: noBorderTitle, left: noBorderTitle, right: noBorderTitle }
   children.push(
-    new Paragraph({
-      alignment: AlignmentType.CENTER,
-      children: [new TextRun({ text: 'ANAMNESE CLÍNICA', bold: true, size: 34, color: TEXT_HEX, font: 'Times New Roman' })],
-      spacing: { before: 200, after: 240 },
-    }),
-    new Paragraph({
-      alignment: AlignmentType.RIGHT,
-      children: [new TextRun({ text: formatDateLong(consultation.updatedAt), size: 18, color: MUTED_HEX, font: 'Times New Roman' })],
-      spacing: { after: 200 },
+    new Table({
+      width: { size: 100, type: WidthType.PERCENTAGE },
+      rows: [
+        new TableRow({
+          children: [
+            new TableCell({
+              width: { size: 65, type: WidthType.PERCENTAGE },
+              borders: titleCellBorders,
+              verticalAlign: VerticalAlign.BOTTOM,
+              children: [
+                new Paragraph({
+                  alignment: AlignmentType.LEFT,
+                  children: [new TextRun({ text: 'ANAMNESE CLÍNICA', bold: true, size: 34, color: TEXT_HEX, font: 'Times New Roman' })],
+                }),
+              ],
+            }),
+            new TableCell({
+              width: { size: 35, type: WidthType.PERCENTAGE },
+              borders: titleCellBorders,
+              verticalAlign: VerticalAlign.BOTTOM,
+              children: [
+                new Paragraph({
+                  alignment: AlignmentType.RIGHT,
+                  children: [new TextRun({ text: formatDateLong(consultation.updatedAt), size: 18, color: MUTED_HEX, font: 'Times New Roman' })],
+                }),
+              ],
+            }),
+          ],
+        }),
+      ],
     }),
   )
 
-  // Blocos Profissional / Paciente em tabela lado a lado
-  const profCell = new TableCell({
-    width: { size: 50, type: WidthType.PERCENTAGE },
-    borders: {
-      top:    { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
-      bottom: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
-      left:   { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
-      right:  { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
-    },
-    children: buildMetaBlock('Profissional', [
-      { label: 'Nome',          value: doctorName },
-      { label: 'Especialidade', value: doctorSpecialty },
-      { label: 'Registro',      value: doctorCRM },
-    ]),
-  })
-  void metaCell // dummy reference to keep type used if unused above
-
-  const patCell = new TableCell({
-    width: { size: 50, type: WidthType.PERCENTAGE },
-    borders: {
-      top:    { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
-      bottom: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
-      left:   { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
-      right:  { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
-    },
-    children: buildMetaBlock('Paciente', [
+  // Dados do paciente (o profissional fica no rodapé).
+  children.push(
+    new Paragraph({ spacing: { after: 120 } }),
+    ...buildMetaBlock('Paciente', [
       { label: 'Nome',       value: patient.name },
       { label: 'CPF',        value: patient.cpf ?? '' },
       { label: 'Nascimento', value: patient.birthDate ? formatBirthDate(patient.birthDate) : '' },
       { label: 'Telefone',   value: patient.phone ?? '' },
     ]),
-  })
-
-  children.push(
-    new Table({
-      width: { size: 100, type: WidthType.PERCENTAGE },
-      rows: [new TableRow({ children: [profCell, patCell] })],
-    }),
   )
 
   // Separador entre meta e seções
@@ -342,7 +319,7 @@ export async function generateDOCXBlob({
   for (const s of consultation.structuredAnamnesis.sections) {
     children.push(
       new Paragraph({
-        children: [new TextRun({ text: s.title.toUpperCase(), bold: true, size: 22, color: TEXT_HEX, font: 'Times New Roman' })],
+        children: [new TextRun({ text: formatSectionTitle(s.title).toUpperCase(), bold: true, size: 22, color: TEXT_HEX, font: 'Times New Roman' })],
         spacing: { before: 200, after: 120 },
       }),
       new Paragraph({
