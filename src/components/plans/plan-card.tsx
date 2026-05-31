@@ -19,24 +19,24 @@ const PLAN_ICONS: Record<string, React.ElementType> = {
 
 const PLAN_COLORS: Record<string, { icon: string; iconBg: string; badge: string }> = {
   experimental: {
-    icon:   'text-cyan-400',
+    icon:   'text-cyan-700 dark:text-cyan-400',
     iconBg: 'bg-cyan-500/10 border-cyan-500/25',
-    badge:  'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
+    badge:  'bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 border-cyan-500/20',
   },
   profissional: {
-    icon:   'text-violet-400',
+    icon:   'text-violet-600 dark:text-violet-400',
     iconBg: 'bg-violet-500/10 border-violet-500/25',
-    badge:  'bg-violet-500/10 text-violet-400 border-violet-500/20',
+    badge:  'bg-violet-500/10 text-violet-600 dark:text-violet-400 border-violet-500/20',
   },
   'profissional-premium': {
-    icon:   'text-amber-400',
+    icon:   'text-amber-600 dark:text-amber-400',
     iconBg: 'bg-amber-500/10 border-amber-500/25',
-    badge:  'bg-amber-500/10 text-amber-400 border-amber-500/20',
+    badge:  'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
   },
   'clinica-gestao': {
-    icon:   'text-emerald-400',
+    icon:   'text-emerald-600 dark:text-emerald-400',
     iconBg: 'bg-emerald-500/10 border-emerald-500/25',
-    badge:  'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+    badge:  'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
   },
 }
 
@@ -121,7 +121,7 @@ export function PlanCard({ plan, isCurrent }: PlanCardProps) {
                 variant={isCurrent ? 'outline' : 'default'}
                 disabled={isCurrent || isPending}
                 onClick={isCurrent ? undefined : handleSelect}
-                className={`w-full ${isCurrent ? 'border-primary/30 text-primary cursor-default' : 'shadow-[0_0_12px_rgba(124,58,237,0.35)]'}`}
+                className={`w-full ${isCurrent ? 'border-primary/30 text-primary cursor-default' : 'shadow-[0_0_12px_var(--glow-brand)]'}`}
               >
                 {isCurrent ? '✓ Plano selecionado' : isPending ? 'Aguarde...' : '+ Selecionar plano'}
               </Button>
