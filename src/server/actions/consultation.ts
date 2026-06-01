@@ -125,6 +125,41 @@ export async function clearTranscript(patientId: string): Promise<void> {
     .eq('patient_id', patientId)
 }
 
+export async function reconcileOrphanConsultations(exceptPatientId: string): Promise<void> {
+  const user = await getServerUser()
+  if (!user) return
+
+  // Órfãos = in_progress SEM uso de IA (audio_attempts = 0): crédito reservado
+  // mas nenhum trabalho feito. Exclui o paciente que está sendo iniciado agora.
+  const { data: orphans } = await supabase
+    .from('consultations')
+    .select('patient_id, debit_source, audio_attempts, structured_anamnesis')
+    .eq('user_id', user.sub)
+    .eq('status', 'in_progress')
+    .eq('audio_attempts', 0)
+    .neq('patient_id', exceptPatientId)
+
+  for (const row of (orphans ?? [])) {
+    const { status, refundSource } = resolveTerminalState({
+      audio_attempts: row.audio_attempts as number | null,
+      structured_anamnesis: row.structured_anamnesis,
+      debit_source: (row.debit_source ?? null) as 'bonus' | 'paid' | null,
+    })
+    await supabase.from('consultations').upsert(
+      {
+        user_id: user.sub,
+        patient_id: row.patient_id as string,
+        status,
+        raw_transcript: null,
+      },
+      { onConflict: 'user_id,patient_id' },
+    )
+    if (refundSource) {
+      await CreditRepository.refundCredit(user.sub, refundSource)
+    }
+  }
+}
+
 export async function getLatestConsultation(
   patientId: string,
   userId: string,

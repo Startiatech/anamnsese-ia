@@ -30,6 +30,7 @@ vi.mock('@/server/services/session', () => ({ getServerUser: mockGetServerUser }
 let chain: {
   select: ReturnType<typeof vi.fn>
   eq: ReturnType<typeof vi.fn>
+  neq?: ReturnType<typeof vi.fn>
   order: ReturnType<typeof vi.fn>
   limit: ReturnType<typeof vi.fn>
   single: ReturnType<typeof vi.fn>
@@ -71,6 +72,7 @@ import {
   debitConsultationCredit,
   saveRecordingConsent,
   getLatestConsultation,
+  reconcileOrphanConsultations,
 } from './consultation'
 
 // Re-build chain after every clearAllMocks so return values are restored
@@ -382,5 +384,44 @@ describe('getLatestConsultation', () => {
     mockSingle.mockResolvedValue({ data: null, error: { code: 'PGRST116' } })
     const result = await getLatestConsultation('p1', 'u1')
     expect(result).toBeNull()
+  })
+})
+
+describe('reconcileOrphanConsultations', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    buildChain()
+    mockGetServerUser.mockResolvedValue({ sub: 'user-1' })
+    mockRefundCredit.mockResolvedValue(undefined)
+    mockUpsert.mockResolvedValue({})
+  })
+
+  it('não faz nada quando não autenticado', async () => {
+    mockGetServerUser.mockResolvedValue(null)
+    await reconcileOrphanConsultations('patient-keep')
+    expect(mockUpsert).not.toHaveBeenCalled()
+  })
+
+  it('resolve e devolve cada órfão sem IA, exceto o paciente atual', async () => {
+    chain.neq = vi.fn().mockResolvedValue({
+      data: [
+        { patient_id: 'p-a', debit_source: 'paid', audio_attempts: 0, structured_anamnesis: { sections: [] } },
+        { patient_id: 'p-b', debit_source: 'bonus', audio_attempts: 0, structured_anamnesis: { sections: [{ title: 'HDA', content: 'x' }] } },
+      ],
+      error: null,
+    })
+
+    await reconcileOrphanConsultations('patient-keep')
+
+    expect(mockUpsert).toHaveBeenCalledWith(expect.objectContaining({ patient_id: 'p-a', status: 'abandoned' }), expect.anything())
+    expect(mockUpsert).toHaveBeenCalledWith(expect.objectContaining({ patient_id: 'p-b', status: 'completed' }), expect.anything())
+    expect(mockRefundCredit).toHaveBeenCalledWith('user-1', 'paid')
+    expect(mockRefundCredit).toHaveBeenCalledWith('user-1', 'bonus')
+  })
+
+  it('não devolve nada quando não há órfãos', async () => {
+    chain.neq = vi.fn().mockResolvedValue({ data: [], error: null })
+    await reconcileOrphanConsultations('patient-keep')
+    expect(mockRefundCredit).not.toHaveBeenCalled()
   })
 })
