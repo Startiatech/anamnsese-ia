@@ -278,15 +278,10 @@ describe('debitConsultationCredit', () => {
     )
   })
 
-  it('includes created_at in upsert so metrics reflect the new consultation date', async () => {
-    const before = Date.now()
+  it('NÃO grava created_at no upsert (iniciar não define a data do atendimento — pode ser abandonado; a data é carimbada só na geração da anamnese)', async () => {
     await debitConsultationCredit('patient-1')
-    const after = Date.now()
     const call = mockUpsert.mock.calls[0][0] as Record<string, unknown>
-    expect(call).toHaveProperty('created_at')
-    const ts = new Date(call.created_at as string).getTime()
-    expect(ts).toBeGreaterThanOrEqual(before)
-    expect(ts).toBeLessThanOrEqual(after)
+    expect('created_at' in call).toBe(false)
   })
 
   it('returns empty object on success', async () => {

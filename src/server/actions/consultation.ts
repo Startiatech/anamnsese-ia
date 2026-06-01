@@ -19,7 +19,10 @@ export async function debitConsultationCredit(patientId: string): Promise<{ erro
     return { error: 'Falha ao debitar crédito' }
   }
 
-  const now = new Date().toISOString()
+  // NÃO grava created_at: iniciar um atendimento não define a data do
+  // atendimento. O usuário ainda pode abandonar (sem gerar anamnese). A data
+  // real é carimbada só quando a anamnese é gerada (ConsultationRepository.save),
+  // preservando a data do atendimento concluído anterior caso este seja abandonado.
   await supabase.from('consultations').upsert(
     {
       user_id: user.sub,
@@ -30,8 +33,7 @@ export async function debitConsultationCredit(patientId: string): Promise<{ erro
       refinement_attempts: 0,
       raw_transcript: null,
       debit_source: source,
-      created_at: now,
-      updated_at: now,
+      updated_at: new Date().toISOString(),
     },
     { onConflict: 'user_id,patient_id' },
   )

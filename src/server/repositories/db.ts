@@ -219,6 +219,11 @@ export const ConsultationRepository = {
   },
 
   async save(userId: string, consultation: Consultation): Promise<{ id: string }> {
+    // created_at é carimbado AQUI (geração da anamnese), não no início do
+    // atendimento: este é o gatilho que materializa o atendimento no histórico.
+    // Garante que a data exibida (histórico, documento, "último atendimento")
+    // reflita quando a anamnese foi de fato gerada.
+    const now = new Date().toISOString()
     const { data, error } = await supabase.from('consultations').upsert(
       {
         user_id: userId,
@@ -226,7 +231,8 @@ export const ConsultationRepository = {
         raw_transcript: null,
         structured_anamnesis: consultation.structuredAnamnesis,
         status: 'completed',
-        updated_at: new Date().toISOString(),
+        created_at: now,
+        updated_at: now,
       },
       { onConflict: 'user_id,patient_id' },
     ).select('id').single()
