@@ -124,9 +124,6 @@ importers:
         specifier: 4.3.6
         version: 4.3.6
     devDependencies:
-      '@netlify/functions':
-        specifier: 5.2.0
-        version: 5.2.0
       '@playwright/test':
         specifier: ^1.60.0
         version: 1.60.0
@@ -724,14 +721,6 @@ packages:
     peerDependencies:
       '@emnapi/core': ^1.7.1
       '@emnapi/runtime': ^1.7.1
-
-  '@netlify/functions@5.2.0':
-    resolution: {integrity: sha512-Pj93qeQd1tkQ5xm9gWJZmBf/1riLYqYHc0OzFukrJomrj82Ott53Rr/Q88H1ms5cF+P5QXRKWmA2JSxSybKfjA==}
-    engines: {node: '>=18.0.0'}
-
-  '@netlify/types@2.6.0':
-    resolution: {integrity: sha512-yD20EizHJDQxajJ66Vo8RTwLwR2jMNVxufPG8MHd2AScX8jW4z0VPnnJHArq2GYPFTFZRHmiAhDrXr5m8zof6w==}
-    engines: {node: ^18.14.0 || >=20}
 
   '@next/env@16.2.3':
     resolution: {integrity: sha512-ZWXyj4uNu4GCWQw9cjRxWlbD+33mcDszIo9iQxFnBX3Wmgq9ulaSJcl6VhuWx5pCWqqD+9W6Wfz7N0lM5lYPMA==}
@@ -5245,12 +5234,6 @@ snapshots:
       '@emnapi/runtime': 1.10.0
       '@tybys/wasm-util': 0.10.2
     optional: true
-
-  '@netlify/functions@5.2.0':
-    dependencies:
-      '@netlify/types': 2.6.0
-
-  '@netlify/types@2.6.0': {}
 
   '@next/env@16.2.3': {}
 
