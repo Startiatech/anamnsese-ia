@@ -511,7 +511,7 @@ export function StepAudio({
               onClick={() => setInputMode('upload')}
               className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
                 inputMode === 'upload'
-                  ? 'bg-violet-500 text-white'
+                  ? 'bg-primary text-primary-foreground'
                   : 'text-muted-foreground hover:text-foreground'
               }`}
             >
@@ -523,7 +523,7 @@ export function StepAudio({
               onClick={() => setInputMode('record')}
               className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
                 inputMode === 'record'
-                  ? 'bg-violet-500 text-white'
+                  ? 'bg-primary text-primary-foreground'
                   : 'text-muted-foreground hover:text-foreground'
               }`}
             >
@@ -619,7 +619,7 @@ export function StepAudio({
                     data-testid="low-mic-warning"
                     role="status"
                     aria-live="polite"
-                    className="text-xs text-amber-400 flex items-start gap-1.5"
+                    className="text-xs text-amber-600 dark:text-amber-400 flex items-start gap-1.5"
                   >
                     <span aria-hidden>⚠️</span>
                     Volume do microfone baixo — aproxime-se ou aumente o volume nas configurações.
@@ -769,7 +769,7 @@ export function StepAudio({
               'Arquivos de até 100 MB são aceitos (≈ 60 min de consulta)',
             ].map(tip => (
               <li key={tip} className="flex items-start gap-2 text-sm text-muted-foreground">
-                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-violet-400" />
+                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
                 {tip}
               </li>
             ))}

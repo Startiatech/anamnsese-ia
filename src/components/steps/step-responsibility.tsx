@@ -95,15 +95,15 @@ export function StepResponsibility({ patientId }: StepResponsibilityProps) {
             <p className="text-xs font-bold uppercase tracking-widest text-highlight">Por que isso importa</p>
             <ul className="space-y-3">
               <li className="flex items-start gap-2 text-sm text-muted-foreground">
-                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-cyan-400" />
+                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
                 A LGPD exige consentimento explícito para coleta e processamento de dados de saúde.
               </li>
               <li className="flex items-start gap-2 text-sm text-muted-foreground">
-                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-cyan-400" />
+                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
                 O sigilo médico se aplica a todo conteúdo gerado nesta sessão.
               </li>
               <li className="flex items-start gap-2 text-sm text-muted-foreground">
-                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-cyan-400" />
+                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
                 A transcrição e a anamnese ficam vinculadas exclusivamente ao seu perfil profissional.
               </li>
             </ul>

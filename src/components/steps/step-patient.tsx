@@ -61,9 +61,9 @@ export function StepPatient({ onDebit }: StepPatientProps) {
             {/* Nome + ícone */}
             <div className="flex items-center gap-3">
               <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-violet-500/10 border border-violet-500/20"
+                className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-primary/10 border border-primary/20"
               >
-                <User className="h-5 w-5 text-violet-400" />
+                <User className="h-5 w-5 text-primary" />
               </div>
               <div>
                 <p className="font-semibold text-foreground">{patient.name}</p>
@@ -112,19 +112,19 @@ export function StepPatient({ onDebit }: StepPatientProps) {
             <p className="text-xs font-bold uppercase tracking-widest text-highlight">O que acontece agora</p>
             <ul className="space-y-3">
               <li className="flex items-start gap-2 text-sm text-muted-foreground">
-                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-cyan-400" />
+                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
                 <span>Ao confirmar, <span className="text-foreground font-medium">1 crédito</span> será debitado do seu saldo.</span>
               </li>
               <li className="flex items-start gap-2 text-sm text-muted-foreground">
-                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-cyan-400" />
+                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
                 <span>{audioAttemptsLabel}</span>
               </li>
               <li className="flex items-start gap-2 text-sm text-muted-foreground">
-                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-cyan-400" />
+                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
                 <span>{refinementsLabel}</span>
               </li>
               <li className="flex items-start gap-2 text-sm text-muted-foreground">
-                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-cyan-400" />
+                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
                 Se nenhum áudio for processado, o crédito é devolvido ao encerrar.
               </li>
             </ul>

@@ -128,9 +128,9 @@ export function ConsultationPageClient({ initialPatients, clinicComplete }: Cons
           >
             <div className="flex flex-col items-center justify-center py-16 text-center px-4">
               <div
-                className="w-12 h-12 rounded-2xl flex items-center justify-center mb-4 bg-violet-500/10 border border-violet-500/20"
+                className="w-12 h-12 rounded-2xl flex items-center justify-center mb-4 bg-primary/10 border border-primary/20"
               >
-                <Users className="h-6 w-6 text-violet-400" />
+                <Users className="h-6 w-6 text-primary" />
               </div>
               <p className="text-sm font-medium text-foreground mb-1">Nenhum paciente cadastrado</p>
               <p className="text-xs text-muted-foreground mb-5">
