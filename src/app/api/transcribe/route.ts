@@ -82,7 +82,10 @@ export async function POST(req: NextRequest) {
         })
         await saveTranscriptAndIncrementAttempts(patientId, transcript)
         const audioSeconds = totalBytes / AUDIO_BYTES_PER_SECOND
-        void UsageRepository.logApiUsage({
+        // await (não void): em serverless a função pode ser congelada assim que a
+        // resposta fecha, descartando promises pendentes. Aguardar garante que o
+        // custo seja gravado em api_usage_log antes do controller.close().
+        await UsageRepository.logApiUsage({
           userId:       user.sub,
           patientId,
           endpoint:     'transcription',
