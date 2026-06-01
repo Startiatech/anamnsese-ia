@@ -147,4 +147,8 @@ fundos/bordas translúcidos (`bg-*-500/10`) ficam (adaptam aos dois temas). Varr
   - demo badges PDF/DOCX `-400` → par light/dark.
   - how-it-works mantido: glows translúcidos `0.12` e cores já theme-aware; sem neon agressivo.
 - [x] Fase 5 — console resource-card (barra de progresso roxa oklch → `var(--gradient-brand)`; componente atualmente órfão)
-- [ ] Fase 6 — modais e sheets (texto `-300/-400` → par light/dark)
+- [x] Fase 6 — modais e sheets
+  - Gradientes SVG dos modais (welcome/onboarding-intro/no-credits): `#A78BFA`→`#60A5FA` (azul→cyan).
+  - no-credits: `boxShadow` neon `rgba(124,58,237,...)` → `var(--glow-brand)` (some no light).
+  - keyboard-shortcuts (`text-violet-400`) e reset-pin check (`text-emerald-400`) → par light/dark.
+  - Demais modais/sheets já eram theme-aware; bases (app-dialog/app-sheet/dialog/sheet) usam tokens.

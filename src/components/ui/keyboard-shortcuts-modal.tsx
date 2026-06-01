@@ -60,7 +60,7 @@ export function KeyboardShortcutsProvider({ children }: { children: ReactNode })
           >
             <div className="flex items-center justify-between px-6 py-4 border-b border-border">
               <div className="flex items-center gap-2">
-                <Keyboard className="h-5 w-5 text-violet-400" />
+                <Keyboard className="h-5 w-5 text-violet-600 dark:text-violet-400" />
                 <h2 id="shortcuts-modal-title" className="text-base font-semibold text-foreground">
                   Atalhos de teclado
                 </h2>

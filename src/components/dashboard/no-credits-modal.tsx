@@ -45,12 +45,12 @@ export function NoCreditsModal({ open, onClose }: NoCreditsModalProps) {
           />
           <div
             className="relative inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-4"
-            style={{ background: 'rgba(124,58,237,0.15)', border: '1px solid rgba(124,58,237,0.3)', boxShadow: '0 0 24px rgba(124,58,237,0.3)' }}
+            style={{ background: 'rgba(124,58,237,0.15)', border: '1px solid rgba(124,58,237,0.3)', boxShadow: '0 0 24px var(--glow-brand)' }}
           >
             <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
               <defs>
                 <linearGradient id="nocredits-spark" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#A78BFA" />
+                  <stop offset="0%" stopColor="#60A5FA" />
                   <stop offset="100%" stopColor="#22D3EE" />
                 </linearGradient>
               </defs>
@@ -77,7 +77,7 @@ export function NoCreditsModal({ open, onClose }: NoCreditsModalProps) {
           <Button
             onClick={handleGoToPlans}
             className="w-full gap-2"
-            style={{ background: 'var(--gradient-brand)', color: 'white', boxShadow: '0 0 20px rgba(124,58,237,0.4)' }}
+            style={{ background: 'var(--gradient-brand)', color: 'white', boxShadow: '0 0 20px var(--glow-brand)' }}
           >
             Ver planos
             <ArrowRight className="h-4 w-4" />
