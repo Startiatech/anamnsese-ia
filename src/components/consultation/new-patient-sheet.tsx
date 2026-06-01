@@ -133,7 +133,7 @@ export function NewPatientSheet({ open, onOpenChange, onSuccess }: NewPatientShe
       onCancel={reset}
       title="Novo Paciente"
       description="Preencha os dados para cadastrar um novo paciente."
-      icon={<UserPlus className="h-4 w-4 text-violet-600 dark:text-violet-400" />}
+      icon={<UserPlus className="h-4 w-4 text-primary" />}
       formId={FORM_ID}
       submitLabel="Salvar paciente"
       submitDisabled={isSubmitting}

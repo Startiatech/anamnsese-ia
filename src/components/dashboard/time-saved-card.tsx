@@ -44,8 +44,8 @@ export function TimeSavedCard({ todayCount, weekCount, monthCount, minutesPerCon
       <CardHeader className="pb-2">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full flex items-center justify-center border bg-violet-50 dark:bg-violet-400/10 border-violet-200/60 dark:border-violet-400/20">
-              <Clock className="w-4 h-4 text-violet-500 dark:text-violet-400" />
+            <div className="w-8 h-8 rounded-full flex items-center justify-center border bg-primary/10 border-primary/20">
+              <Clock className="w-4 h-4 text-primary" />
             </div>
             <span className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
               Tempo Poupado
