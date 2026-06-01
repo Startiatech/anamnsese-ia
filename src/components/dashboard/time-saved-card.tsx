@@ -51,7 +51,11 @@ export function TimeSavedCard({ todayCount, weekCount, monthCount, minutesPerCon
               Tempo Poupado
             </span>
           </div>
-          <div role="tablist" className="inline-flex h-7 items-center rounded-lg bg-primary/15 p-1">
+          <div
+            role="tablist"
+            className="inline-flex h-7 items-center rounded-lg p-1"
+            style={{ background: 'color-mix(in oklch, var(--primary) 18%, transparent)' }}
+          >
             {TABS.map(tab => (
               <button
                 key={tab.value}
