@@ -42,6 +42,8 @@ interface ConsultationPageFlowProps {
   refinementAttemptsLimit: number | null
   initialTranscript: string
   lastConsultationAt: string | null
+  creditAlreadyDebited: boolean
+  aiAlreadyUsed: boolean
   professional: Professional
   clinic?: ClinicData
   creditsRemaining: number
@@ -53,6 +55,8 @@ interface AtendimentoFlowProps {
   audioAttemptsUsed: number
   refinementAttemptsUsed: number
   initialTranscript: string
+  creditAlreadyDebited: boolean
+  aiAlreadyUsed: boolean
   creditsRemaining: number
   planId: string
 }
@@ -62,6 +66,8 @@ function AtendimentoFlow({
   audioAttemptsUsed,
   refinementAttemptsUsed,
   initialTranscript,
+  creditAlreadyDebited,
+  aiAlreadyUsed,
   creditsRemaining,
   planId,
 }: AtendimentoFlowProps) {
@@ -71,11 +77,14 @@ function AtendimentoFlow({
   const [completeConfirmOpen, setCompleteConfirmOpen] = useState(false)
   const [showTrialEndModal, setShowTrialEndModal] = useState(false)
   const [isLastCredit, setIsLastCredit] = useState(false)
-  const [creditDebited, setCreditDebited] = useState(false)
+  // Estado de crédito hidratado do banco (fonte de verdade) — sobrevive a F5:
+  // se o banco diz que há atendimento in_progress com crédito debitado, o
+  // cliente já reassume esse fato em vez de "esquecer" e perder a devolução.
+  const [creditDebited, setCreditDebited] = useState(creditAlreadyDebited)
   const [attemptsUsed, setAttemptsUsed] = useState(audioAttemptsUsed)
   const [activeTranscript, setActiveTranscript] = useState(initialTranscript)
   const [activeRefinementsUsed, setActiveRefinementsUsed] = useState(refinementAttemptsUsed)
-  const [aiWasUsed, setAiWasUsed] = useState(initialTranscript !== '')
+  const [aiWasUsed, setAiWasUsed] = useState(aiAlreadyUsed)
   useEffect(() => { toast.dismiss() }, [])
   useEffect(() => {
     if (!creditDebited) return
@@ -144,7 +153,7 @@ function AtendimentoFlow({
     const refund = !aiWasUsed
 
     toast.promise(
-      abandonConsultation(patient.id, state.step, aiWasUsed).then(async () => {
+      abandonConsultation(patient.id, state.step).then(async () => {
         router.refresh()
         if (isLastCredit && aiWasUsed) {
           setShowTrialEndModal(true)
@@ -303,6 +312,8 @@ export function ConsultationPageFlow({
   refinementAttemptsLimit,
   initialTranscript,
   lastConsultationAt,
+  creditAlreadyDebited,
+  aiAlreadyUsed,
   professional,
   clinic,
   creditsRemaining,
@@ -324,6 +335,8 @@ export function ConsultationPageFlow({
         audioAttemptsUsed={audioAttemptsUsed}
         refinementAttemptsUsed={refinementAttemptsUsed}
         initialTranscript={initialTranscript}
+        creditAlreadyDebited={creditAlreadyDebited}
+        aiAlreadyUsed={aiAlreadyUsed}
         creditsRemaining={creditsRemaining}
         planId={planId}
       />

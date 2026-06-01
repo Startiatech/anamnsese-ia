@@ -151,6 +151,8 @@ const defaultProps = {
   refinementAttemptsUsed: 0,
   refinementAttemptsLimit: 2,
   initialTranscript: '',
+  creditAlreadyDebited: false,
+  aiAlreadyUsed: false,
   professional: { name: 'Dr. Test', specialty: 'Clínica', crm: 'CRM 12345 SP' },
   lastConsultationAt: null,
   creditsRemaining: 10,
@@ -185,13 +187,13 @@ describe('ConsultationPageFlow — credit refund logic', () => {
     mockToastPromise.mockImplementation((promise) => promise)
   })
 
-  it('calls abandonConsultation with aiWasUsed=false when abandoning before transcription', async () => {
+  it('calls abandonConsultation (patientId, step) — decisão de refund é do servidor/banco', async () => {
     renderFlow()
     await confirmDebit()
     clickAbandon()
     confirmAbandon()
     await waitFor(() => expect(mockAbandonConsultation).toHaveBeenCalled())
-    expect(mockAbandonConsultation).toHaveBeenCalledWith('patient-1', expect.any(Number), false)
+    expect(mockAbandonConsultation).toHaveBeenCalledWith('patient-1', expect.any(Number))
   })
 
   it('does NOT call abandonConsultation when abandoning before debit', () => {
@@ -202,15 +204,25 @@ describe('ConsultationPageFlow — credit refund logic', () => {
     expect(mockPush).toHaveBeenCalled()
   })
 
-  it('resets aiWasUsed to false after debit even when initialTranscript is non-empty', async () => {
-    // Simulates stale DB state: previous session had a transcript
+  it('REGRESSÃO F5: com crédito já debitado no banco (creditAlreadyDebited), abandonar chama o servidor (não esquece o débito)', async () => {
+    // Simula reload no meio do atendimento: o React state morreu, mas o banco
+    // diz que há crédito debitado. O cliente deve reassumir e chamar o servidor,
+    // que decide a devolução pelo banco — caso contrário o crédito ficava órfão.
+    renderFlow({ creditAlreadyDebited: true, aiAlreadyUsed: false })
+    clickAbandon()
+    confirmAbandon()
+    await waitFor(() => expect(mockAbandonConsultation).toHaveBeenCalledWith('patient-1', expect.any(Number)))
+  })
+
+  it('mostra "será devolvido" após debit mesmo com initialTranscript de sessão anterior (debit reseta o estado)', async () => {
+    // Simula estado obsoleto no DB: sessão anterior tinha transcrição
     renderFlow({ initialTranscript: 'transcrição de sessão anterior' })
     await confirmDebit()
     clickAbandon()
+    // debit reseta aiWasUsed=false nesta sessão → modal indica devolução
+    expect(screen.getByText(/crédito será devolvido/i)).toBeInTheDocument()
     confirmAbandon()
-    await waitFor(() => expect(mockAbandonConsultation).toHaveBeenCalled())
-    // Must be false — debit resets consultation in DB, AI not used in this session
-    expect(mockAbandonConsultation).toHaveBeenCalledWith('patient-1', expect.any(Number), false)
+    await waitFor(() => expect(mockAbandonConsultation).toHaveBeenCalledWith('patient-1', expect.any(Number)))
   })
 
   it('shows "Crédito será devolvido" in dialog when credit debited and AI not used', async () => {

@@ -17,7 +17,7 @@ async function getConsultationPageData(
     supabase.from('plans').select('features').eq('id', planId).single(),
     supabase
       .from('consultations')
-      .select('audio_attempts, refinement_attempts, raw_transcript, status, updated_at')
+      .select('audio_attempts, refinement_attempts, raw_transcript, status, updated_at, debit_source')
       .eq('user_id', userId)
       .eq('patient_id', patientId)
       .single(),
@@ -33,18 +33,24 @@ async function getConsultationPageData(
   const f5 = features.find(f => f.id === 'f5')
   const f6 = features.find(f => f.id === 'f6')
   const consultation = consultationResult.data
+  const isInProgress = consultation?.status === 'in_progress'
+  const audioAttempts = (isInProgress ? (consultation?.audio_attempts ?? 0) : 0) as number
 
   return {
     planFeatures: {
       audioAttemptsLabel: f5?.label ?? 'Envios de áudio incluídos',
       refinementsLabel: f6?.label ?? 'Refinamentos de IA incluídos',
     },
-    audioAttemptsUsed: (consultation?.status === 'in_progress' ? (consultation?.audio_attempts ?? 0) : 0) as number,
+    audioAttemptsUsed: audioAttempts,
     audioAttemptsLimit: f5?.limit ?? null,
-    refinementAttemptsUsed: (consultation?.status === 'in_progress' ? (consultation?.refinement_attempts ?? 0) : 0) as number,
+    refinementAttemptsUsed: (isInProgress ? (consultation?.refinement_attempts ?? 0) : 0) as number,
     refinementAttemptsLimit: f6?.limit ?? null,
-    initialTranscript: (consultation?.status === 'in_progress' ? (consultation?.raw_transcript ?? '') : '') as string,
+    initialTranscript: (isInProgress ? (consultation?.raw_transcript ?? '') : '') as string,
     lastConsultationAt: consultation?.status === 'completed' ? (consultation?.updated_at ?? null) : null,
+    // Estado de crédito derivado do banco (fonte de verdade) para sobreviver a F5:
+    // um atendimento in_progress com debit_source != null já teve crédito debitado.
+    creditAlreadyDebited: isInProgress && (consultation?.debit_source ?? null) !== null,
+    aiAlreadyUsed: audioAttempts > 0,
   }
 }
 
@@ -107,6 +113,8 @@ export default async function ConsultationSessionPage({ params }: { params: Prom
       refinementAttemptsLimit={data.refinementAttemptsLimit}
       initialTranscript={data.initialTranscript}
       lastConsultationAt={data.lastConsultationAt}
+      creditAlreadyDebited={data.creditAlreadyDebited}
+      aiAlreadyUsed={data.aiAlreadyUsed}
       professional={professional}
       clinic={clinic}
       creditsRemaining={storedUser?.creditsRemaining ?? 0}
