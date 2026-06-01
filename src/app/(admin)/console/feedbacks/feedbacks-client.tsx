@@ -78,11 +78,11 @@ export function FeedbacksClient({ metrics, feedbacks, a11yRequests, a11yPendingC
       {/* Métricas */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: 'Satisfação', value: `${metrics.avgRating.toFixed(1)}/5`,        icon: Star,         color: 'text-amber-600   dark:text-amber-400',   bg: 'bg-amber-500/15  border-amber-500/25  dark:bg-amber-400/10  dark:border-amber-400/20'  },
-          { label: 'Conversão',  value: `${metrics.conversionRate.toFixed(0)}%`,    icon: TrendingUp,   color: 'text-cyan-600    dark:text-cyan-400',     bg: 'bg-cyan-500/15   border-cyan-500/25   dark:bg-cyan-400/10   dark:border-cyan-400/20'   },
-          { label: 'Upgrades',   value: metrics.totalUpgrades,                      icon: ArrowUpRight, color: 'text-violet-600  dark:text-violet-400',  bg: 'bg-violet-500/15 border-violet-500/25 dark:bg-violet-400/10 dark:border-violet-400/20' },
-          { label: 'Churn',      value: metrics.totalChurn,                         icon: TrendingDown, color: 'text-red-600     dark:text-red-400',      bg: 'bg-red-500/15    border-red-500/25    dark:bg-red-400/10    dark:border-red-400/20'    },
-        ].map(({ label, value, icon: Icon, color, bg }) => (
+          { label: 'Satisfação', value: `${metrics.avgRating.toFixed(1)}/5`,     icon: Star },
+          { label: 'Conversão',  value: `${metrics.conversionRate.toFixed(0)}%`, icon: TrendingUp },
+          { label: 'Upgrades',   value: metrics.totalUpgrades,                   icon: ArrowUpRight },
+          { label: 'Churn',      value: metrics.totalChurn,                      icon: TrendingDown },
+        ].map(({ label, value, icon: Icon }) => (
           <Card key={label}>
             <CardContent className="pt-5 pb-4">
               <div className="flex items-start justify-between">
@@ -90,8 +90,8 @@ export function FeedbacksClient({ metrics, feedbacks, a11yRequests, a11yPendingC
                   <p className="text-xs text-muted-foreground mb-1">{label}</p>
                   <p className="text-2xl font-bold text-foreground">{value}</p>
                 </div>
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border ${bg}`}>
-                  <Icon className={`h-4 w-4 ${color}`} />
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border bg-primary/10 border-primary/20">
+                  <Icon className="h-4 w-4 text-primary" />
                 </div>
               </div>
             </CardContent>
