@@ -39,6 +39,10 @@ export async function debitConsultationCredit(patientId: string): Promise<{ erro
     { onConflict: 'user_id,patient_id' },
   )
 
+  // Iniciar um novo atendimento sinaliza que qualquer in_progress órfão sem IA
+  // de outro paciente foi abandonado — devolve esses créditos reservados.
+  await reconcileOrphanConsultations(patientId)
+
   return {}
 }
 

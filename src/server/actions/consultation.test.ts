@@ -248,6 +248,7 @@ describe('debitConsultationCredit', () => {
     mockGetCredits.mockResolvedValue(5)
     mockDebitReturningSource.mockResolvedValue('bonus')
     mockUpsert.mockResolvedValue({ error: null })
+    chain.neq = vi.fn().mockResolvedValue({ data: [], error: null })
   })
 
   it('returns error when unauthenticated', async () => {
@@ -318,6 +319,12 @@ describe('debitConsultationCredit', () => {
     await debitConsultationCredit('patient-1')
     const payload = mockUpsert.mock.calls[0][0] as Record<string, unknown>
     expect('structured_anamnesis' in payload).toBe(false)
+  })
+
+  it('reconcilia órfãos de outros pacientes ao iniciar (exceto o atual)', async () => {
+    chain.neq = vi.fn().mockResolvedValue({ data: [], error: null })
+    await debitConsultationCredit('patient-1')
+    expect(chain.eq).toHaveBeenCalledWith('status', 'in_progress')
   })
 })
 
