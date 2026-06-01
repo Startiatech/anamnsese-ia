@@ -27,7 +27,7 @@ export function ResourceCard({ label, icon: Icon, color, glow, value, limit, pct
       <div className="h-1 rounded-full bg-border overflow-hidden">
         <div
           className="h-full rounded-full transition-all duration-700"
-          style={{ width: `${pct}%`, background: 'linear-gradient(90deg, oklch(0.541 0.281 293.009), oklch(0.715 0.143 215.221))' }}
+          style={{ width: `${pct}%`, background: 'var(--gradient-brand)' }}
         />
       </div>
       <p className="text-xs text-muted-foreground mt-1.5">Consumo: {pct.toFixed(1)}%</p>

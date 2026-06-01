@@ -146,5 +146,5 @@ fundos/bordas translúcidos (`bg-*-500/10`) ficam (adaptam aos dois temas). Varr
   - Gradientes `#8B5CF6→#06B6D4` (plans botão/badge/card-bg, demo barra) → `var(--gradient-brand)`/`var(--primary)`.
   - demo badges PDF/DOCX `-400` → par light/dark.
   - how-it-works mantido: glows translúcidos `0.12` e cores já theme-aware; sem neon agressivo.
-- [ ] Fase 5 — console resource-card
+- [x] Fase 5 — console resource-card (barra de progresso roxa oklch → `var(--gradient-brand)`; componente atualmente órfão)
 - [ ] Fase 6 — modais e sheets (texto `-300/-400` → par light/dark)
