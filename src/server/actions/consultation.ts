@@ -3,6 +3,7 @@
 import { supabase } from '@/server/supabase'
 import { getServerUser } from '@/server/services/session'
 import { CreditRepository } from '@/server/repositories/credits'
+import { resolveTerminalState } from '@/lib/consultation-state'
 import type { ConsultationStep } from '@/types'
 
 export async function debitConsultationCredit(patientId: string): Promise<{ error?: string }> {
@@ -44,35 +45,40 @@ export async function debitConsultationCredit(patientId: string): Promise<{ erro
 export async function abandonConsultation(
   patientId: string,
   currentStep: ConsultationStep,
-  aiWasUsed: boolean,
 ): Promise<void> {
   const user = await getServerUser()
   if (!user) return
 
-  // Read debit_source before upsert to know which wallet to refund
+  // Fonte de verdade = banco. Lê tudo o que decide o desfecho.
   const { data: existing } = await supabase
     .from('consultations')
-    .select('debit_source')
+    .select('debit_source, audio_attempts, structured_anamnesis')
     .eq('user_id', user.sub)
     .eq('patient_id', patientId)
     .single()
-  const source = (existing?.debit_source ?? null) as 'bonus' | 'paid' | null
 
-  // raw_transcript is always cleared for privacy on abandonment
+  const { status, refundSource } = resolveTerminalState({
+    audio_attempts: existing?.audio_attempts as number | null | undefined,
+    structured_anamnesis: existing?.structured_anamnesis,
+    debit_source: (existing?.debit_source ?? null) as 'bonus' | 'paid' | null,
+  })
+
+  // raw_transcript sempre limpo (privacidade). created_at/updated_at NÃO são
+  // tocados: no caminho 'completed' preserva a data real do atendimento; no
+  // caminho 'abandoned' abandonar não é um "atendimento" datável.
   await supabase.from('consultations').upsert(
     {
       user_id: user.sub,
       patient_id: patientId,
-      status: 'abandoned',
+      status,
       current_step: currentStep,
       raw_transcript: null,
-      updated_at: new Date().toISOString(),
     },
     { onConflict: 'user_id,patient_id' },
   )
 
-  if (!aiWasUsed && source) {
-    await CreditRepository.refundCredit(user.sub, source)
+  if (refundSource) {
+    await CreditRepository.refundCredit(user.sub, refundSource)
   }
 }
 

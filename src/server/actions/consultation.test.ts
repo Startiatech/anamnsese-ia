@@ -79,23 +79,27 @@ beforeEach(() => {
 })
 
 describe('abandonConsultation', () => {
+  // A decisão de devolver crédito é tomada SOMENTE pelo banco (fonte de verdade):
+  // devolve sse debit_source != null E audio_attempts === 0. Não depende de nenhum
+  // booleano do cliente — sobrevive a F5, queda de rede e fechamento de aba.
   beforeEach(() => {
     vi.clearAllMocks()
     buildChain()
     mockGetServerUser.mockResolvedValue({ sub: 'user-1' })
-    mockSingle.mockResolvedValue({ data: { debit_source: 'paid' }, error: null })
+    mockSingle.mockResolvedValue({ data: { debit_source: 'paid', audio_attempts: 0, structured_anamnesis: { sections: [] } }, error: null })
     mockUpsert.mockResolvedValue({})
     mockRefundCredit.mockResolvedValue(undefined)
   })
 
   it('does nothing when unauthenticated', async () => {
     mockGetServerUser.mockResolvedValue(null)
-    await abandonConsultation('patient-1', 3, false)
+    await abandonConsultation('patient-1', 3)
     expect(mockUpsert).not.toHaveBeenCalled()
   })
 
   it('sets raw_transcript to null always', async () => {
-    await abandonConsultation('patient-1', 3, true)
+    mockSingle.mockResolvedValueOnce({ data: { debit_source: 'paid', audio_attempts: 2 }, error: null })
+    await abandonConsultation('patient-1', 3)
     expect(mockUpsert).toHaveBeenCalledWith(
       expect.objectContaining({ raw_transcript: null }),
       expect.anything()
@@ -103,7 +107,7 @@ describe('abandonConsultation', () => {
   })
 
   it('upserts status abandoned with current_step and raw_transcript null', async () => {
-    await abandonConsultation('patient-1', 3, false)
+    await abandonConsultation('patient-1', 3)
     expect(mockUpsert).toHaveBeenCalledWith(
       expect.objectContaining({
         user_id: 'user-1',
@@ -117,33 +121,52 @@ describe('abandonConsultation', () => {
   })
 
   it('NÃO inclui structured_anamnesis no upsert (abandonar não apaga a anamnese anterior)', async () => {
-    await abandonConsultation('patient-1', 3, true)
+    await abandonConsultation('patient-1', 3)
     const payload = mockUpsert.mock.calls[0][0] as Record<string, unknown>
     expect('structured_anamnesis' in payload).toBe(false)
   })
 
-  it('refunds bonus wallet when debit_source is bonus and aiWasUsed is false', async () => {
-    mockSingle.mockResolvedValueOnce({ data: { debit_source: 'bonus' }, error: null })
-    await abandonConsultation('patient-1', 3, false)
+  it('refunds bonus wallet when debit_source is bonus and no AI was used (audio_attempts 0)', async () => {
+    mockSingle.mockResolvedValueOnce({ data: { debit_source: 'bonus', audio_attempts: 0 }, error: null })
+    await abandonConsultation('patient-1', 3)
     expect(mockRefundCredit).toHaveBeenCalledWith('user-1', 'bonus')
   })
 
-  it('refunds paid wallet when debit_source is paid and aiWasUsed is false', async () => {
-    mockSingle.mockResolvedValueOnce({ data: { debit_source: 'paid' }, error: null })
-    await abandonConsultation('patient-1', 3, false)
+  it('refunds paid wallet when debit_source is paid and no AI was used (audio_attempts 0)', async () => {
+    mockSingle.mockResolvedValueOnce({ data: { debit_source: 'paid', audio_attempts: 0 }, error: null })
+    await abandonConsultation('patient-1', 3)
     expect(mockRefundCredit).toHaveBeenCalledWith('user-1', 'paid')
   })
 
-  it('does NOT refund when aiWasUsed is true', async () => {
-    mockSingle.mockResolvedValueOnce({ data: { debit_source: 'paid' }, error: null })
-    await abandonConsultation('patient-1', 3, true)
+  it('does NOT refund when AI was used (audio_attempts > 0), mesmo após F5', async () => {
+    mockSingle.mockResolvedValueOnce({ data: { debit_source: 'paid', audio_attempts: 1 }, error: null })
+    await abandonConsultation('patient-1', 3)
     expect(mockRefundCredit).not.toHaveBeenCalled()
   })
 
   it('does NOT refund when no consultation row exists (source is null)', async () => {
     mockSingle.mockResolvedValueOnce({ data: null, error: null })
-    await abandonConsultation('patient-1', 3, false)
+    await abandonConsultation('patient-1', 3)
     expect(mockRefundCredit).not.toHaveBeenCalled()
+  })
+
+  it('volta status para completed quando já havia anamnese anterior (preserva histórico)', async () => {
+    mockSingle.mockResolvedValueOnce({ data: { debit_source: 'paid', audio_attempts: 0, structured_anamnesis: { sections: [{ title: 'HDA', content: 'x' }] } }, error: null })
+    await abandonConsultation('patient-1', 3)
+    expect(mockUpsert).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 'completed' }),
+      expect.anything(),
+    )
+    expect(mockRefundCredit).toHaveBeenCalledWith('user-1', 'paid')
+  })
+
+  it('NÃO carimba created_at/updated_at ao voltar para completed (preserva a data real do atendimento)', async () => {
+    mockSingle.mockResolvedValueOnce({ data: { debit_source: null, audio_attempts: 1, structured_anamnesis: { sections: [{ title: 'HDA', content: 'x' }] } }, error: null })
+    await abandonConsultation('patient-1', 3)
+    const payload = mockUpsert.mock.calls[0][0] as Record<string, unknown>
+    expect(payload.status).toBe('completed')
+    expect('created_at' in payload).toBe(false)
+    expect('updated_at' in payload).toBe(false)
   })
 })
 
