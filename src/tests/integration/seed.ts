@@ -74,3 +74,58 @@ export async function seedAccessRequest(overrides: RequestSeedOverrides = {}) {
 export async function cleanupAccessRequest(id: string): Promise<void> {
   await testSupabase.from('access_requests').delete().eq('id', id)
 }
+
+// ─── Patients ───────────────────────────────────────────────────────────────
+
+export async function seedPatient(userId: string, overrides: { name?: string; cpf?: string } = {}) {
+  const id = testId()
+  const row = {
+    id,
+    user_id: userId,
+    name: 'Integration Patient',
+    cpf: id.replace(/\D/g, '').slice(0, 11).padEnd(11, '0'),
+    ...overrides,
+  }
+  const { error } = await testSupabase.from('patients').insert(row)
+  if (error) throw new Error(`seedPatient failed: ${error.message}`)
+  return row
+}
+
+// ─── Consultations ────────────────────────────────────────────────────────────
+
+type ConsultationSeedOverrides = {
+  status?: 'in_progress' | 'abandoned' | 'completed'
+  debit_source?: 'bonus' | 'paid' | null
+  audio_attempts?: number
+  raw_transcript?: string | null
+  structured_anamnesis?: unknown
+  updated_at?: string
+}
+
+export async function seedConsultation(
+  userId: string,
+  patientId: string,
+  overrides: ConsultationSeedOverrides = {},
+) {
+  const row = {
+    user_id: userId,
+    patient_id: patientId,
+    status: 'in_progress',
+    debit_source: 'paid',
+    audio_attempts: 0,
+    raw_transcript: 'transcrição de teste',
+    ...overrides,
+  }
+  const { error } = await testSupabase
+    .from('consultations')
+    .upsert(row, { onConflict: 'user_id,patient_id' })
+  if (error) throw new Error(`seedConsultation failed: ${error.message}`)
+  return row
+}
+
+// Remove consultations + patients + user respeitando as FKs (sem cascade no schema).
+export async function cleanupUserCascade(userId: string): Promise<void> {
+  await testSupabase.from('consultations').delete().eq('user_id', userId)
+  await testSupabase.from('patients').delete().eq('user_id', userId)
+  await testSupabase.from('users').delete().eq('id', userId)
+}

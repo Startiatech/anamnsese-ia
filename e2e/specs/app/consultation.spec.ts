@@ -222,6 +222,50 @@ test.describe('fluxo de consulta com IA mockada', () => {
     await expect(page).toHaveURL(/\/app\/consultation(\?|$|\/)$/)
   })
 
+  test('apos F5 com credito debitado, abandonar SEM IA devolve o credito (regressao da hidratacao do banco)', async ({ page }) => {
+    await mockAiEndpoints(page)
+
+    const user = await createTestUser({ role: 'user' })
+    await seedClinicForUser(user.id)
+    const patient = await createPatient(user.id, { name: `E2E_Patient_${Date.now()}_f5refund` })
+    await loginAsUser(page, user)
+
+    await page.goto('/app/consultation')
+    await page.waitForLoadState('networkidle')
+
+    const row = page.getByRole('row').filter({ hasText: patient.name })
+    await expect(row).toBeVisible({ timeout: 30_000 })
+    await row.getByRole('button', { name: /iniciar atendimento/i }).click()
+
+    // Step 1 -> confirma paciente -> debita credito
+    await page.waitForURL(/\/app\/consultation\/[^/]+$/, { timeout: 30_000 })
+    await expect(page.getByRole('heading', { name: /confirmar paciente/i })).toBeVisible({ timeout: 30_000 })
+    await page.getByRole('button', { name: /confirmar e continuar/i }).click()
+    const confirmInicio = page.getByRole('button', { name: /confirmar in[ií]cio/i })
+    await expect(confirmInicio).toBeEnabled({ timeout: 10_000 })
+    await confirmInicio.click()
+
+    // Credito debitado: chegou ao step 2 (autorizacao). Agora simula F5.
+    await expect(page.getByRole('heading', { name: /autoriza[cç][aã]o de grava[cç][aã]o/i })).toBeVisible({ timeout: 30_000 })
+    await page.reload()
+    await page.waitForLoadState('networkidle')
+
+    // Apos o reload, o estado de credito eh hidratado do banco. Sem isso (bug
+    // antigo), o cliente "esqueceria" o debito e o abandono nem chamaria o
+    // servidor. Abrimos o dialog de abandono e confirmamos a devolucao.
+    const trigger = page.getByRole('button', { name: /abandonar consulta/i }).first()
+      .or(page.getByRole('button', { name: /^abandonar$/i }).first())
+    await expect(trigger).toBeVisible({ timeout: 30_000 })
+    await trigger.click()
+
+    // O dialog deve indicar devolucao (prova que creditDebited foi hidratado).
+    await expect(page.getByText(/cr[ée]dito ser[áa] devolvido/i)).toBeVisible({ timeout: 10_000 })
+    await page.getByRole('button', { name: /^abandonar$/i }).last().click()
+
+    // Sinal observavel do refund: toast "1 credito devolvido".
+    await expect(page.getByText(/1 cr[ée]dito devolvido/i)).toBeVisible({ timeout: 15_000 })
+  })
+
   test('exibe onda sonora visivel apos iniciar gravacao no mobile', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'mobile', 'cenário específico de viewport mobile')
     await mockAiEndpoints(page)
