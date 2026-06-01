@@ -91,10 +91,10 @@ export function LoginClient() {
   )
 
   return (
-    <div className="min-h-screen flex flex-col bg-background [background:var(--login-page-bg)]">
+    <div className="min-h-screen flex flex-col bg-background bg-gradient-to-br from-[oklch(0.44_0.18_250/0.14)] via-cyan-500/[0.05] to-cyan-500/[0.18]">
       <Topbar variant="public" right={backLink} />
 
-      {/* Ambient glows — só no dark (no light o gradiente --login-page-bg já cobre o fundo) */}
+      {/* Ambient glows — só no dark (no light o gradiente azul→cyan do fundo já cobre) */}
       <div className="hidden dark:block fixed inset-0 -z-10 pointer-events-none overflow-hidden">
         <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-violet-600/6 rounded-full blur-[120px]" />
         <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-cyan-500/4 rounded-full blur-[100px]" />
