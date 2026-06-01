@@ -706,7 +706,7 @@ export function StepAudio({
               readOnly
               value={displayedText}
               className={`resize-none font-mono text-sm min-h-[26rem] w-full ${
-                audioState === 'streaming' && !displayedText ? 'animate-pulse placeholder:text-primary' : ''
+                audioState === 'streaming' && !displayedText ? 'placeholder-pulse' : ''
               }`}
               placeholder="Aguarde, a transcrição aparecerá aqui..."
             />

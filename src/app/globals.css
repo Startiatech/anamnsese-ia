@@ -218,6 +218,15 @@
 .animate-pulse-glow  { animation: pulse-glow 2s ease-in-out infinite; }
 .animate-cursor      { animation: typing-cursor 1s step-end infinite; }
 
+/* Pulse no texto do placeholder (Tailwind animate-pulse não atinge ::placeholder) */
+.placeholder-pulse::placeholder {
+  animation: placeholderPulse 1.6s ease-in-out infinite;
+}
+@keyframes placeholderPulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.4; }
+}
+
 /* ── Preferências de acessibilidade (data-font-size / data-high-contrast) ── */
 html[data-font-size="large"]  { font-size: 112.5%; }  /* 18px base */
 html[data-font-size="xlarge"] { font-size: 125%;   }  /* 20px base */
