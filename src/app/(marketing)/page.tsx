@@ -10,7 +10,7 @@ import { ScrollToTop } from '@/components/landing/scroll-to-top'
 
 export default function LandingPage() {
   return (
-    <div className="relative min-h-screen bg-background bg-gradient-to-br from-[var(--primary)]/[0.14] via-cyan-500/[0.05] to-cyan-500/[0.18]">
+    <div className="relative min-h-screen bg-background bg-gradient-to-br from-[oklch(0.44_0.18_250/0.14)] via-cyan-500/[0.05] to-cyan-500/[0.18]">
       <LandingNavbar />
       <HeroSection />
       <DemoWidget2 />
