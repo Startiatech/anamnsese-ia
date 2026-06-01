@@ -129,7 +129,7 @@ export function ConsoleDashboardClient({
                 ] as const).map(({ label, value }) => (
                   <div key={label} className="flex flex-col items-center py-2 px-3 gap-0.5">
                     <span className="text-xs text-muted-foreground">{label}</span>
-                    <span className="text-lg font-semibold text-violet-600 dark:text-violet-400">${value.toFixed(4)}</span>
+                    <span className="text-lg font-semibold text-primary">${value.toFixed(4)}</span>
                     <span className="text-xs text-muted-foreground">{formatBRL(value, usdToBrl)}</span>
                   </div>
                 ))}
@@ -149,8 +149,8 @@ export function ConsoleDashboardClient({
               <CardTitle className="text-sm text-muted-foreground font-normal">Profissionais cadastrados</CardTitle>
             </CardHeader>
             <CardContent className="flex items-center gap-4 pt-2">
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 border bg-cyan-500/15 border-cyan-500/25 dark:bg-cyan-400/10 dark:border-cyan-400/20">
-                <Stethoscope className="h-6 w-6 text-cyan-600 dark:text-cyan-400" />
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 border bg-primary/10 border-primary/20">
+                <Stethoscope className="h-6 w-6 text-primary" />
               </div>
               <div>
                 <p className="text-3xl font-bold text-foreground">{professionalsCount}</p>
@@ -167,12 +167,12 @@ export function ConsoleDashboardClient({
         </div>
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
           {[
-            { label: 'Pendentes',         value: pending.length,       icon: Clock,         color: 'text-amber-600   dark:text-amber-400',   bg: 'bg-amber-500/15   border-amber-500/25   dark:bg-amber-400/10   dark:border-amber-400/20'   },
-            { label: 'Aprovados',          value: professionals.length, icon: CheckCircle,   color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-500/15 border-emerald-500/25 dark:bg-emerald-400/10 dark:border-emerald-400/20' },
-            { label: 'Total solicitações', value: requests.length,      icon: ClipboardList, color: 'text-violet-600  dark:text-violet-400',  bg: 'bg-violet-500/15  border-violet-500/25  dark:bg-violet-400/10  dark:border-violet-400/20'  },
-            { label: 'Usuários ativos',    value: activeUsersCount,     icon: Users,         color: 'text-cyan-600   dark:text-cyan-400',     bg: 'bg-cyan-500/15    border-cyan-500/25    dark:bg-cyan-400/10    dark:border-cyan-400/20'    },
-            { label: 'Interesses planos',  value: interestCount,        icon: Bell,          color: 'text-violet-600  dark:text-violet-400',  bg: 'bg-violet-500/15  border-violet-500/25  dark:bg-violet-400/10  dark:border-violet-400/20'  },
-          ].map(({ label, value, icon: Icon, color, bg }) => (
+            { label: 'Pendentes',         value: pending.length,       icon: Clock },
+            { label: 'Aprovados',          value: professionals.length, icon: CheckCircle },
+            { label: 'Total solicitações', value: requests.length,      icon: ClipboardList },
+            { label: 'Usuários ativos',    value: activeUsersCount,     icon: Users },
+            { label: 'Interesses planos',  value: interestCount,        icon: Bell },
+          ].map(({ label, value, icon: Icon }) => (
             <Card key={label}>
               <CardContent className="pt-5 pb-4">
                 <div className="flex items-start justify-between">
@@ -180,8 +180,8 @@ export function ConsoleDashboardClient({
                     <p className="text-xs text-muted-foreground mb-1">{label}</p>
                     <p className="text-2xl font-bold text-foreground">{value}</p>
                   </div>
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border ${bg}`}>
-                    <Icon className={`h-4 w-4 ${color}`} />
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border bg-primary/10 border-primary/20">
+                    <Icon className="h-4 w-4 text-primary" />
                   </div>
                 </div>
               </CardContent>
@@ -195,7 +195,7 @@ export function ConsoleDashboardClient({
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-base flex items-center gap-2">
-                <Bell className="h-4 w-4 text-violet-600 dark:text-violet-400" />
+                <Bell className="h-4 w-4 text-primary" />
                 Interesse por plano
               </CardTitle>
               <Link href={ROUTES.consoleInteresses} className="text-xs text-highlight hover:text-highlight/70 flex items-center gap-1 transition-colors">
@@ -211,7 +211,7 @@ export function ConsoleDashboardClient({
               ] as const).map(({ label, value }) => (
                 <div key={label} className="flex flex-col items-center py-2 px-3 gap-0.5">
                   <span className="text-xs text-muted-foreground">{label}</span>
-                  <span className="text-2xl font-bold text-violet-600 dark:text-violet-400">{value}</span>
+                  <span className="text-2xl font-bold text-primary">{value}</span>
                   <span className="text-xs text-muted-foreground">{interestCount > 0 ? Math.round((value / interestCount) * 100) : 0}%</span>
                 </div>
               ))}

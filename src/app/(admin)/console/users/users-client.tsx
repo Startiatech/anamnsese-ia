@@ -244,7 +244,7 @@ export function UsersClient({ initialUsers, usdToBrl = 5.75 }: { initialUsers: U
                           {u.credits}
                         </TableCell>
                         <TableCell className="hidden lg:table-cell text-right font-mono text-xs">
-                          <span className="font-semibold text-violet-600 dark:text-violet-400">${u.groqCost.toFixed(4)}</span>
+                          <span className="font-semibold text-primary">${u.groqCost.toFixed(4)}</span>
                           <p className="text-muted-foreground mt-0.5">{formatBRL(u.groqCost, usdToBrl)}</p>
                         </TableCell>
                         <TableCell className="hidden xl:table-cell text-sm text-muted-foreground">
