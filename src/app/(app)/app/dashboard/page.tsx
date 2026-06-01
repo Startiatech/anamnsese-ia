@@ -13,6 +13,7 @@ import { LoginToast } from '@/components/dashboard/login-toast'
 import { TimeSavedCard } from '@/components/dashboard/time-saved-card'
 import { DeletionBanner } from '@/components/dashboard/deletion-banner'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { reconcileStaleConsultations } from '@/server/actions/consultation'
 
 export const dynamic = 'force-dynamic'
 
@@ -41,6 +42,10 @@ export default async function DashboardPage({
   const { welcome, login } = await searchParams
   const showWelcome = welcome === '1'
   const showLoginToast = login === '1'
+
+  // Rede de proteção: ao abrir o dashboard, recupera créditos de atendimentos
+  // in_progress órfãos parados há mais de 24h (aba fechada sem concluir).
+  await reconcileStaleConsultations()
 
   const [patients, consultations, todayCount, weekCount, monthCount, storedUser] = await Promise.all([
     PatientRepository.findAll(user.sub),

@@ -164,6 +164,36 @@ export async function reconcileOrphanConsultations(exceptPatientId: string): Pro
   }
 }
 
+const ORPHAN_TTL_HOURS = 24
+
+export async function reconcileStaleConsultations(): Promise<void> {
+  const user = await getServerUser()
+  if (!user) return
+
+  const cutoff = new Date(Date.now() - ORPHAN_TTL_HOURS * 60 * 60 * 1000).toISOString()
+  const { data: stale } = await supabase
+    .from('consultations')
+    .select('patient_id, debit_source, audio_attempts, structured_anamnesis')
+    .eq('user_id', user.sub)
+    .eq('status', 'in_progress')
+    .lt('updated_at', cutoff)
+
+  for (const row of (stale ?? [])) {
+    const { status, refundSource } = resolveTerminalState({
+      audio_attempts: row.audio_attempts as number | null,
+      structured_anamnesis: row.structured_anamnesis,
+      debit_source: (row.debit_source ?? null) as 'bonus' | 'paid' | null,
+    })
+    await supabase.from('consultations').upsert(
+      { user_id: user.sub, patient_id: row.patient_id as string, status, raw_transcript: null },
+      { onConflict: 'user_id,patient_id' },
+    )
+    if (refundSource) {
+      await CreditRepository.refundCredit(user.sub, refundSource)
+    }
+  }
+}
+
 export async function getLatestConsultation(
   patientId: string,
   userId: string,

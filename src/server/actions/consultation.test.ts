@@ -31,6 +31,7 @@ let chain: {
   select: ReturnType<typeof vi.fn>
   eq: ReturnType<typeof vi.fn>
   neq?: ReturnType<typeof vi.fn>
+  lt?: ReturnType<typeof vi.fn>
   order: ReturnType<typeof vi.fn>
   limit: ReturnType<typeof vi.fn>
   single: ReturnType<typeof vi.fn>
@@ -73,6 +74,7 @@ import {
   saveRecordingConsent,
   getLatestConsultation,
   reconcileOrphanConsultations,
+  reconcileStaleConsultations,
 } from './consultation'
 
 // Re-build chain after every clearAllMocks so return values are restored
@@ -430,5 +432,32 @@ describe('reconcileOrphanConsultations', () => {
     chain.neq = vi.fn().mockResolvedValue({ data: [], error: null })
     await reconcileOrphanConsultations('patient-keep')
     expect(mockRefundCredit).not.toHaveBeenCalled()
+  })
+})
+
+describe('reconcileStaleConsultations', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    buildChain()
+    mockGetServerUser.mockResolvedValue({ sub: 'user-1' })
+    mockRefundCredit.mockResolvedValue(undefined)
+    mockUpsert.mockResolvedValue({})
+  })
+
+  it('não faz nada quando não autenticado', async () => {
+    mockGetServerUser.mockResolvedValue(null)
+    await reconcileStaleConsultations()
+    expect(mockUpsert).not.toHaveBeenCalled()
+  })
+
+  it('resolve in_progress parado há mais de 24h e devolve quando sem IA', async () => {
+    chain.lt = vi.fn().mockResolvedValue({
+      data: [{ patient_id: 'p-old', debit_source: 'paid', audio_attempts: 0, structured_anamnesis: { sections: [] } }],
+      error: null,
+    })
+    await reconcileStaleConsultations()
+    expect(chain.eq).toHaveBeenCalledWith('status', 'in_progress')
+    expect(mockUpsert).toHaveBeenCalledWith(expect.objectContaining({ patient_id: 'p-old', status: 'abandoned' }), expect.anything())
+    expect(mockRefundCredit).toHaveBeenCalledWith('user-1', 'paid')
   })
 })
