@@ -153,46 +153,59 @@ export async function clearTranscript(patientId: string): Promise<void> {
 }
 
 export async function reconcileOrphanConsultations(exceptPatientId: string): Promise<void> {
-  const user = await getServerUser()
-  if (!user) return
+  // Best-effort: a reconciliação NUNCA pode quebrar o caller (iniciar atendimento
+  // / load do dashboard). Falha de RPC/refund é logada e ignorada — o próximo
+  // gatilho tenta de novo. Decisões críticas de crédito não passam por aqui.
+  try {
+    const user = await getServerUser()
+    if (!user) return
 
-  // Órfãos = in_progress SEM uso de IA (audio_attempts = 0): crédito reservado
-  // mas nenhum trabalho feito. Exclui o paciente que está sendo iniciado agora.
-  const { data: orphans } = await supabase
-    .from('consultations')
-    .select('patient_id, audio_attempts, structured_anamnesis')
-    .eq('user_id', user.sub)
-    .eq('status', 'in_progress')
-    .eq('audio_attempts', 0)
-    .neq('patient_id', exceptPatientId)
+    // Órfãos = in_progress SEM uso de IA (audio_attempts = 0): crédito reservado
+    // mas nenhum trabalho feito. Exclui o paciente que está sendo iniciado agora.
+    const { data: orphans } = await supabase
+      .from('consultations')
+      .select('patient_id, audio_attempts, structured_anamnesis')
+      .eq('user_id', user.sub)
+      .eq('status', 'in_progress')
+      .eq('audio_attempts', 0)
+      .neq('patient_id', exceptPatientId)
 
-  for (const row of (orphans ?? [])) {
-    await resolveAndRefund(user.sub, row.patient_id as string, {
-      audio_attempts: row.audio_attempts as number | null,
-      structured_anamnesis: row.structured_anamnesis,
-    })
+    for (const row of (orphans ?? [])) {
+      await resolveAndRefund(user.sub, row.patient_id as string, {
+        audio_attempts: row.audio_attempts as number | null,
+        structured_anamnesis: row.structured_anamnesis,
+      })
+    }
+  } catch (err) {
+    console.error('[reconcileOrphanConsultations] best-effort falhou:', err)
   }
 }
 
 const ORPHAN_TTL_HOURS = 24
 
 export async function reconcileStaleConsultations(): Promise<void> {
-  const user = await getServerUser()
-  if (!user) return
+  // Best-effort: roda no load do dashboard. Uma falha de reconciliação NUNCA
+  // pode derrubar o render da página — loga e segue; o próximo load tenta de novo.
+  try {
+    const user = await getServerUser()
+    if (!user) return
 
-  const cutoff = new Date(Date.now() - ORPHAN_TTL_HOURS * 60 * 60 * 1000).toISOString()
-  const { data: stale } = await supabase
-    .from('consultations')
-    .select('patient_id, audio_attempts, structured_anamnesis')
-    .eq('user_id', user.sub)
-    .eq('status', 'in_progress')
-    .lt('updated_at', cutoff)
+    const cutoff = new Date(Date.now() - ORPHAN_TTL_HOURS * 60 * 60 * 1000).toISOString()
+    const { data: stale } = await supabase
+      .from('consultations')
+      .select('patient_id, audio_attempts, structured_anamnesis')
+      .eq('user_id', user.sub)
+      .eq('status', 'in_progress')
+      .lt('updated_at', cutoff)
 
-  for (const row of (stale ?? [])) {
-    await resolveAndRefund(user.sub, row.patient_id as string, {
-      audio_attempts: row.audio_attempts as number | null,
-      structured_anamnesis: row.structured_anamnesis,
-    })
+    for (const row of (stale ?? [])) {
+      await resolveAndRefund(user.sub, row.patient_id as string, {
+        audio_attempts: row.audio_attempts as number | null,
+        structured_anamnesis: row.structured_anamnesis,
+      })
+    }
+  } catch (err) {
+    console.error('[reconcileStaleConsultations] best-effort falhou:', err)
   }
 }
 

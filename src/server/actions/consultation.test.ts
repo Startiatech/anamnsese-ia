@@ -409,6 +409,15 @@ describe('reconcileOrphanConsultations', () => {
     await reconcileOrphanConsultations('patient-keep')
     expect(mockRefundCredit).not.toHaveBeenCalled()
   })
+
+  it('best-effort: não propaga erro se a RPC falhar (não quebra o caller)', async () => {
+    chain.neq = vi.fn().mockResolvedValue({
+      data: [{ patient_id: 'p-a', audio_attempts: 0, structured_anamnesis: { sections: [] } }],
+      error: null,
+    })
+    mockRpc.mockRejectedValueOnce(new Error('db down'))
+    await expect(reconcileOrphanConsultations('patient-keep')).resolves.toBeUndefined()
+  })
 })
 
 describe('reconcileStaleConsultations', () => {
@@ -436,5 +445,14 @@ describe('reconcileStaleConsultations', () => {
     expect(chain.eq).toHaveBeenCalledWith('status', 'in_progress')
     expect(mockRpc).toHaveBeenCalledWith('resolve_consultation', expect.objectContaining({ p_patient_id: 'p-old', p_new_status: 'abandoned' }))
     expect(mockRefundCredit).toHaveBeenCalledWith('user-1', 'paid')
+  })
+
+  it('best-effort: não propaga erro se a RPC falhar (não quebra o dashboard)', async () => {
+    chain.lt = vi.fn().mockResolvedValue({
+      data: [{ patient_id: 'p-old', audio_attempts: 0, structured_anamnesis: { sections: [] } }],
+      error: null,
+    })
+    mockRpc.mockRejectedValueOnce(new Error('db down'))
+    await expect(reconcileStaleConsultations()).resolves.toBeUndefined()
   })
 })
