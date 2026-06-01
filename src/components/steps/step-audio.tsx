@@ -705,7 +705,9 @@ export function StepAudio({
               ref={textareaRef}
               readOnly
               value={displayedText}
-              className="resize-none font-mono text-sm min-h-[26rem] w-full"
+              className={`resize-none font-mono text-sm min-h-[26rem] w-full ${
+                audioState === 'streaming' && !displayedText ? 'animate-pulse placeholder:text-primary' : ''
+              }`}
               placeholder="Aguarde, a transcrição aparecerá aqui..."
             />
             {audioState === 'streaming' && (
