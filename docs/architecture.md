@@ -248,6 +248,10 @@ Duas carteiras independentes em `users`:
 3. Estorno (abandono sem uso de IA) volta para a **mesma carteira** indicada por `debit_source`.
 4. `getCredits` retorna `bonus + paid` (validações de saldo).
 
+**Fonte de verdade do estorno = banco (não estado do cliente).** `abandonConsultation` lê `debit_source` **e** `audio_attempts` da consulta e devolve sse `debit_source != null && audio_attempts === 0`. Como `audio_attempts` é incrementado server-side (`save_transcript_and_increment`, aguardado na rota de transcrição), `audio_attempts > 0 ⟺ IA usada`. Isso torna a devolução robusta a F5/queda de rede/fechamento de aba — o cliente nunca "esquece" o débito. A página de atendimento hidrata `creditAlreadyDebited`/`aiAlreadyUsed` do banco no carregamento, então o estado sobrevive ao reload.
+
+**Reconciliação de órfãos (invariante: `in_progress` nunca fica preso).** Um atendimento só permanece `in_progress` enquanto for retomável. Dois gatilhos garantem o desfecho sem cron/websocket: (1) ao iniciar outro atendimento, `reconcileOrphanConsultations` resolve `in_progress` sem IA de outros pacientes; (2) no load do dashboard, `reconcileStaleConsultations` resolve `in_progress` parados há > 24h. A resolução usa `resolveTerminalState` (`src/lib/consultation-state.ts`): volta a `completed` se já havia anamnese (preserva histórico), senão `abandoned`; devolve crédito sse `debit_source != null && audio_attempts === 0`.
+
 ```mermaid
 flowchart TD
     subgraph Origens["Entradas de crédito"]
@@ -261,9 +265,11 @@ flowchart TD
         SRC -->|bonus| BC
         SRC -->|paid| CR
         G -->|persist debit_source| CONS[(consultations.debit_source)]
-        F2[Step Audio sem transcrever] --> AB[abandonConsultation]
-        AB -->|read debit_source| CONS
-        AB -->|refund_user_credit p_source| REFUND{source}
+        F2[Abandono / F5 / aba fechada] --> AB[abandonConsultation]
+        AB -->|read debit_source + audio_attempts| CONS
+        AB -->|audio_attempts === 0?| GATE{IA usada?}
+        GATE -->|não: refund_user_credit p_source| REFUND{source}
+        GATE -->|sim| NOOP[mantém débito]
         REFUND -->|bonus| BC
         REFUND -->|paid| CR
     end
