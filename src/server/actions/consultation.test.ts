@@ -83,94 +83,58 @@ beforeEach(() => {
 })
 
 describe('abandonConsultation', () => {
-  // A decisão de devolver crédito é tomada SOMENTE pelo banco (fonte de verdade):
-  // devolve sse debit_source != null E audio_attempts === 0. Não depende de nenhum
-  // booleano do cliente — sobrevive a F5, queda de rede e fechamento de aba.
+  // Transição + devolução são atômicas via RPC resolve_consultation (fonte de
+  // verdade = banco). A RPC retorna o debit_source antigo só para quem venceu a
+  // corrida; o refund é gateado por esse retorno E por audio_attempts === 0.
+  // Idempotente: sobrevive a F5, retry, duplo clique e concorrência de gatilhos.
   beforeEach(() => {
     vi.clearAllMocks()
     buildChain()
     mockGetServerUser.mockResolvedValue({ sub: 'user-1' })
-    mockSingle.mockResolvedValue({ data: { debit_source: 'paid', audio_attempts: 0, structured_anamnesis: { sections: [] } }, error: null })
-    mockUpsert.mockResolvedValue({})
+    mockSingle.mockResolvedValue({ data: { audio_attempts: 0, structured_anamnesis: { sections: [] } }, error: null })
+    mockRpc.mockResolvedValue({ data: 'paid', error: null })
     mockRefundCredit.mockResolvedValue(undefined)
   })
 
   it('does nothing when unauthenticated', async () => {
     mockGetServerUser.mockResolvedValue(null)
     await abandonConsultation('patient-1', 3)
-    expect(mockUpsert).not.toHaveBeenCalled()
+    expect(mockRpc).not.toHaveBeenCalled()
+    expect(mockRefundCredit).not.toHaveBeenCalled()
   })
 
-  it('sets raw_transcript to null always', async () => {
-    mockSingle.mockResolvedValueOnce({ data: { debit_source: 'paid', audio_attempts: 2 }, error: null })
+  it('chama resolve_consultation com p_new_status abandoned quando não há anamnese', async () => {
     await abandonConsultation('patient-1', 3)
-    expect(mockUpsert).toHaveBeenCalledWith(
-      expect.objectContaining({ raw_transcript: null }),
-      expect.anything()
-    )
+    expect(mockRpc).toHaveBeenCalledWith('resolve_consultation', {
+      p_user_id: 'user-1',
+      p_patient_id: 'patient-1',
+      p_new_status: 'abandoned',
+    })
   })
 
-  it('upserts status abandoned with current_step and raw_transcript null', async () => {
+  it('chama resolve_consultation com p_new_status completed quando já havia anamnese (preserva histórico)', async () => {
+    mockSingle.mockResolvedValueOnce({ data: { audio_attempts: 0, structured_anamnesis: { sections: [{ title: 'HDA', content: 'x' }] } }, error: null })
     await abandonConsultation('patient-1', 3)
-    expect(mockUpsert).toHaveBeenCalledWith(
-      expect.objectContaining({
-        user_id: 'user-1',
-        patient_id: 'patient-1',
-        status: 'abandoned',
-        current_step: 3,
-        raw_transcript: null,
-      }),
-      expect.objectContaining({ onConflict: 'user_id,patient_id' }),
-    )
+    expect(mockRpc).toHaveBeenCalledWith('resolve_consultation', expect.objectContaining({ p_new_status: 'completed' }))
   })
 
-  it('NÃO inclui structured_anamnesis no upsert (abandonar não apaga a anamnese anterior)', async () => {
-    await abandonConsultation('patient-1', 3)
-    const payload = mockUpsert.mock.calls[0][0] as Record<string, unknown>
-    expect('structured_anamnesis' in payload).toBe(false)
-  })
-
-  it('refunds bonus wallet when debit_source is bonus and no AI was used (audio_attempts 0)', async () => {
-    mockSingle.mockResolvedValueOnce({ data: { debit_source: 'bonus', audio_attempts: 0 }, error: null })
+  it('devolve crédito na carteira retornada pela RPC quando sem IA (audio_attempts 0)', async () => {
+    mockRpc.mockResolvedValueOnce({ data: 'bonus', error: null })
     await abandonConsultation('patient-1', 3)
     expect(mockRefundCredit).toHaveBeenCalledWith('user-1', 'bonus')
   })
 
-  it('refunds paid wallet when debit_source is paid and no AI was used (audio_attempts 0)', async () => {
-    mockSingle.mockResolvedValueOnce({ data: { debit_source: 'paid', audio_attempts: 0 }, error: null })
-    await abandonConsultation('patient-1', 3)
-    expect(mockRefundCredit).toHaveBeenCalledWith('user-1', 'paid')
-  })
-
-  it('does NOT refund when AI was used (audio_attempts > 0), mesmo após F5', async () => {
-    mockSingle.mockResolvedValueOnce({ data: { debit_source: 'paid', audio_attempts: 1 }, error: null })
+  it('NÃO devolve quando a RPC retorna null (perdeu a corrida — idempotência contra duplo estorno)', async () => {
+    mockRpc.mockResolvedValueOnce({ data: null, error: null })
     await abandonConsultation('patient-1', 3)
     expect(mockRefundCredit).not.toHaveBeenCalled()
   })
 
-  it('does NOT refund when no consultation row exists (source is null)', async () => {
-    mockSingle.mockResolvedValueOnce({ data: null, error: null })
+  it('NÃO devolve quando houve IA (audio_attempts > 0), mesmo com RPC retornando source', async () => {
+    mockSingle.mockResolvedValueOnce({ data: { audio_attempts: 1, structured_anamnesis: { sections: [] } }, error: null })
+    mockRpc.mockResolvedValueOnce({ data: 'paid', error: null })
     await abandonConsultation('patient-1', 3)
     expect(mockRefundCredit).not.toHaveBeenCalled()
-  })
-
-  it('volta status para completed quando já havia anamnese anterior (preserva histórico)', async () => {
-    mockSingle.mockResolvedValueOnce({ data: { debit_source: 'paid', audio_attempts: 0, structured_anamnesis: { sections: [{ title: 'HDA', content: 'x' }] } }, error: null })
-    await abandonConsultation('patient-1', 3)
-    expect(mockUpsert).toHaveBeenCalledWith(
-      expect.objectContaining({ status: 'completed' }),
-      expect.anything(),
-    )
-    expect(mockRefundCredit).toHaveBeenCalledWith('user-1', 'paid')
-  })
-
-  it('NÃO carimba created_at/updated_at ao voltar para completed (preserva a data real do atendimento)', async () => {
-    mockSingle.mockResolvedValueOnce({ data: { debit_source: null, audio_attempts: 1, structured_anamnesis: { sections: [{ title: 'HDA', content: 'x' }] } }, error: null })
-    await abandonConsultation('patient-1', 3)
-    const payload = mockUpsert.mock.calls[0][0] as Record<string, unknown>
-    expect(payload.status).toBe('completed')
-    expect('created_at' in payload).toBe(false)
-    expect('updated_at' in payload).toBe(false)
   })
 })
 
@@ -402,34 +366,46 @@ describe('reconcileOrphanConsultations', () => {
     buildChain()
     mockGetServerUser.mockResolvedValue({ sub: 'user-1' })
     mockRefundCredit.mockResolvedValue(undefined)
-    mockUpsert.mockResolvedValue({})
+    mockRpc.mockResolvedValue({ data: 'paid', error: null })
   })
 
   it('não faz nada quando não autenticado', async () => {
     mockGetServerUser.mockResolvedValue(null)
     await reconcileOrphanConsultations('patient-keep')
-    expect(mockUpsert).not.toHaveBeenCalled()
+    expect(mockRpc).not.toHaveBeenCalled()
   })
 
-  it('resolve e devolve cada órfão sem IA, exceto o paciente atual', async () => {
+  it('resolve cada órfão via RPC e devolve a carteira retornada, exceto o paciente atual', async () => {
     chain.neq = vi.fn().mockResolvedValue({
       data: [
-        { patient_id: 'p-a', debit_source: 'paid', audio_attempts: 0, structured_anamnesis: { sections: [] } },
-        { patient_id: 'p-b', debit_source: 'bonus', audio_attempts: 0, structured_anamnesis: { sections: [{ title: 'HDA', content: 'x' }] } },
+        { patient_id: 'p-a', audio_attempts: 0, structured_anamnesis: { sections: [] } },
+        { patient_id: 'p-b', audio_attempts: 0, structured_anamnesis: { sections: [{ title: 'HDA', content: 'x' }] } },
       ],
       error: null,
     })
+    mockRpc.mockResolvedValueOnce({ data: 'paid', error: null }).mockResolvedValueOnce({ data: 'bonus', error: null })
 
     await reconcileOrphanConsultations('patient-keep')
 
-    expect(mockUpsert).toHaveBeenCalledWith(expect.objectContaining({ patient_id: 'p-a', status: 'abandoned' }), expect.anything())
-    expect(mockUpsert).toHaveBeenCalledWith(expect.objectContaining({ patient_id: 'p-b', status: 'completed' }), expect.anything())
+    expect(mockRpc).toHaveBeenCalledWith('resolve_consultation', expect.objectContaining({ p_patient_id: 'p-a', p_new_status: 'abandoned' }))
+    expect(mockRpc).toHaveBeenCalledWith('resolve_consultation', expect.objectContaining({ p_patient_id: 'p-b', p_new_status: 'completed' }))
     expect(mockRefundCredit).toHaveBeenCalledWith('user-1', 'paid')
     expect(mockRefundCredit).toHaveBeenCalledWith('user-1', 'bonus')
   })
 
-  it('não devolve nada quando não há órfãos', async () => {
+  it('não chama RPC nem devolve quando não há órfãos', async () => {
     chain.neq = vi.fn().mockResolvedValue({ data: [], error: null })
+    await reconcileOrphanConsultations('patient-keep')
+    expect(mockRpc).not.toHaveBeenCalled()
+    expect(mockRefundCredit).not.toHaveBeenCalled()
+  })
+
+  it('não devolve quando a RPC retorna null (linha já resolvida por outro gatilho)', async () => {
+    chain.neq = vi.fn().mockResolvedValue({
+      data: [{ patient_id: 'p-a', audio_attempts: 0, structured_anamnesis: { sections: [] } }],
+      error: null,
+    })
+    mockRpc.mockResolvedValueOnce({ data: null, error: null })
     await reconcileOrphanConsultations('patient-keep')
     expect(mockRefundCredit).not.toHaveBeenCalled()
   })
@@ -441,23 +417,24 @@ describe('reconcileStaleConsultations', () => {
     buildChain()
     mockGetServerUser.mockResolvedValue({ sub: 'user-1' })
     mockRefundCredit.mockResolvedValue(undefined)
-    mockUpsert.mockResolvedValue({})
+    mockRpc.mockResolvedValue({ data: 'paid', error: null })
   })
 
   it('não faz nada quando não autenticado', async () => {
     mockGetServerUser.mockResolvedValue(null)
     await reconcileStaleConsultations()
-    expect(mockUpsert).not.toHaveBeenCalled()
+    expect(mockRpc).not.toHaveBeenCalled()
   })
 
-  it('resolve in_progress parado há mais de 24h e devolve quando sem IA', async () => {
+  it('resolve in_progress parado há mais de 24h via RPC e devolve quando sem IA', async () => {
     chain.lt = vi.fn().mockResolvedValue({
-      data: [{ patient_id: 'p-old', debit_source: 'paid', audio_attempts: 0, structured_anamnesis: { sections: [] } }],
+      data: [{ patient_id: 'p-old', audio_attempts: 0, structured_anamnesis: { sections: [] } }],
       error: null,
     })
+    mockRpc.mockResolvedValueOnce({ data: 'paid', error: null })
     await reconcileStaleConsultations()
     expect(chain.eq).toHaveBeenCalledWith('status', 'in_progress')
-    expect(mockUpsert).toHaveBeenCalledWith(expect.objectContaining({ patient_id: 'p-old', status: 'abandoned' }), expect.anything())
+    expect(mockRpc).toHaveBeenCalledWith('resolve_consultation', expect.objectContaining({ p_patient_id: 'p-old', p_new_status: 'abandoned' }))
     expect(mockRefundCredit).toHaveBeenCalledWith('user-1', 'paid')
   })
 })

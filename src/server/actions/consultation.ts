@@ -6,6 +6,44 @@ import { CreditRepository } from '@/server/repositories/credits'
 import { resolveTerminalState } from '@/lib/consultation-state'
 import type { ConsultationStep } from '@/types'
 
+/**
+ * Resolve UM atendimento in_progress de forma atômica e idempotente.
+ *
+ * A RPC `resolve_consultation` faz a transição sob `SELECT ... FOR UPDATE` e
+ * devolve o `debit_source` antigo SOMENTE para a chamada que venceu a corrida
+ * (linha ainda `in_progress`). Chamadas concorrentes — dois gatilhos de
+ * reconciliação, duplo clique de abandono, retry de Server Action — recebem
+ * `null` e não devolvem crédito de novo. Isso previne duplo estorno.
+ *
+ * O status terminal não depende de `debit_source` — só de já existir anamnese
+ * (`completed`, preserva histórico) ou não (`abandoned`). Só devolve crédito se
+ * houve transição vencedora (source != null) E nenhuma IA foi usada
+ * (`audio_attempts === 0`).
+ */
+async function resolveAndRefund(
+  userId: string,
+  patientId: string,
+  row: { audio_attempts?: number | null; structured_anamnesis?: unknown },
+): Promise<void> {
+  const aiUsed = (row.audio_attempts ?? 0) > 0
+  const { status } = resolveTerminalState({
+    audio_attempts: row.audio_attempts,
+    structured_anamnesis: row.structured_anamnesis,
+    debit_source: null,
+  })
+
+  const { data: wonSource } = await supabase.rpc('resolve_consultation', {
+    p_user_id: userId,
+    p_patient_id: patientId,
+    p_new_status: status,
+  })
+
+  const source = (wonSource ?? null) as 'bonus' | 'paid' | null
+  if (source && !aiUsed) {
+    await CreditRepository.refundCredit(userId, source)
+  }
+}
+
 export async function debitConsultationCredit(patientId: string): Promise<{ error?: string }> {
   const user = await getServerUser()
   if (!user) return { error: 'Não autenticado' }
@@ -48,42 +86,27 @@ export async function debitConsultationCredit(patientId: string): Promise<{ erro
 
 export async function abandonConsultation(
   patientId: string,
+  // currentStep é mantido na assinatura por compatibilidade com o call-site,
+  // mas estados terminais não dependem do passo — a RPC não toca current_step.
   currentStep: ConsultationStep,
 ): Promise<void> {
+  void currentStep
   const user = await getServerUser()
   if (!user) return
 
-  // Fonte de verdade = banco. Lê tudo o que decide o desfecho.
+  // Fonte de verdade = banco. Lê só o que decide o desfecho; a transição +
+  // devolução acontecem atomicamente em resolveAndRefund (previne duplo estorno).
   const { data: existing } = await supabase
     .from('consultations')
-    .select('debit_source, audio_attempts, structured_anamnesis')
+    .select('audio_attempts, structured_anamnesis')
     .eq('user_id', user.sub)
     .eq('patient_id', patientId)
     .single()
 
-  const { status, refundSource } = resolveTerminalState({
+  await resolveAndRefund(user.sub, patientId, {
     audio_attempts: existing?.audio_attempts as number | null | undefined,
     structured_anamnesis: existing?.structured_anamnesis,
-    debit_source: (existing?.debit_source ?? null) as 'bonus' | 'paid' | null,
   })
-
-  // raw_transcript sempre limpo (privacidade). created_at/updated_at NÃO são
-  // tocados: no caminho 'completed' preserva a data real do atendimento; no
-  // caminho 'abandoned' abandonar não é um "atendimento" datável.
-  await supabase.from('consultations').upsert(
-    {
-      user_id: user.sub,
-      patient_id: patientId,
-      status,
-      current_step: currentStep,
-      raw_transcript: null,
-    },
-    { onConflict: 'user_id,patient_id' },
-  )
-
-  if (refundSource) {
-    await CreditRepository.refundCredit(user.sub, refundSource)
-  }
 }
 
 export async function saveTranscriptAndIncrementAttempts(
@@ -137,30 +160,17 @@ export async function reconcileOrphanConsultations(exceptPatientId: string): Pro
   // mas nenhum trabalho feito. Exclui o paciente que está sendo iniciado agora.
   const { data: orphans } = await supabase
     .from('consultations')
-    .select('patient_id, debit_source, audio_attempts, structured_anamnesis')
+    .select('patient_id, audio_attempts, structured_anamnesis')
     .eq('user_id', user.sub)
     .eq('status', 'in_progress')
     .eq('audio_attempts', 0)
     .neq('patient_id', exceptPatientId)
 
   for (const row of (orphans ?? [])) {
-    const { status, refundSource } = resolveTerminalState({
+    await resolveAndRefund(user.sub, row.patient_id as string, {
       audio_attempts: row.audio_attempts as number | null,
       structured_anamnesis: row.structured_anamnesis,
-      debit_source: (row.debit_source ?? null) as 'bonus' | 'paid' | null,
     })
-    await supabase.from('consultations').upsert(
-      {
-        user_id: user.sub,
-        patient_id: row.patient_id as string,
-        status,
-        raw_transcript: null,
-      },
-      { onConflict: 'user_id,patient_id' },
-    )
-    if (refundSource) {
-      await CreditRepository.refundCredit(user.sub, refundSource)
-    }
   }
 }
 
@@ -173,24 +183,16 @@ export async function reconcileStaleConsultations(): Promise<void> {
   const cutoff = new Date(Date.now() - ORPHAN_TTL_HOURS * 60 * 60 * 1000).toISOString()
   const { data: stale } = await supabase
     .from('consultations')
-    .select('patient_id, debit_source, audio_attempts, structured_anamnesis')
+    .select('patient_id, audio_attempts, structured_anamnesis')
     .eq('user_id', user.sub)
     .eq('status', 'in_progress')
     .lt('updated_at', cutoff)
 
   for (const row of (stale ?? [])) {
-    const { status, refundSource } = resolveTerminalState({
+    await resolveAndRefund(user.sub, row.patient_id as string, {
       audio_attempts: row.audio_attempts as number | null,
       structured_anamnesis: row.structured_anamnesis,
-      debit_source: (row.debit_source ?? null) as 'bonus' | 'paid' | null,
     })
-    await supabase.from('consultations').upsert(
-      { user_id: user.sub, patient_id: row.patient_id as string, status, raw_transcript: null },
-      { onConflict: 'user_id,patient_id' },
-    )
-    if (refundSource) {
-      await CreditRepository.refundCredit(user.sub, refundSource)
-    }
   }
 }
 
