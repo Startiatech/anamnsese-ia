@@ -223,8 +223,8 @@ export function UsersClient({ initialUsers, usdToBrl = 5.75 }: { initialUsers: U
                         <TableCell>
                           <div className="flex items-center gap-3 min-w-0">
                             <div
-                              className="h-8 w-8 rounded-lg shrink-0 flex items-center justify-center text-xs font-semibold text-violet-900"
-                              style={{ background: 'linear-gradient(135deg, #A78BFA, #22D3EE)' }}
+                              className="h-8 w-8 rounded-lg shrink-0 flex items-center justify-center text-xs font-semibold text-white"
+                              style={{ background: 'var(--gradient-brand)' }}
                             >
                               {getInitials(u.name)}
                             </div>

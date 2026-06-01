@@ -24,8 +24,8 @@ function SectionCard({ icon: Icon, title, description, children }: SectionCardPr
       <CardContent className="pt-5 pb-5">
         <div className="flex gap-4 mb-5">
           <div className="shrink-0">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-violet-500/15 dark:bg-violet-500/10 border border-violet-500/25 dark:border-violet-500/20">
-              <Icon className="h-5 w-5 text-violet-600 dark:text-violet-400" />
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-primary/10 border border-primary/20">
+              <Icon className="h-5 w-5 text-primary" />
             </div>
           </div>
           <div className="flex-1 space-y-1 pt-1">

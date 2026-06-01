@@ -52,14 +52,17 @@ export function InteressesClient({ interests }: { interests: PlanInterest[] }) {
             key={f.value}
             onClick={() => setFilter(f.value)}
             className={[
-              'inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-medium transition-colors',
+              'inline-flex items-center gap-1.5 h-8 px-3 rounded-lg border text-xs font-medium transition-colors whitespace-nowrap',
               filter === f.value
-                ? 'bg-violet-500/15 text-violet-600 dark:text-violet-400'
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted',
+                ? 'bg-primary text-primary-foreground border-primary'
+                : 'bg-transparent border-border text-muted-foreground hover:text-foreground hover:border-foreground/30',
             ].join(' ')}
           >
             {f.label}
-            <span className="text-[10px] bg-muted rounded px-1 py-0.5">{f.count}</span>
+            <span className={[
+              'text-[10px] rounded px-1 py-0.5',
+              filter === f.value ? 'bg-primary-foreground/20' : 'bg-muted',
+            ].join(' ')}>{f.count}</span>
           </button>
         ))}
       </div>
