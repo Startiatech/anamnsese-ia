@@ -51,7 +51,7 @@ export function TimeSavedCard({ todayCount, weekCount, monthCount, minutesPerCon
               Tempo Poupado
             </span>
           </div>
-          <div role="tablist" className="inline-flex h-7 items-center rounded-lg bg-muted p-1">
+          <div role="tablist" className="inline-flex h-7 items-center rounded-lg bg-primary/15 p-1">
             {TABS.map(tab => (
               <button
                 key={tab.value}
@@ -62,7 +62,7 @@ export function TimeSavedCard({ todayCount, weekCount, monthCount, minutesPerCon
                   'text-xs px-2 py-1 rounded-md transition-all',
                   period === tab.value
                     ? 'bg-background text-foreground shadow'
-                    : 'text-muted-foreground'
+                    : 'text-foreground/70 hover:text-foreground'
                 )}
               >
                 {tab.label}
