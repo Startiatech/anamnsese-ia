@@ -84,7 +84,6 @@
     --scrollbar-thumb:        oklch(0.44 0.18 250 / 35%);
     --scrollbar-thumb-hover:  oklch(0.44 0.18 250 / 60%);
     --gradient-brand:         linear-gradient(135deg, oklch(0.44 0.18 250), oklch(0.55 0.14 200));
-    --login-page-bg:          linear-gradient(110deg, oklch(0.89 0.030 280) 0%, oklch(0.93 0.016 280) 38%, oklch(0.97 0.010 280) 58%);
     --demo-card-shadow:       0 2px 16px rgba(0,0,0,0.06), 0 0 0 1px rgba(139,92,246,0.08);
     --section-tray-bg:        linear-gradient(to bottom, transparent, oklch(0.93 0.016 280) 28%, oklch(0.93 0.016 280) 72%, transparent);
     --section-cta-bg:         linear-gradient(to bottom, transparent, oklch(0.89 0.030 280) 22%, oklch(0.89 0.030 280) 78%, transparent);
@@ -173,7 +172,6 @@
     --scrollbar-thumb:        oklch(0.62 0.16 250 / 35%);
     --scrollbar-thumb-hover:  oklch(0.62 0.16 250 / 60%);
     --gradient-brand:         linear-gradient(135deg, oklch(0.62 0.16 250), oklch(0.67 0.14 200));
-    --login-page-bg:          none;
     --demo-card-shadow:       0 0 0 1px rgba(139,92,246,0.1), 0 40px 80px rgba(0,0,0,0.3), 0 0 60px rgba(124,58,237,0.08);
     --section-tray-bg:        linear-gradient(to bottom, transparent, oklch(0.273 0 0) 28%, oklch(0.273 0 0) 72%, transparent);
     --section-cta-bg:         linear-gradient(to bottom, transparent, oklch(0.195 0 0) 22%, oklch(0.195 0 0) 78%, transparent);
