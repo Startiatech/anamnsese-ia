@@ -9,9 +9,12 @@ paths:
 ## UI e arquitetura de componentes
 
 ### Design system
-- Dark-only — sem suporte a light mode
-- Gradientes: `#8B5CF6 → #06B6D4`
-- Proibido `rgba()` hardcoded em componentes reutilizáveis — usar tokens CSS
+- **Light + dark** — ambos os temas são suportados. Toda cor nova precisa funcionar nos dois.
+  - Cor de texto/ícone: usar par `text-*-600/700 dark:text-*-400` — nunca `-400` sozinho (lava no light).
+  - Gradiente da marca: sempre `var(--gradient-brand)` (azul→cyan) — proibido hex inline (`#8B5CF6` etc.).
+  - **Glow/neon:** usar tokens `var(--glow-*)` (transparente no light, neon no dark) ou `hidden dark:block`.
+    Nunca `shadow-[0_0_..._rgba()]` fixo — o neon vaza no light.
+- Proibido `rgba()`/hex hardcoded em componentes reutilizáveis — usar tokens CSS (`globals.css`)
 - Inputs: `border-b` apenas, sem border completo ou card pesado
 - Base obrigatória: shadcn/ui — não reinventar inputs, dropdowns, dialogs, cards
 
