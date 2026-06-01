@@ -78,7 +78,7 @@
     --logo-text-color:        oklch(0.18 0.025 260);
     --logo-from-color:        oklch(0.55 0.18 250);
     --logo-to-color:          oklch(0.55 0.14 200);
-    --subtitle-color:         oklch(0.48 0.14 200);
+    --subtitle-color:         oklch(0.44 0.18 250); /* azul --primary (era cyan 200) */
     --autofill-bg:            oklch(0.97 0.010 280);
     --autofill-text:          oklch(0.14 0.025 260);
     --scrollbar-thumb:        oklch(0.44 0.18 250 / 35%);
@@ -166,7 +166,7 @@
     --logo-text-color:        oklch(0.92 0.012 260);
     --logo-from-color:        oklch(0.72 0.15 270);
     --logo-to-color:          oklch(0.67 0.14 200);
-    --subtitle-color:         oklch(0.67 0.14 200);
+    --subtitle-color:         oklch(0.62 0.16 250); /* azul --primary (era cyan 200) */
     --autofill-bg:            oklch(0.227 0 0); /* alinhado ao fundo */
     --autofill-text:          oklch(0.92 0.012 260);
     --scrollbar-thumb:        oklch(0.62 0.16 250 / 35%);
