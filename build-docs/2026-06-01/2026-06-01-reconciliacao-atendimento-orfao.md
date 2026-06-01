@@ -45,6 +45,14 @@ Após corrigir o estorno via banco no F5 (build anterior do dia), restava a dív
 
 Não altera schema — usa os 3 estados e colunas já existentes (`debit_source`, `audio_attempts`, `structured_anamnesis`, `updated_at`). Nada a rodar em prod/dev.
 
+## Correção pós-review: refund idempotente (CRÍTICO)
+
+A revisão final apontou um bug crítico de concorrência: a transição de status e o `refundCredit` ocorriam em passos separados, não atômicos. Dois gatilhos simultâneos (ex.: dashboard carregando enquanto o usuário inicia atendimento), duplo clique ou retry de Server Action podiam ler a linha ainda como `in_progress` e **devolver o crédito duas vezes**.
+
+**Fix (`20260601c_resolve_consultation_atomic.sql` + `resolveAndRefund`):** RPC `resolve_consultation(p_user_id, p_patient_id, p_new_status)` faz `SELECT ... FOR UPDATE` + `UPDATE ... WHERE status='in_progress'` e retorna o `debit_source` antigo **só para a chamada que venceu a corrida** (o lock de linha serializa concorrentes; a segunda vê status já alterado → retorna `NULL`). O refund é gateado por esse retorno **e** por `audio_attempts === 0`. `debit_source` é zerado na transição (2ª camada de idempotência). As 3 funções (`abandonConsultation`, `reconcileOrphanConsultations`, `reconcileStaleConsultations`) agora compartilham `resolveAndRefund`.
+
+Commit `6a9a1b0`. **Migration `20260601c` precisa rodar em prod E dev.**
+
 ## Seam para Fase 2 (timeline de eventos)
 
 A resolução (`resolveTerminalState` + os pontos que aplicam o update) é o único choke point onde a Fase 2 vai emitir `activity_events` (paciente cadastrado/deletado, atendimento completado/interrompido). A "Atividade recente" do dashboard vira uma timeline rotulada read-only consumindo esses eventos. Plano separado.
