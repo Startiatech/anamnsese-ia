@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 
 export interface UnderlineTab<T extends string = string> {
@@ -21,18 +22,32 @@ export function UnderlineTabs<T extends string = string>({
   active,
   onChange,
 }: UnderlineTabsProps<T>) {
+  const activeRef = useRef<HTMLButtonElement>(null)
+
+  // Em telas estreitas a barra rola horizontalmente (scrollbar oculta); ao
+  // trocar de tab, garante que a ativa fique visivel na viewport — afordancia
+  // de que ha mais tabs e impede que a ativa fique cortada fora de vista.
+  useEffect(() => {
+    // scrollIntoView pode nao existir em ambiente de teste (jsdom) — guarda.
+    activeRef.current?.scrollIntoView?.({ inline: 'nearest', block: 'nearest' })
+  }, [active])
+
   return (
     <div className="border-b border-border">
-      <nav className="flex gap-1">
+      {/* flex-nowrap + overflow-x-auto: em telas estreitas a barra de tabs rola
+          horizontalmente em vez de estourar a largura da pagina (que comeria o
+          respiro lateral). Scrollbar oculta para nao poluir a UI. */}
+      <nav className="flex flex-nowrap gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {tabs.map(({ id, label, icon: Icon, disabled, disabledTitle }) => (
           <Button
             key={id}
+            ref={active === id ? activeRef : undefined}
             variant="ghost"
             onClick={() => !disabled && onChange(id)}
             disabled={disabled}
             title={disabledTitle}
             className={[
-              'flex items-center gap-2 px-4 py-2.5 h-auto -mb-px border-b-2 rounded-none transition-colors',
+              'flex shrink-0 items-center gap-2 px-4 py-2.5 h-auto -mb-px border-b-2 rounded-none whitespace-nowrap transition-colors',
               active === id
                 ? 'bg-[color-mix(in_oklch,var(--primary)_12%,transparent)] text-primary border-primary font-medium rounded-t-md hover:bg-[color-mix(in_oklch,var(--primary)_20%,transparent)] hover:text-primary'
                 : disabled
