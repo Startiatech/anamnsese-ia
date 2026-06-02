@@ -246,7 +246,7 @@ export function Topbar(props: TopbarProps) {
       className="sticky top-0 h-16 z-50 transition-all duration-300"
       style={headerStyle}
     >
-      <div className="h-full flex items-center gap-2 px-3 md:gap-3 md:px-4">
+      <div className="h-full mx-auto w-full max-w-5xl flex items-center gap-2 px-3 md:gap-3 md:px-4">
 
         {/* ── Mobile: trigger hambúrguer + logo (sidebar é Sheet no mobile) ── */}
         <div className="flex items-center gap-1.5 md:hidden">
