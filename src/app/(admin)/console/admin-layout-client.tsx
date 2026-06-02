@@ -12,6 +12,7 @@ import { Topbar } from '@/components/layout/topbar'
 import { ScrollToTop } from '@/components/ui/scroll-to-top'
 import { LayoutDashboard, Users, ClipboardList, CreditCard, Settings, MessageSquare, Megaphone, Bell } from 'lucide-react'
 import { ROUTES } from '@/lib/routes'
+import { LAYOUT_MAX_W } from '@/lib/layout'
 import type { AccessRequest } from '@/lib/types'
 import type { User } from '@/types'
 import type { Notification } from '@/server/repositories/notifications'
@@ -78,7 +79,7 @@ function AdminShell({ children, interestCount, initialNotifications, initialNoti
           notifications={initialNotifications}
           notificationsUnread={initialNotificationsUnread}
         />
-        <main id="main-content" tabIndex={-1} className="container max-w-5xl mx-auto px-4 py-10">
+        <main id="main-content" tabIndex={-1} className={`container ${LAYOUT_MAX_W.content} mx-auto px-4 py-10`}>
           {children}
         </main>
         <ScrollToTop />

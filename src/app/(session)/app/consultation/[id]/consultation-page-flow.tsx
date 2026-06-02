@@ -18,6 +18,7 @@ import { ROUTES } from '@/lib/routes'
 import type { ClinicData } from '@/lib/clinic'
 import { Logo } from '@/components/ui/logo'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
+import { LAYOUT_MAX_W } from '@/lib/layout'
 import { TrialEndModal } from '@/components/trial/trial-end-modal'
 import { CompleteConfirmDialog } from './complete-confirm-dialog'
 import type { Patient } from '@/types'
@@ -210,7 +211,7 @@ function AtendimentoFlow({
       <div className="flex flex-col h-screen">
         {/* Topbar */}
         <header className="h-14 border-b border-border bg-card shrink-0 flex items-center px-6 z-40">
-          <div className="w-full max-w-screen-2xl mx-auto flex items-center justify-between">
+          <div className={`w-full ${LAYOUT_MAX_W.shell} mx-auto flex items-center justify-between`}>
             <Logo size="md" id="session" />
             <ThemeToggle />
           </div>
@@ -240,7 +241,7 @@ function AtendimentoFlow({
         </div>
 
         {/* Body */}
-        <div className="w-full max-w-screen-2xl mx-auto flex flex-col md:flex-row flex-1 overflow-hidden">
+        <div className={`w-full ${LAYOUT_MAX_W.shell} mx-auto flex flex-col md:flex-row flex-1 overflow-hidden`}>
           {/* Sidebar — hidden on mobile */}
           <aside className="hidden md:flex w-64 shrink-0 border-r border-border bg-card/40 flex-col p-6 gap-8">
             {/* Patient info */}

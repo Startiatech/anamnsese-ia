@@ -22,6 +22,7 @@ import { DeletionBanner } from '@/components/layout/deletion-banner'
 import { PinTempBanner } from '@/components/layout/pin-temp-banner'
 import { CreditInjectedModal } from '@/components/notifications/credit-injected-modal'
 import { VisibilityRefresh } from '@/components/system/visibility-refresh'
+import { LAYOUT_MAX_W } from '@/lib/layout'
 import type { User } from '@/types'
 
 const NAV_ITEMS = [
@@ -113,7 +114,7 @@ function AppShell({ children, isOnboarding, deletionScheduledAt, bonusCredits, p
           />
           <DeletionBanner deletionScheduledAt={deletionScheduledAt} />
           <PinTempBanner pinIsTemp={pinIsTemp} />
-          <main id="main-content" tabIndex={-1} className="container max-w-5xl mx-auto px-4 py-10">
+          <main id="main-content" tabIndex={-1} className={`container ${LAYOUT_MAX_W.content} mx-auto px-4 py-10`}>
             {children}
           </main>
           <ScrollToTop />
