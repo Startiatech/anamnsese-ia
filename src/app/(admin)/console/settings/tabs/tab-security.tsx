@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
 import { toast } from 'sonner'
 import { Eye, EyeOff, Save, KeyRound } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
@@ -11,19 +10,9 @@ import { Button } from '@/components/ui/button'
 import { IconBadge } from '@/components/ui/icon-badge'
 import { FieldInput, FieldLabel } from '@/components/ui/field-input'
 import { updateMasterProfile } from '@/server/actions/settings'
+import { masterPasswordChangeSchema, type MasterPasswordChangeFormData } from '@/lib/schemas'
 
-const schema = z
-  .object({
-    currentPassword: z.string().min(1, 'Informe a senha atual'),
-    newPassword:     z.string().min(8, 'Mínimo 8 caracteres'),
-    confirmPassword: z.string(),
-  })
-  .refine((d) => d.newPassword === d.confirmPassword, {
-    message: 'As senhas não coincidem',
-    path: ['confirmPassword'],
-  })
-
-type FormData = z.infer<typeof schema>
+type FormData = MasterPasswordChangeFormData
 
 function PasswordField({
   label,
@@ -61,7 +50,7 @@ function PasswordField({
 
 export function TabSecurity({ userName }: { userName: string }) {
   const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<FormData>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(masterPasswordChangeSchema),
     mode: 'onTouched',
   })
 

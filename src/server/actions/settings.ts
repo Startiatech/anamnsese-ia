@@ -3,7 +3,7 @@
 import { getServerUser } from '@/server/services/session'
 import { findUserById, updateUser } from '@/server/repositories/users'
 import { comparePassword, hashPassword } from '@/server/services/auth'
-import { masterProfileSchema } from '@/lib/schemas'
+import { masterProfileSchema, masterPasswordChangeSchema } from '@/lib/schemas'
 
 interface ProfileInput {
   name: string
@@ -31,8 +31,13 @@ export async function updateMasterProfile(
   const { currentPassword, newPassword, confirmPassword } = data
 
   if (newPassword) {
-    if (confirmPassword !== newPassword) {
-      return { ok: false, error: 'A confirmação de senha não confere.' }
+    const parsedPassword = masterPasswordChangeSchema.safeParse({
+      currentPassword,
+      newPassword,
+      confirmPassword,
+    })
+    if (!parsedPassword.success) {
+      return { ok: false, error: parsedPassword.error.issues[0]?.message ?? 'Senha inválida.' }
     }
     const user = await findUserById(userId)
     if (!user) return { ok: false, error: 'Usuário não encontrado.' }

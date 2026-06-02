@@ -135,6 +135,40 @@ describe('updateMasterProfile', () => {
     expect(result).toEqual({ ok: false, error: 'Senha atual incorreta.' })
   })
 
+  it('rejeita nova senha com menos de 8 caracteres (defesa no servidor)', async () => {
+    mockGetServerUser.mockResolvedValue(masterUser)
+
+    const result = await updateMasterProfile({
+      name: 'Master',
+      currentPassword: 'correct',
+      newPassword: '1234567',
+      confirmPassword: '1234567',
+    })
+
+    expect(mockCompare).not.toHaveBeenCalled()
+    expect(mockHash).not.toHaveBeenCalled()
+    expect(mockUpdateUser).not.toHaveBeenCalled()
+    expect(result.ok).toBe(false)
+    expect(result.error).toMatch(/8 caracteres/i)
+  })
+
+  it('rejeita nova senha acima de 72 bytes (truncamento bcrypt)', async () => {
+    mockGetServerUser.mockResolvedValue(masterUser)
+
+    const longPassword = 'a'.repeat(73)
+    const result = await updateMasterProfile({
+      name: 'Master',
+      currentPassword: 'correct',
+      newPassword: longPassword,
+      confirmPassword: longPassword,
+    })
+
+    expect(mockHash).not.toHaveBeenCalled()
+    expect(mockUpdateUser).not.toHaveBeenCalled()
+    expect(result.ok).toBe(false)
+    expect(result.error).toMatch(/72 bytes/i)
+  })
+
   it('rejeita quando confirmPassword não confere com newPassword', async () => {
     mockGetServerUser.mockResolvedValue(masterUser)
 
@@ -146,6 +180,6 @@ describe('updateMasterProfile', () => {
     })
 
     expect(mockCompare).not.toHaveBeenCalled()
-    expect(result).toEqual({ ok: false, error: 'A confirmação de senha não confere.' })
+    expect(result).toEqual({ ok: false, error: 'As senhas não coincidem' })
   })
 })

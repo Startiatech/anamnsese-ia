@@ -107,6 +107,30 @@ export const masterProfileSchema = z.object({
 
 export type MasterProfileFormData = z.infer<typeof masterProfileSchema>
 
+/**
+ * Senha nova — regra única do projeto: mínimo 8 caracteres.
+ * Limite de 72 bytes porque o bcrypt trunca silenciosamente além disso
+ * (caracteres multibyte UTF-8 consomem 2-4 bytes cada).
+ */
+export const newPasswordSchema = z
+  .string()
+  .min(8, 'Mínimo 8 caracteres')
+  .refine((s) => new TextEncoder().encode(s).length <= 72, 'Senha muito longa (máx. 72 bytes)')
+
+/** Troca de senha do master (console). */
+export const masterPasswordChangeSchema = z
+  .object({
+    currentPassword: z.string().min(1, 'Informe a senha atual'),
+    newPassword: newPasswordSchema,
+    confirmPassword: z.string(),
+  })
+  .refine((d) => d.newPassword === d.confirmPassword, {
+    message: 'As senhas não coincidem',
+    path: ['confirmPassword'],
+  })
+
+export type MasterPasswordChangeFormData = z.infer<typeof masterPasswordChangeSchema>
+
 export const REGISTRY_TYPES = [
   'CRM',     // Medicina
   'CRP',     // Psicologia
