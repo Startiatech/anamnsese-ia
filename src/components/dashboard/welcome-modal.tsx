@@ -82,7 +82,7 @@ export function WelcomeModal({ show, userName }: WelcomeModalProps) {
       style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}
     >
       <div
-        className="relative w-full max-w-md rounded-2xl overflow-hidden bg-card border border-primary/25"
+        className="relative w-full max-w-md rounded-2xl overflow-hidden bg-card border border-blue-500/25"
       >
         {/* Fechar */}
         <Button variant="ghost" size="icon" onClick={handleClose} className="absolute right-4 top-4 z-10">
@@ -92,8 +92,7 @@ export function WelcomeModal({ show, userName }: WelcomeModalProps) {
         {/* Header */}
         <div className="px-6 pt-8 pb-6 text-center">
           <div
-            className="relative inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-4"
-            style={{ background: 'rgba(124,58,237,0.15)', border: '1px solid rgba(124,58,237,0.3)' }}
+            className="relative inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-4 bg-blue-500/15 border border-blue-500/30"
           >
             <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
               <defs>

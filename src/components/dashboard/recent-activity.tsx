@@ -43,8 +43,8 @@ export function RecentActivity({ consultations, patients }: RecentActivityProps)
               const name = patient?.name ?? 'Paciente desconhecido'
               return (
                 <div key={c.id} className="flex items-start gap-3">
-                  <div className="w-5 h-5 rounded-full border flex items-center justify-center shrink-0 mt-0.5 bg-primary/10 border-primary/20">
-                    <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                  <div className="w-5 h-5 rounded-full border flex items-center justify-center shrink-0 mt-0.5 bg-blue-500/15 dark:bg-blue-500/10 border-blue-500/25 dark:border-blue-500/20">
+                    <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-foreground font-medium truncate">{name}</p>

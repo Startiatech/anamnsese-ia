@@ -44,8 +44,8 @@ export function NoCreditsModal({ open, onClose }: NoCreditsModalProps) {
             style={{ background: 'radial-gradient(ellipse 80% 60% at 50% 0%, rgba(239,68,68,0.12) 0%, transparent 70%)' }}
           />
           <div
-            className="relative inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-4"
-            style={{ background: 'rgba(124,58,237,0.15)', border: '1px solid rgba(124,58,237,0.3)', boxShadow: '0 0 24px var(--glow-brand)' }}
+            className="relative inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-4 bg-blue-500/15 border border-blue-500/30"
+            style={{ boxShadow: '0 0 24px var(--glow-brand)' }}
           >
             <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
               <defs>

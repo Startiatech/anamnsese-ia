@@ -76,8 +76,8 @@ export function WeeklyChart({ consultations }: WeeklyChartProps) {
               <div
                 className={`w-full rounded-t transition-all ${
                   isToday
-                    ? 'bg-primary'
-                    : 'bg-primary/30'
+                    ? 'bg-blue-500'
+                    : 'bg-blue-500/30'
                 }`}
                 style={{ height: barHeight }}
               />
@@ -86,7 +86,7 @@ export function WeeklyChart({ consultations }: WeeklyChartProps) {
             {/* Day label */}
             <span
               className={`text-xs leading-none ${
-                isToday ? 'font-semibold text-primary' : 'text-muted-foreground'
+                isToday ? 'font-semibold text-blue-600 dark:text-blue-400' : 'text-muted-foreground'
               }`}
             >
               {DAY_LABELS[i]}
