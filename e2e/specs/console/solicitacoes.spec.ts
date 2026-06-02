@@ -270,8 +270,8 @@ test.describe('console requests (admin)', () => {
     expect(overflow).toBeLessThanOrEqual(1)
   })
 
-  test('mensagem da solicitacao fica acessivel via tooltip "Ver"', async ({ page, context }, testInfo) => {
-    test.skip(testInfo.project.name === 'mobile', 'tooltip "Ver" é padrão desktop; no mobile a mensagem é inline no card')
+  test('mensagem da solicitacao abre em dialog ao clicar "Ver"', async ({ page, context }, testInfo) => {
+    test.skip(testInfo.project.name === 'mobile', 'botao "Ver" da tabela é desktop/tablet; no mobile a mensagem é inline no card')
 
     await loginAsMasterViaCookie(context)
     const seeded = await createAccessRequest()
@@ -282,8 +282,14 @@ test.describe('console requests (admin)', () => {
     const row = page.getByRole('row').filter({ hasText: seeded.email })
     await expect(row).toBeVisible({ timeout: 10_000 })
 
-    // O botao "Ver" da coluna Mensagem existe na linha (createAccessRequest seeda message='Teste E2E')
+    // Clicar em "Ver" abre a mensagem em dialog (tocavel — funciona no touch).
+    // createAccessRequest seeda message='Teste E2E'.
     const verBtn = row.getByRole('button', { name: /^ver$/i })
     await expect(verBtn).toBeVisible()
+    await verBtn.click()
+
+    const dialog = page.getByRole('dialog')
+    await expect(dialog).toBeVisible()
+    await expect(dialog.getByText(/teste e2e/i)).toBeVisible()
   })
 })

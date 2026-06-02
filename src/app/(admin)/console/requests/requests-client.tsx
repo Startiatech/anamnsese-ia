@@ -17,9 +17,7 @@ import {
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import {
-  Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
-} from '@/components/ui/tooltip'
+import { AppDialog } from '@/components/ui/app-dialog'
 import { CredentialsDialog } from './credentials-dialog'
 
 interface Credentials {
@@ -50,6 +48,7 @@ export function RequestsClient(_: { initialRequests: AccessRequest[] }) {
   const [filter, setFilter] = useState<Filter>('all')
   const [processingId, setProcessingId] = useState<string | null>(null)
   const [credentials, setCredentials] = useState<Credentials | null>(null)
+  const [viewMessage, setViewMessage] = useState<AccessRequest | null>(null)
 
   async function handleReject(request: AccessRequest) {
     setProcessingId(request.id)
@@ -189,7 +188,7 @@ export function RequestsClient(_: { initialRequests: AccessRequest[] }) {
           </EmptyHeader>
         </Empty>
       ) : (
-        <TooltipProvider delayDuration={200}>
+        <>
           <div className="hidden md:block rounded-xl border border-border overflow-hidden">
             <Table>
               <TableHeader>
@@ -216,17 +215,15 @@ export function RequestsClient(_: { initialRequests: AccessRequest[] }) {
                       <TableCell className="text-sm text-muted-foreground">{r.phone}</TableCell>
                       <TableCell>
                         {r.message ? (
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <button className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
-                                <MessageSquare className="h-3.5 w-3.5" />
-                                Ver
-                              </button>
-                            </TooltipTrigger>
-                            <TooltipContent side="top" className="max-w-xs text-xs italic">
-                              &ldquo;{r.message}&rdquo;
-                            </TooltipContent>
-                          </Tooltip>
+                          // Clique/toque abre a mensagem em dialog — funciona no
+                          // touch (tablet), onde nao ha hover para tooltip.
+                          <button
+                            onClick={() => setViewMessage(r)}
+                            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                          >
+                            <MessageSquare className="h-3.5 w-3.5" />
+                            Ver
+                          </button>
                         ) : (
                           <span className="text-xs text-muted-foreground/40">—</span>
                         )}
@@ -293,7 +290,22 @@ export function RequestsClient(_: { initialRequests: AccessRequest[] }) {
               />
             ))}
           </div>
-        </TooltipProvider>
+        </>
+      )}
+
+      {viewMessage && (
+        <AppDialog
+          open
+          onOpenChange={(o) => { if (!o) setViewMessage(null) }}
+          title={`Mensagem — ${viewMessage.name}`}
+          description={`Solicitação de ${viewMessage.email}`}
+          logoId="request-message-modal"
+          maxWidth="max-w-md"
+        >
+          <p className="text-sm italic text-foreground whitespace-pre-wrap break-words">
+            &ldquo;{viewMessage.message}&rdquo;
+          </p>
+        </AppDialog>
       )}
 
       {credentials && (
