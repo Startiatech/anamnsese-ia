@@ -253,6 +253,21 @@ describe('ConsultationPageFlow — credit refund logic', () => {
   })
 })
 
+describe('ConsultationPageFlow — topbar', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockToastPromise.mockImplementation((promise) => promise)
+  })
+
+  it('envolve o conteúdo do header num container central com largura máxima (não cola nos cantos em telas grandes)', () => {
+    renderFlow()
+    const header = screen.getByRole('banner')
+    const wrapper = header.querySelector('.max-w-screen-2xl')
+    expect(wrapper).not.toBeNull()
+    expect(wrapper?.className).toContain('mx-auto')
+  })
+})
+
 describe('ConsultationPageFlow — TrialEndModal timing (experimental plan, last credit)', () => {
   const trialProps = { creditsRemaining: 1, planId: 'experimental' } as Partial<typeof defaultProps>
 

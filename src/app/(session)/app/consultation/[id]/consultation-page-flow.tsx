@@ -209,9 +209,11 @@ function AtendimentoFlow({
 
       <div className="flex flex-col h-screen">
         {/* Topbar */}
-        <header className="h-14 border-b border-border bg-card shrink-0 flex items-center justify-between px-6 z-40">
-          <Logo size="md" id="session" />
-          <ThemeToggle />
+        <header className="h-14 border-b border-border bg-card shrink-0 flex items-center px-6 z-40">
+          <div className="w-full max-w-screen-2xl mx-auto flex items-center justify-between">
+            <Logo size="md" id="session" />
+            <ThemeToggle />
+          </div>
         </header>
 
         {/* Mobile strip — patient info + step indicator + abandon (visible only below md) */}
