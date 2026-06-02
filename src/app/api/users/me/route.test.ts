@@ -70,13 +70,39 @@ describe('PATCH /api/users/me', () => {
       mockComparePassword.mockResolvedValue(true)
       mockHashPassword.mockResolvedValue('new-hash')
 
-      const res = await PATCH(makeRequest({ currentPassword: 'old', newPassword: 'new' }))
+      const res = await PATCH(makeRequest({ currentPassword: 'old', newPassword: 'newpass123' }))
       const json = await res.json()
 
       expect(mockUpdate).toHaveBeenCalledWith(
         expect.objectContaining({ password_hash: 'new-hash', password_is_temp: false }),
       )
       expect(json).toEqual({ ok: true })
+    })
+
+    it('rejeita nova senha com menos de 8 caracteres (defesa no servidor)', async () => {
+      mockFindUserById.mockResolvedValue({
+        id: 'user-1', email: 'a@b.com', name: 'Test', passwordHash: 'hashed', role: 'user',
+      })
+
+      const res = await PATCH(makeRequest({ currentPassword: 'old', newPassword: '1234567' }))
+
+      expect(mockComparePassword).not.toHaveBeenCalled()
+      expect(mockHashPassword).not.toHaveBeenCalled()
+      expect(mockUpdate).not.toHaveBeenCalled()
+      expect(res.status).toBe(400)
+    })
+
+    it('rejeita nova senha acima de 72 bytes (truncamento bcrypt)', async () => {
+      mockFindUserById.mockResolvedValue({
+        id: 'user-1', email: 'a@b.com', name: 'Test', passwordHash: 'hashed', role: 'user',
+      })
+
+      const longPassword = 'a'.repeat(73)
+      const res = await PATCH(makeRequest({ currentPassword: 'old', newPassword: longPassword }))
+
+      expect(mockHashPassword).not.toHaveBeenCalled()
+      expect(mockUpdate).not.toHaveBeenCalled()
+      expect(res.status).toBe(400)
     })
   })
 

@@ -3,7 +3,7 @@ import { getServerUser } from '@/server/services/session'
 import { supabase } from '@/server/supabase'
 import { comparePassword, hashPassword } from '@/server/services/auth'
 import { findUserById, updateClinicData, updateAccessibilityPrefs } from '@/server/repositories/users'
-import { clinicSchema, accessibilityPrefsSchema } from '@/lib/schemas'
+import { clinicSchema, accessibilityPrefsSchema, newPasswordSchema } from '@/lib/schemas'
 import { capitalizeName } from '@/lib/utils'
 
 export async function PATCH(req: NextRequest) {
@@ -57,6 +57,12 @@ export async function PATCH(req: NextRequest) {
 
   // ─── Atualização de senha ─────────────────────────────────────────────────
   if (profileBody.newPassword) {
+    const parsedPassword = newPasswordSchema.safeParse(profileBody.newPassword)
+    if (!parsedPassword.success) {
+      const message = parsedPassword.error.issues[0]?.message ?? 'Senha inválida'
+      return NextResponse.json({ error: message }, { status: 400 })
+    }
+
     const user = await findUserById(payload.sub)
     if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 })
 
@@ -67,7 +73,7 @@ export async function PATCH(req: NextRequest) {
       if (!valid) return NextResponse.json({ error: 'Senha atual incorreta' }, { status: 400 })
     }
 
-    const newHash = await hashPassword(profileBody.newPassword as string)
+    const newHash = await hashPassword(parsedPassword.data)
     // Limpa a senha temporaria em texto plano: usuario agora tem senha propria,
     // master nao precisa mais (e nao deve) ver a antiga via "Ver credenciais".
     await supabase
