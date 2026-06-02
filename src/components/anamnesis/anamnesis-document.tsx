@@ -31,7 +31,7 @@ export function AnamnesisDocument({
   return (
     // Fonte fixada em Times New Roman para a tela/PDF baterem exatamente com o DOCX.
     <div
-      className="mx-auto w-full max-w-[210mm] bg-white text-neutral-900 shadow-2xl rounded-sm px-12 py-12 print:shadow-none print:rounded-none"
+      className="mx-auto w-full max-w-[210mm] bg-white text-neutral-900 shadow-2xl rounded-sm px-6 py-8 md:px-12 md:py-12 print:px-12 print:py-12 print:shadow-none print:rounded-none"
       style={{ fontFamily: '"Times New Roman", Times, serif' }}
     >
       {/* Cabeçalho institucional — dados centralizados, logo à esquerda */}
