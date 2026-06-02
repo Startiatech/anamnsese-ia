@@ -54,7 +54,11 @@ test.describe('configuracoes do usuario', () => {
       timeout: 30_000,
     })
 
-    const novoNome = `E2E Nome ${Date.now()}`
+    // O produto normaliza nomes via capitalizeName (pt-br: 1a letra de cada
+    // palavra em maiuscula, resto minusculo). Usamos um valor ja em formato
+    // canonico ("E2e", nao "E2E") para que a normalizacao seja no-op e a
+    // assercao valide a persistencia real sem depender de re-derivar a regra.
+    const novoNome = `E2e Nome ${Date.now()}`
     const nomeInput = page.getByTestId('settings-profile-name')
     await expect(nomeInput).toBeVisible()
     await nomeInput.fill(novoNome)
@@ -106,7 +110,9 @@ test.describe('configuracoes do usuario', () => {
     const nomeClinicaInput = page.getByTestId('settings-clinic-name')
     await expect(nomeClinicaInput).toBeVisible({ timeout: 10_000 })
 
-    const novoNomeClinica = `E2E Clinica ${Date.now()}`
+    // Nome ja em formato canonico (capitalizeName e no-op) — ver comentario no
+    // teste de perfil acima.
+    const novoNomeClinica = `E2e Clinica ${Date.now()}`
     await nomeClinicaInput.fill(novoNomeClinica)
     await page.getByTestId('settings-clinic-cnpj').fill('11.222.333/0001-81')
 
