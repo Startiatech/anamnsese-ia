@@ -4,7 +4,7 @@ import { useState, type Dispatch, type SetStateAction } from 'react'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { StatusBadge } from '@/components/console/status-badge'
-import { Pencil, Check, X, Plus, Trash2, Zap, Loader2, LayoutList } from 'lucide-react'
+import { Pencil, Check, Plus, Trash2, Zap, Loader2, LayoutList } from 'lucide-react'
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription, EmptyContent } from '@/components/ui/empty'
 import { PageHeader } from '@/components/console/page-header'
 import { toast } from 'sonner'
@@ -12,6 +12,7 @@ import { updatePlan, createPlan, deletePlan } from './actions'
 import { API } from '@/lib/routes'
 import { Button } from '@/components/ui/button'
 import { UnderlineTabs } from '@/components/ui/underline-tabs'
+import { AppDialog } from '@/components/ui/app-dialog'
 
 
 export interface PlanFeature {
@@ -74,28 +75,27 @@ function EditModal({ plan, onSave, onClose }: EditModalProps) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
-      <Card className="relative w-full max-w-lg p-6 space-y-5 z-10 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between">
-          <h2 className="text-base font-semibold text-foreground">Editar — {plan.name}</h2>
-          <Button variant="ghost" size="icon" onClick={onClose}><X className="h-4 w-4" /></Button>
-        </div>
-
-        <PlanFormFields draft={draft} setDraft={(fn) => setDraft((p) => ({ ...p, ...fn(p) }))} newFeature={newFeature} setNewFeature={setNewFeature} onAddFeature={addFeature} onToggleFeature={toggleFeature} onRemoveFeature={removeFeature} onEditFeature={editFeature} />
-
-        <div className="flex gap-2 pt-1">
-          <Button variant="outline" onClick={onClose} disabled={saving} className="flex-1">Cancelar</Button>
+    <AppDialog
+      open
+      onOpenChange={(o) => { if (!o) onClose() }}
+      title={`Editar — ${plan.name}`}
+      logoId="plan-edit-modal"
+      maxWidth="max-w-lg"
+      footer={
+        <>
+          <Button variant="outline" onClick={onClose} disabled={saving}>Cancelar</Button>
           <Button
             onClick={async () => { setSaving(true); await onSave(draft); setSaving(false) }}
             disabled={saving}
-            className="flex-1 gap-2"
+            style={{ background: 'var(--gradient-brand)', color: 'white' }}
           >
-            {saving ? <><Loader2 className="h-3.5 w-3.5 animate-spin" />Aguarde...</> : 'Salvar alterações'}
+            {saving ? 'Aguarde...' : 'Salvar alterações'}
           </Button>
-        </div>
-      </Card>
-    </div>
+        </>
+      }
+    >
+      <PlanFormFields draft={draft} setDraft={(fn) => setDraft((p) => ({ ...p, ...fn(p) }))} newFeature={newFeature} setNewFeature={setNewFeature} onAddFeature={addFeature} onToggleFeature={toggleFeature} onRemoveFeature={removeFeature} onEditFeature={editFeature} />
+    </AppDialog>
   )
 }
 
@@ -149,28 +149,27 @@ function CreateModal({ onSave, onClose, nextSortOrder }: CreateModalProps) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
-      <Card className="relative w-full max-w-lg p-6 space-y-5 z-10 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between">
-          <h2 className="text-base font-semibold text-foreground">Novo plano</h2>
-          <Button variant="ghost" size="icon" onClick={onClose}><X className="h-4 w-4" /></Button>
-        </div>
-
-        <PlanFormFields draft={draft} setDraft={setDraft} newFeature={newFeature} setNewFeature={setNewFeature} onAddFeature={addFeature} onToggleFeature={toggleFeature} onRemoveFeature={removeFeature} onEditFeature={editFeature} />
-
-        <div className="flex gap-2 pt-1">
-          <Button variant="outline" onClick={onClose} disabled={saving} className="flex-1">Cancelar</Button>
+    <AppDialog
+      open
+      onOpenChange={(o) => { if (!o) onClose() }}
+      title="Novo plano"
+      logoId="plan-create-modal"
+      maxWidth="max-w-lg"
+      footer={
+        <>
+          <Button variant="outline" onClick={onClose} disabled={saving}>Cancelar</Button>
           <Button
             onClick={async () => { setSaving(true); await onSave(draft); setSaving(false) }}
             disabled={saving || !draft.name.trim()}
-            className="flex-1 gap-2"
+            style={{ background: 'var(--gradient-brand)', color: 'white' }}
           >
-            {saving ? <><Loader2 className="h-3.5 w-3.5 animate-spin" />Aguarde...</> : 'Criar plano'}
+            {saving ? 'Aguarde...' : 'Criar plano'}
           </Button>
-        </div>
-      </Card>
-    </div>
+        </>
+      }
+    >
+      <PlanFormFields draft={draft} setDraft={setDraft} newFeature={newFeature} setNewFeature={setNewFeature} onAddFeature={addFeature} onToggleFeature={toggleFeature} onRemoveFeature={removeFeature} onEditFeature={editFeature} />
+    </AppDialog>
   )
 }
 
@@ -186,44 +185,44 @@ function DeletePlanModal({ plan, userCount, onConfirm, onClose }: DeletePlanModa
   const [deleting, setDeleting] = useState(false)
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
-      <Card className="relative w-full max-w-sm p-6 space-y-4 z-10" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between">
-          <h2 className="text-base font-semibold text-foreground">Remover plano</h2>
-          <Button variant="ghost" size="icon" onClick={onClose}><X className="h-4 w-4" /></Button>
-        </div>
-        <p className="text-sm text-muted-foreground">
-          Tem certeza que deseja remover o plano <span className="font-medium text-foreground">{plan.name}</span>? Esta ação não pode ser desfeita.
-        </p>
-        {plan.active && (
-          <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2.5">
-            <span className="text-amber-600 dark:text-amber-400 text-xs mt-0.5">⚠</span>
-            <p className="text-xs text-amber-700 dark:text-amber-400 leading-relaxed">
-              Este plano está <span className="font-semibold">ativo</span>
-              {userCount === null
-                ? ' e pode estar vinculado a profissionais.'
-                : userCount === 0
-                  ? ' mas não possui profissionais vinculados.'
-                  : <> e possui <span className="font-semibold">{userCount} {userCount === 1 ? 'profissional vinculado' : 'profissionais vinculados'}</span>.</>
-              }
-              {' '}Removê-lo pode impactar usuários que utilizam este plano atualmente.
-            </p>
-          </div>
-        )}
-        <div className="flex gap-2 pt-1">
-          <Button variant="outline" onClick={onClose} disabled={deleting} className="flex-1">Cancelar</Button>
+    <AppDialog
+      open
+      onOpenChange={(o) => { if (!o) onClose() }}
+      title="Remover plano"
+      logoId="plan-delete-modal"
+      maxWidth="max-w-sm"
+      footer={
+        <>
+          <Button variant="outline" onClick={onClose} disabled={deleting}>Cancelar</Button>
           <Button
             variant="destructive"
             onClick={async () => { setDeleting(true); await onConfirm(); setDeleting(false) }}
             disabled={deleting}
-            className="flex-1 gap-2"
           >
-            {deleting ? <><Loader2 className="h-3.5 w-3.5 animate-spin" />Aguarde...</> : 'Remover'}
+            {deleting ? 'Aguarde...' : 'Remover'}
           </Button>
+        </>
+      }
+    >
+      <p className="text-sm text-muted-foreground">
+        Tem certeza que deseja remover o plano <span className="font-medium text-foreground">{plan.name}</span>? Esta ação não pode ser desfeita.
+      </p>
+      {plan.active && (
+        <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2.5">
+          <span className="text-amber-600 dark:text-amber-400 text-xs mt-0.5">⚠</span>
+          <p className="text-xs text-amber-700 dark:text-amber-400 leading-relaxed">
+            Este plano está <span className="font-semibold">ativo</span>
+            {userCount === null
+              ? ' e pode estar vinculado a profissionais.'
+              : userCount === 0
+                ? ' mas não possui profissionais vinculados.'
+                : <> e possui <span className="font-semibold">{userCount} {userCount === 1 ? 'profissional vinculado' : 'profissionais vinculados'}</span>.</>
+            }
+            {' '}Removê-lo pode impactar usuários que utilizam este plano atualmente.
+          </p>
         </div>
-      </Card>
-    </div>
+      )}
+    </AppDialog>
   )
 }
 
@@ -252,7 +251,7 @@ function PlanFormFields({ draft, setDraft, newFeature, setNewFeature, onAddFeatu
         <input value={draft.description} onChange={(e) => setDraft((p) => ({ ...p, description: e.target.value }))} className={fieldClass} />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-1">
           <label className="text-xs text-muted-foreground">Preço (R$/mês)</label>
           <input type="number" value={draft.price} onChange={(e) => setDraft((p) => ({ ...p, price: Number(e.target.value) }))} className={fieldClass} />
@@ -266,8 +265,10 @@ function PlanFormFields({ draft, setDraft, newFeature, setNewFeature, onAddFeatu
       <div className="flex items-center justify-between">
         <span className="text-xs text-muted-foreground">Plano ativo</span>
         <button
+          aria-label="Plano ativo"
           onClick={() => setDraft((p) => ({ ...p, active: !p.active }))}
-          className={`w-9 h-5 rounded-full transition-colors relative ${draft.active ? 'bg-highlight' : 'bg-border'}`}
+          // before: amplia a area tocavel para ~40px sem alterar o visual do trilho
+          className={`w-9 h-5 rounded-full transition-colors relative before:absolute before:-inset-y-2.5 before:-inset-x-1 before:content-[''] ${draft.active ? 'bg-highlight' : 'bg-border'}`}
         >
           <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all ${draft.active ? 'left-4' : 'left-0.5'}`} />
         </button>
@@ -275,24 +276,35 @@ function PlanFormFields({ draft, setDraft, newFeature, setNewFeature, onAddFeatu
 
       <div className="space-y-2">
         <label className="text-xs text-muted-foreground">Funcionalidades</label>
-        <div className="space-y-1.5">
+        <div className="space-y-1">
           {draft.features.map((f) => (
-            <div key={f.id} className="flex items-center gap-2 group">
-              <button onClick={() => onToggleFeature(f.id)} className={`shrink-0 w-4 h-4 rounded border flex items-center justify-center transition-colors ${f.active ? 'bg-highlight/20 border-highlight/40 text-highlight' : 'border-border text-transparent'}`}>
-                <Check className="h-2.5 w-2.5" />
+            <div key={f.id} className="flex items-center gap-1 group">
+              <button
+                aria-label={f.active ? 'Desativar funcionalidade' : 'Ativar funcionalidade'}
+                onClick={() => onToggleFeature(f.id)}
+                className="shrink-0 p-2 -m-1 text-transparent transition-colors"
+              >
+                <span className={`inline-flex w-4 h-4 rounded border items-center justify-center ${f.active ? 'bg-highlight/20 border-highlight/40 text-highlight' : 'border-border text-transparent'}`}>
+                  <Check className="h-2.5 w-2.5" />
+                </span>
               </button>
               <input
                 value={f.label}
                 onChange={(e) => onEditFeature(f.id, e.target.value)}
                 className={`flex-1 bg-transparent border-b border-transparent focus:border-highlight pb-0.5 text-xs focus:outline-none transition-colors ${f.active ? 'text-foreground' : 'text-muted-foreground line-through'}`}
               />
-              <button onClick={() => onRemoveFeature(f.id)} className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-all">
-                <Trash2 className="h-3 w-3" />
+              {/* Sempre visivel no mobile (sem hover no toque); some ate hover no desktop. */}
+              <button
+                aria-label="Remover funcionalidade"
+                onClick={() => onRemoveFeature(f.id)}
+                className="shrink-0 p-2 -m-1 text-muted-foreground hover:text-destructive opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all"
+              >
+                <Trash2 className="h-4 w-4 md:h-3 md:w-3" />
               </button>
             </div>
           ))}
         </div>
-        <div className="flex items-center gap-2 pt-1">
+        <div className="flex items-center gap-1 pt-1">
           <input
             value={newFeature}
             onChange={(e) => setNewFeature(e.target.value)}
@@ -300,8 +312,8 @@ function PlanFormFields({ draft, setDraft, newFeature, setNewFeature, onAddFeatu
             placeholder="Nova funcionalidade..."
             className="flex-1 bg-transparent border-b border-border pb-1 text-xs text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-highlight transition-colors"
           />
-          <button onClick={onAddFeature} className="text-highlight hover:text-highlight/70 transition-colors">
-            <Plus className="h-3.5 w-3.5" />
+          <button aria-label="Adicionar funcionalidade" onClick={onAddFeature} className="shrink-0 p-2 -m-1 text-highlight hover:text-highlight/70 transition-colors">
+            <Plus className="h-4 w-4" />
           </button>
         </div>
       </div>
