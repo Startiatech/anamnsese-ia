@@ -31,7 +31,7 @@ export function LastAnamnesisSheet({ open, onOpenChange, patient, userId }: Last
       onOpenChange={onOpenChange}
       title={`Última anamnese — ${patient.name}`}
       description="Resultado da última consulta registrada."
-      icon={<FileText className="h-4 w-4 text-primary" />}
+      icon={<FileText className="h-4 w-4 text-blue-600 dark:text-blue-400" />}
       hideFooter
     >
       {isPending && (

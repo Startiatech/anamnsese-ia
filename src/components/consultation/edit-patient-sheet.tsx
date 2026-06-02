@@ -82,7 +82,7 @@ export function EditPatientSheet({ open, onOpenChange, patient, onSuccess }: Edi
       onCancel={() => reset()}
       title="Editar Paciente"
       description={`Altere os dados de ${patient.name}.`}
-      icon={<UserPen className="h-4 w-4 text-primary" />}
+      icon={<UserPen className="h-4 w-4 text-blue-600 dark:text-blue-400" />}
       formId={FORM_ID}
       submitLabel="Salvar alterações"
       submitDisabled={isSubmitting}

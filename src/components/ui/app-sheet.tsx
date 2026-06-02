@@ -66,7 +66,7 @@ export function AppSheet({
         <div className="px-6 py-5 border-b border-border pr-14 shrink-0 bg-primary/[0.08] dark:bg-primary/[0.06]">
           <div className="flex items-center gap-3 mb-1">
             {icon && (
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 bg-primary/15 dark:bg-primary/10 border border-primary/30 dark:border-primary/25">
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 bg-blue-500/15 dark:bg-blue-500/10 border border-blue-500/25 dark:border-blue-500/20">
                 {icon}
               </div>
             )}
