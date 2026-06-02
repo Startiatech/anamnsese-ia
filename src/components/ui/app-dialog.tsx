@@ -53,8 +53,13 @@ export function AppDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       {/* flex-col + max-h: header e footer fixos, miolo rolavel — garante que o
-          rodape (botoes) nunca fique cortado/atras do teclado no mobile. */}
-      <DialogContent className={`${maxWidth} w-[calc(100%-2rem)] p-0 gap-0 overflow-hidden flex flex-col max-h-[90vh]`}>
+          rodape (botoes) nunca fique cortado/atras do teclado no mobile.
+          Sem description: aria-describedby={undefined} (escape hatch do Radix)
+          silencia o warning de a11y de forma intencional. */}
+      <DialogContent
+        className={`${maxWidth} w-[calc(100%-2rem)] p-0 gap-0 overflow-hidden flex flex-col max-h-[90vh]`}
+        {...(description ? {} : { 'aria-describedby': undefined })}
+      >
         <DialogHeader className="shrink-0 px-6 pt-6 pb-5 space-y-4">
           <div className="flex flex-col items-center gap-4">
             <Logo size="sm" id={logoId} />
