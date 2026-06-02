@@ -19,9 +19,9 @@ const PLAN_ICONS: Record<string, React.ElementType> = {
 
 const PLAN_COLORS: Record<string, { icon: string; iconBg: string; badge: string }> = {
   experimental: {
-    icon:   'text-cyan-700 dark:text-cyan-400',
-    iconBg: 'bg-cyan-500/10 border-cyan-500/25',
-    badge:  'bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 border-cyan-500/20',
+    icon:   'text-blue-600 dark:text-blue-400',
+    iconBg: 'bg-blue-500/15 dark:bg-blue-500/10 border-blue-500/25 dark:border-blue-500/20',
+    badge:  'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20',
   },
   profissional: {
     icon:   'text-violet-600 dark:text-violet-400',
@@ -109,7 +109,7 @@ export function PlanCard({ plan, isCurrent }: PlanCardProps) {
                   onClick={() => setSheetOpen(true)}
                   className="h-auto px-2 py-0.5 rounded-full border border-dashed border-border text-xs gap-1"
                 >
-                  <Info className="h-2.5 w-2.5 shrink-0" />
+                  <Info className="h-2.5 w-2.5 shrink-0 text-blue-600 dark:text-blue-400" />
                   Visualizar recursos detalhados
                 </Button>
               )}
