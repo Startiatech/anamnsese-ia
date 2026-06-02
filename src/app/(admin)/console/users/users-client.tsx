@@ -20,6 +20,7 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { formatBRL } from '@/lib/currency'
+import { UserCard } from './user-card'
 import { AddUserModal } from './add-user-modal'
 import { EditUserModal } from './edit-user-modal'
 import { DeleteUserModal, type DeleteSummary } from './delete-user-modal'
@@ -162,8 +163,8 @@ export function UsersClient({ initialUsers, usdToBrl = 5.75 }: { initialUsers: U
           </Empty>
         ) : (
           <>
-            <div className="flex gap-3">
-              <div className="relative flex-1 max-w-sm">
+            <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
+              <div className="relative flex-1 sm:max-w-sm">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
                 <input
                   type="text"
@@ -183,7 +184,7 @@ export function UsersClient({ initialUsers, usdToBrl = 5.75 }: { initialUsers: U
                 )}
               </div>
               <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>
-                <SelectTrigger className="h-9 w-36 text-sm bg-card border-border">
+                <SelectTrigger className="h-9 w-full sm:w-36 text-sm bg-card border-border">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -204,7 +205,28 @@ export function UsersClient({ initialUsers, usdToBrl = 5.75 }: { initialUsers: U
                 </EmptyHeader>
               </Empty>
             ) : (
-              <div className="rounded-lg border border-border overflow-hidden">
+              <>
+              {/* Mobile (<md): lista de cards — reaproveita os mesmos handlers.
+                  Acoes criticas master com alvos de toque >=40px. */}
+              <div className="grid gap-3 md:hidden">
+                {filteredUsers.map((u) => (
+                  <UserCard
+                    key={u.id}
+                    user={u}
+                    processing={processingId === u.id}
+                    usdToBrl={usdToBrl}
+                    onEdit={setEditUser}
+                    onDelete={openDeleteModal}
+                    onToggleBlock={handleToggleBlock}
+                    onInject={setInjectUser}
+                    onResetPin={setResetPinUser}
+                  />
+                ))}
+              </div>
+
+              {/* Tablet+ (>=md): tabela densa. Sem overflow-hidden (cortaria o
+                  scroll interno do Table shadcn). */}
+              <div className="hidden md:block rounded-lg border border-border">
                 <Table>
                   <TableHeader>
                     <TableRow className="hover:bg-transparent">
@@ -307,6 +329,7 @@ export function UsersClient({ initialUsers, usdToBrl = 5.75 }: { initialUsers: U
                   </TableBody>
                 </Table>
               </div>
+              </>
             )}
           </>
         )}

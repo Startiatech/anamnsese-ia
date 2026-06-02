@@ -74,6 +74,19 @@ async function waitForUserField<T>(
   throw new Error(`[e2e] timeout esperando ${column}=${String(expected)} (atual=${String(last)}) para user ${id}`)
 }
 
+// A lista de usuarios tem duas apresentacoes: cards (md:hidden, mobile) e
+// tabela (hidden md:block, tablet+). Retorna o container do usuario conforme o
+// viewport do projeto para os testes funcionarem em qualquer largura.
+function userContainer(
+  page: import('@playwright/test').Page,
+  projectName: string,
+  email: string,
+) {
+  return projectName === 'mobile'
+    ? page.getByTestId('user-card').filter({ hasText: email })
+    : page.getByRole('row').filter({ hasText: email })
+}
+
 async function disableSonnerPointerEvents(page: import('@playwright/test').Page) {
   await page.evaluate(() => {
     document
@@ -103,8 +116,9 @@ test.describe('console users (admin)', () => {
     // Filtros (busca + select status)
     await expect(page.getByPlaceholder(/buscar por nome ou e-mail/i)).toBeVisible()
 
-    // O usuario seedado aparece na tabela
-    await expect(page.getByText(seeded.email)).toBeVisible({ timeout: 10_000 })
+    // O usuario seedado aparece (card no mobile, linha da tabela no tablet+).
+    // filter visible: ignora a apresentacao oculta via CSS de breakpoint.
+    await expect(page.getByText(seeded.email).filter({ visible: true })).toBeVisible({ timeout: 10_000 })
   })
 
   test('criar usuario via modal persiste no banco', async ({ page, context }, testInfo) => {
@@ -213,11 +227,11 @@ test.describe('console users (admin)', () => {
       await disableSonnerPointerEvents(page)
     }
 
-    // Filtra pela linha do usuario seedado
-    const row = page.getByRole('row').filter({ hasText: seeded.email })
+    // Container do usuario seedado (card no mobile, linha no tablet+)
+    const row = userContainer(page, testInfo.project.name, seeded.email)
     await expect(row).toBeVisible({ timeout: 10_000 })
 
-    // O menu MoreHorizontal eh o ultimo botao da linha
+    // O menu (MoreHorizontal / "Mais ações") eh o ultimo botao do container
     const menuTrigger = row.getByRole('button').last()
     await expect(menuTrigger).toBeEnabled()
     await menuTrigger.click()
@@ -267,10 +281,10 @@ test.describe('console users (admin)', () => {
       await disableSonnerPointerEvents(page)
     }
 
-    const row = page.getByRole('row').filter({ hasText: seeded.email })
+    const row = userContainer(page, testInfo.project.name, seeded.email)
     await expect(row).toBeVisible({ timeout: 10_000 })
 
-    // Botao de editar (Pencil) tem title="Editar"
+    // Botao de editar (Pencil title="Editar" na tabela / texto "Editar" no card)
     const editBtn = row.getByRole('button', { name: /editar/i }).first()
     await expect(editBtn).toBeEnabled()
     await editBtn.click()
@@ -304,13 +318,13 @@ test.describe('console users (admin)', () => {
     await page.goto('/console/users')
     await page.waitForLoadState('networkidle')
 
-    await expect(page.getByText(seeded.email)).toBeVisible({ timeout: 10_000 })
+    await expect(page.getByText(seeded.email).filter({ visible: true })).toBeVisible({ timeout: 10_000 })
 
     const search = page.getByPlaceholder(/buscar por nome ou e-mail/i)
     await search.fill(seeded.email)
 
-    // A row do seedado permanece
-    await expect(page.getByText(seeded.email)).toBeVisible()
+    // O seedado permanece (card no mobile, linha no tablet+)
+    await expect(page.getByText(seeded.email).filter({ visible: true })).toBeVisible()
 
     // Termo sem correspondencia: empty state aparece
     await search.fill('zzz-no-match-xyz-' + Date.now())

@@ -70,51 +70,57 @@ const users: UserRow[] = [
 describe('UsersClient — filtros', () => {
   beforeEach(() => vi.clearAllMocks())
 
+  // A lista tem duas apresentacoes simultaneas no DOM: cards (md:hidden) e
+  // tabela (hidden md:block). jsdom nao aplica CSS de breakpoint, entao um nome
+  // aparece em ambas. Conta-se presenca por >=1 ocorrencia / ausencia por 0.
+  const shown = (name: string) => expect(screen.getAllByText(name).length).toBeGreaterThan(0)
+  const absent = (name: string) => expect(screen.queryAllByText(name)).toHaveLength(0)
+
   it('exibe todos os usuários sem filtro aplicado', () => {
     render(<UsersClient initialUsers={users} />)
-    expect(screen.getByText('Ana Silva')).toBeInTheDocument()
-    expect(screen.getByText('Bruno Matos')).toBeInTheDocument()
-    expect(screen.getByText('Carla Dias')).toBeInTheDocument()
+    shown('Ana Silva')
+    shown('Bruno Matos')
+    shown('Carla Dias')
   })
 
   it('filtra por nome (case-insensitive)', () => {
     render(<UsersClient initialUsers={users} />)
     fireEvent.change(screen.getByPlaceholderText(/buscar/i), { target: { value: 'ana' } })
-    expect(screen.getByText('Ana Silva')).toBeInTheDocument()
-    expect(screen.queryByText('Bruno Matos')).not.toBeInTheDocument()
-    expect(screen.queryByText('Carla Dias')).not.toBeInTheDocument()
+    shown('Ana Silva')
+    absent('Bruno Matos')
+    absent('Carla Dias')
   })
 
   it('filtra por email', () => {
     render(<UsersClient initialUsers={users} />)
     fireEvent.change(screen.getByPlaceholderText(/buscar/i), { target: { value: 'bruno@' } })
-    expect(screen.queryByText('Ana Silva')).not.toBeInTheDocument()
-    expect(screen.getByText('Bruno Matos')).toBeInTheDocument()
+    absent('Ana Silva')
+    shown('Bruno Matos')
   })
 
   it('filtra por status bloqueado', () => {
     render(<UsersClient initialUsers={users} />)
     fireEvent.change(screen.getByRole('combobox'), { target: { value: 'blocked' } })
-    expect(screen.queryByText('Ana Silva')).not.toBeInTheDocument()
-    expect(screen.getByText('Bruno Matos')).toBeInTheDocument()
-    expect(screen.queryByText('Carla Dias')).not.toBeInTheDocument()
+    absent('Ana Silva')
+    shown('Bruno Matos')
+    absent('Carla Dias')
   })
 
   it('filtra por status onboarding', () => {
     render(<UsersClient initialUsers={users} />)
     fireEvent.change(screen.getByRole('combobox'), { target: { value: 'onboarding' } })
-    expect(screen.queryByText('Ana Silva')).not.toBeInTheDocument()
-    expect(screen.queryByText('Bruno Matos')).not.toBeInTheDocument()
-    expect(screen.getByText('Carla Dias')).toBeInTheDocument()
+    absent('Ana Silva')
+    absent('Bruno Matos')
+    shown('Carla Dias')
   })
 
   it('combina filtro de texto e status', () => {
     render(<UsersClient initialUsers={users} />)
     fireEvent.change(screen.getByPlaceholderText(/buscar/i), { target: { value: 'a' } })
     fireEvent.change(screen.getByRole('combobox'), { target: { value: 'active' } })
-    expect(screen.getByText('Ana Silva')).toBeInTheDocument()
-    expect(screen.queryByText('Bruno Matos')).not.toBeInTheDocument()
-    expect(screen.queryByText('Carla Dias')).not.toBeInTheDocument()
+    shown('Ana Silva')
+    absent('Bruno Matos')
+    absent('Carla Dias')
   })
 
   it('exibe mensagem quando filtro não retorna resultados', () => {
