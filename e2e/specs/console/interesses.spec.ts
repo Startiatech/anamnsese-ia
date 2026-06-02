@@ -59,6 +59,15 @@ async function deleteInterest(id: string): Promise<void> {
   await supabase.from('plan_interest').delete().eq('id', id)
 }
 
+// A lista tem duas apresentacoes: cards (md:hidden, mobile) e tabela
+// (hidden md:block, tablet+). Retorna o container do interesse conforme o
+// viewport do projeto.
+function interestContainer(page: Page, projectName: string, email: string) {
+  return projectName === 'mobile'
+    ? page.getByTestId('interest-card').filter({ hasText: email })
+    : page.locator('tr').filter({ hasText: email })
+}
+
 async function disableSonnerPointerEvents(page: Page) {
   await page.evaluate(() => {
     document
@@ -100,8 +109,8 @@ test.describe('console interesses (admin)', () => {
         await disableSonnerPointerEvents(page)
       }
 
-      // Linha da tabela com email unico (mais robusto que name)
-      const row = page.locator('tr', { hasText: seeded.email }).first()
+      // Container do interesse (card no mobile, linha no tablet+)
+      const row = interestContainer(page, testInfo.project.name, seeded.email).first()
       await expect(row).toBeVisible()
       await expect(row.getByText(seeded.name)).toBeVisible()
       await expect(row.getByText(/profissional/i).first()).toBeVisible()
@@ -125,14 +134,14 @@ test.describe('console interesses (admin)', () => {
       }
 
       // Antes do filtro: ambos visiveis
-      await expect(page.locator('tr', { hasText: profissional.email })).toBeVisible()
-      await expect(page.locator('tr', { hasText: gestao.email })).toBeVisible()
+      await expect(interestContainer(page, testInfo.project.name, profissional.email)).toBeVisible()
+      await expect(interestContainer(page, testInfo.project.name, gestao.email)).toBeVisible()
 
       // Clica filtro Profissional
       await page.getByRole('button', { name: /^profissional/i }).click()
 
-      await expect(page.locator('tr', { hasText: profissional.email })).toBeVisible()
-      await expect(page.locator('tr', { hasText: gestao.email })).toHaveCount(0)
+      await expect(interestContainer(page, testInfo.project.name, profissional.email)).toBeVisible()
+      await expect(interestContainer(page, testInfo.project.name, gestao.email)).toHaveCount(0)
     } finally {
       await deleteInterest(profissional.id)
       await deleteInterest(gestao.id)
@@ -155,8 +164,8 @@ test.describe('console interesses (admin)', () => {
 
       await page.getByRole('button', { name: /gestão & clínicas/i }).click()
 
-      await expect(page.locator('tr', { hasText: gestao.email })).toBeVisible()
-      await expect(page.locator('tr', { hasText: profissional.email })).toHaveCount(0)
+      await expect(interestContainer(page, testInfo.project.name, gestao.email)).toBeVisible()
+      await expect(interestContainer(page, testInfo.project.name, profissional.email)).toHaveCount(0)
     } finally {
       await deleteInterest(profissional.id)
       await deleteInterest(gestao.id)
