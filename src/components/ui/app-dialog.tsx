@@ -52,8 +52,10 @@ export function AppDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={`${maxWidth} p-0 gap-0 overflow-hidden`}>
-        <DialogHeader className="px-6 pt-6 pb-5 space-y-4">
+      {/* flex-col + max-h: header e footer fixos, miolo rolavel — garante que o
+          rodape (botoes) nunca fique cortado/atras do teclado no mobile. */}
+      <DialogContent className={`${maxWidth} w-[calc(100%-2rem)] p-0 gap-0 overflow-hidden flex flex-col max-h-[90vh]`}>
+        <DialogHeader className="shrink-0 px-6 pt-6 pb-5 space-y-4">
           <div className="flex flex-col items-center gap-4">
             <Logo size="sm" id={logoId} />
             <div className="w-full h-px bg-gradient-to-r from-transparent via-primary/25 to-transparent" />
@@ -66,12 +68,12 @@ export function AppDialog({
           )}
         </DialogHeader>
 
-        <div className="px-6 pb-6 space-y-4">
+        <div className="flex-1 min-h-0 overflow-y-auto px-6 pb-6 space-y-4">
           {children}
         </div>
 
         {showFooter && (
-          <div className="px-6 py-4 border-t border-border flex gap-2 justify-end">
+          <div className="shrink-0 px-6 py-4 border-t border-border flex flex-col-reverse gap-2 sm:flex-row sm:justify-end [&>button]:w-full sm:[&>button]:w-auto">
             {footer !== undefined ? footer : (
               <>
                 <Button type="button" variant="outline" onClick={handleCancel}>
