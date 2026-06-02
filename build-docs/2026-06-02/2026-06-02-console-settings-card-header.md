@@ -43,6 +43,22 @@ Antes, os cards do console exibiam apenas os campos, sem o cabeçalho de context
   `src/app/(admin)/console/settings/tabs/tab-security.tsx`, alinhando validação e copy.
 - Teste TDD adicionado: senha com 7 caracteres exibe "Mínimo 8 caracteres" e não
   dispara o submit. `tab-security` do console — 3/3 verdes.
-- Observação: a validação de tamanho vive no schema do client (tanto user quanto
-  master); a Server Action `updateMasterProfile` não revalida o tamanho — mesma
-  postura já existente no lado user. Endurecer no servidor fica como melhoria futura.
+
+### Defesa em profundidade (servidor)
+
+- Criados schemas centralizados em `src/lib/schemas.ts`:
+  - `newPasswordSchema` — regra única `min(8)` + limite de **72 bytes** (refine com
+    `TextEncoder`). O limite de 72 bytes existe porque o `bcryptjs` trunca a entrada
+    silenciosamente além disso; `max(200)` seria enganoso (apontado pelo
+    `@security-reviewer`).
+  - `masterPasswordChangeSchema` — currentPassword + newPassword + confirmPassword
+    com refine de coincidência.
+- `updateMasterProfile` (`src/server/actions/settings.ts`) agora valida a troca de
+  senha com `masterPasswordChangeSchema` **antes** de comparar/hashear — rejeita
+  senha < 8 e divergência de confirmação no servidor, não só no client.
+- O client do console (`tab-security.tsx`) passou a importar o schema centralizado,
+  eliminando a duplicação do schema inline.
+- Mensagem de divergência unificada para "As senhas não coincidem" (mesma copy do
+  client); teste da action ajustado de acordo.
+- Cobertura: `settings.test.ts` (10 testes, incluindo o novo "rejeita senha < 8") e
+  `tab-security.test.tsx` (3) — 13/13 verdes.
