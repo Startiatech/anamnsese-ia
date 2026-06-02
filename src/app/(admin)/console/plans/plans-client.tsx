@@ -424,7 +424,7 @@ export function PlansClient({ initialPlans }: { initialPlans: Plan[] }) {
         <div className="lg:col-span-2">
           <Card className="p-5 space-y-4">
             <div className="flex items-center gap-2">
-              <Badge className="text-xs bg-primary/10 text-primary border-primary/20">{plan.name.toUpperCase()}</Badge>
+              <Badge className="text-xs bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20">{plan.name.toUpperCase()}</Badge>
               <StatusBadge variant="plan" status={plan.active ? 'active' : 'inactive'} />
             </div>
 

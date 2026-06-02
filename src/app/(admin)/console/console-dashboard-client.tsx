@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { ROUTES } from '@/lib/routes'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { IconBadge } from '@/components/ui/icon-badge'
 import { Users, ClipboardList, CheckCircle, Clock, ArrowRight, UserRoundX, ActivityIcon, Stethoscope, RefreshCw, Bell } from 'lucide-react'
 import { toast } from 'sonner'
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription } from '@/components/ui/empty'
@@ -149,9 +150,7 @@ export function ConsoleDashboardClient({
               <CardTitle className="text-sm text-muted-foreground font-normal">Profissionais cadastrados</CardTitle>
             </CardHeader>
             <CardContent className="flex items-center gap-4 pt-2">
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 border bg-primary/10 border-primary/20">
-                <Stethoscope className="h-6 w-6 text-primary" />
-              </div>
+              <IconBadge icon={Stethoscope} size="lg" />
               <div>
                 <p className="text-3xl font-bold text-foreground">{professionalsCount}</p>
                 <p className="text-xs text-muted-foreground mt-0.5">ativos, sem exclusão agendada</p>
@@ -180,9 +179,7 @@ export function ConsoleDashboardClient({
                     <p className="text-xs text-muted-foreground mb-1">{label}</p>
                     <p className="text-2xl font-bold text-foreground">{value}</p>
                   </div>
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border bg-primary/10 border-primary/20">
-                    <Icon className="h-4 w-4 text-primary" />
-                  </div>
+                  <IconBadge icon={Icon} size="sm" />
                 </div>
               </CardContent>
             </Card>
@@ -294,8 +291,8 @@ export function ConsoleDashboardClient({
                 <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
                   {professionals.map((p) => (
                     <div key={p.id} className="flex items-center gap-3 p-2.5 rounded-lg border border-border">
-                      <div className="w-7 h-7 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
-                        <Users className="h-3.5 w-3.5 text-primary" />
+                      <div className="w-7 h-7 rounded-lg bg-blue-500/15 dark:bg-blue-500/10 border border-blue-500/25 dark:border-blue-500/20 flex items-center justify-center shrink-0">
+                        <Users className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-foreground truncate">{p.name}</p>

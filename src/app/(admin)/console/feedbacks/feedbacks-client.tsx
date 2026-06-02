@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Star, Mail, MessageCircle, TrendingUp, TrendingDown, ArrowUpRight, MessageSquare, Loader2, RefreshCw, XCircle, Accessibility } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { IconBadge } from '@/components/ui/icon-badge'
 import { Separator } from '@/components/ui/separator'
 import { Button } from '@/components/ui/button'
 import { Empty, EmptyMedia, EmptyHeader, EmptyTitle, EmptyDescription, EmptyContent } from '@/components/ui/empty'
@@ -90,9 +91,7 @@ export function FeedbacksClient({ metrics, feedbacks, a11yRequests, a11yPendingC
                   <p className="text-xs text-muted-foreground mb-1">{label}</p>
                   <p className="text-2xl font-bold text-foreground">{value}</p>
                 </div>
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border bg-primary/10 border-primary/20">
-                  <Icon className="h-4 w-4 text-primary" />
-                </div>
+                <IconBadge icon={Icon} size="sm" />
               </div>
             </CardContent>
           </Card>

@@ -112,8 +112,8 @@ export function ResetPinModal({ user, open, onClose, onSuccess }: ResetPinModalP
     >
       {pin ? (
         <div className="space-y-3">
-          <div className="flex items-center justify-between rounded-xl px-4 py-3 bg-violet-500/[0.08] border border-violet-500/25">
-            <span className="text-2xl font-mono font-bold tracking-[0.4em] text-violet-700 dark:text-violet-300">{pin}</span>
+          <div className="flex items-center justify-between rounded-xl px-4 py-3 bg-blue-500/10 border border-blue-500/25">
+            <span className="text-2xl font-mono font-bold tracking-[0.4em] text-blue-700 dark:text-blue-300">{pin}</span>
             <Button variant="ghost" size="icon" onClick={handleCopy} className="shrink-0">
               {copied ? <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400" /> : <Copy className="h-4 w-4" />}
             </Button>

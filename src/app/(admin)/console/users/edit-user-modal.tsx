@@ -114,7 +114,7 @@ export function EditUserModal({ user, open, onClose, onSuccess, usdToBrl = 5.75 
       {/* Consumo Groq — separado do form para não submeter */}
       <div className="border-t border-border pt-4 space-y-2">
         <p className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
-          <Cpu className="h-3.5 w-3.5 text-violet-600 dark:text-violet-400" /> Consumo Groq
+          <Cpu className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" /> Consumo Groq
         </p>
         {!costResult ? (
           <p className="text-xs text-muted-foreground">Carregando...</p>
@@ -137,7 +137,7 @@ export function EditUserModal({ user, open, onClose, onSuccess, usdToBrl = 5.75 
             <div className="flex items-center justify-between text-xs pt-1 border-t border-border">
               <span className="font-medium text-foreground">Total</span>
               <div className="text-right">
-                <span className="font-mono font-semibold text-violet-600 dark:text-violet-400">${costResult.total.toFixed(4)}</span>
+                <span className="font-mono font-semibold text-blue-600 dark:text-blue-400">${costResult.total.toFixed(4)}</span>
                 <p className="font-mono text-muted-foreground text-[10px]">{formatBRL(costResult.total, usdToBrl)}</p>
               </div>
             </div>
