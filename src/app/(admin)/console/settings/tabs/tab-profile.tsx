@@ -3,9 +3,10 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
-import { Save } from 'lucide-react'
+import { Save, UserCircle } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { IconBadge } from '@/components/ui/icon-badge'
 import { FieldInput, FieldLabel } from '@/components/ui/field-input'
 import { updateMasterProfile } from '@/server/actions/settings'
 import { masterProfileSchema, type MasterProfileFormData } from '@/lib/schemas'
@@ -39,7 +40,17 @@ export function TabProfile({ userName, userEmail, userPhone }: TabProfileProps) 
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <Card>
         <CardContent className="pt-5 pb-5">
-          <div className="max-w-sm space-y-4">
+          <div className="flex gap-4">
+            <div className="shrink-0">
+              <IconBadge icon={UserCircle} />
+            </div>
+            <div className="flex-1 space-y-1 pt-1">
+              <p className="text-sm font-semibold text-foreground uppercase tracking-wide">Pessoais</p>
+              <p className="text-xs text-muted-foreground">Informações de identificação básica da conta master.</p>
+            </div>
+          </div>
+
+          <div className="mt-5 max-w-sm space-y-4">
             <div className="space-y-1">
               <FieldLabel>Nome</FieldLabel>
               <FieldInput {...register('name')} />

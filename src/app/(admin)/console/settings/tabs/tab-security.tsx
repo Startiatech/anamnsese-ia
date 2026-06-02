@@ -5,9 +5,10 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
-import { Eye, EyeOff, Save } from 'lucide-react'
+import { Eye, EyeOff, Save, KeyRound } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { IconBadge } from '@/components/ui/icon-badge'
 import { FieldInput, FieldLabel } from '@/components/ui/field-input'
 import { updateMasterProfile } from '@/server/actions/settings'
 
@@ -86,6 +87,16 @@ export function TabSecurity({ userName }: { userName: string }) {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <Card>
         <CardContent className="pt-5 pb-5">
+          <div className="flex gap-4 mb-5">
+            <div className="shrink-0">
+              <IconBadge icon={KeyRound} />
+            </div>
+            <div className="flex-1 space-y-1 pt-1">
+              <p className="text-sm font-semibold text-foreground uppercase tracking-wide">Senha</p>
+              <p className="text-xs text-muted-foreground">Recomendamos o uso de uma senha forte com pelo menos 8 caracteres, números e símbolos.</p>
+            </div>
+          </div>
+
           <div className="max-w-sm space-y-4">
             <PasswordField
               label="Senha atual"

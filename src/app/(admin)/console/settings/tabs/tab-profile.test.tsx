@@ -19,6 +19,13 @@ beforeEach(() => {
 })
 
 describe('Console TabProfile — campos de perfil', () => {
+  it('exibe cabeçalho do bloco com título e descrição (padrão user)', () => {
+    render(<TabProfile userName="Master" userEmail="master@test.com" userPhone="" />)
+
+    expect(screen.getByText(/^pessoais$/i)).toBeTruthy()
+    expect(screen.getByText(/informações de identificação básica/i)).toBeTruthy()
+  })
+
   it('exibe o email como somente leitura (input desabilitado)', () => {
     render(<TabProfile userName="Master" userEmail="master@test.com" userPhone="" />)
 
