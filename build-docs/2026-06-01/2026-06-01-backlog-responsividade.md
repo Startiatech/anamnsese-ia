@@ -15,8 +15,8 @@
 | 4 | `users` — tap targets ≥40px no card mobile | Important | ✅ Feito (no card; tabela desktop mantém `size="icon"`) |
 | 6 | `users-client.tsx` — filtro busca + Select empilham | Important | ✅ Feito (2026-06-01) |
 | 8 | `users-client.tsx` — email completo (`break-all`) no card | Minor | ✅ Feito (2026-06-01) |
+| 5 | `plans-client.tsx` — 3 modais custom → `AppDialog` | Important | ✅ Feito (2026-06-01) |
 | 3 | `interesses-client.tsx` — tabela 5 colunas sem reflow | Critical | ⬜ Pendente |
-| 5 | `plans-client.tsx` — 3 modais custom → `AppDialog` | Important | ⬜ Pendente |
 | 7 | `requests-client.tsx` — mensagem só em tooltip hover-only | Minor | ⬜ Pendente |
 | 9 | `anamnesis-document.tsx` — padding fixo `px-12` em 320px | Minor | ⬜ Pendente |
 
