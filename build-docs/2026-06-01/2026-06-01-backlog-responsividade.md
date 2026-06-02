@@ -16,7 +16,7 @@
 | 6 | `users-client.tsx` — filtro busca + Select empilham | Important | ✅ Feito (2026-06-01) |
 | 8 | `users-client.tsx` — email completo (`break-all`) no card | Minor | ✅ Feito (2026-06-01) |
 | 5 | `plans-client.tsx` — 3 modais custom → `AppDialog` | Important | ✅ Feito (2026-06-01) |
-| 3 | `interesses-client.tsx` — tabela 5 colunas sem reflow | Critical | ⬜ Pendente |
+| 3 | `interesses-client.tsx` — tabela 5 colunas → reflow cards | Critical | ✅ Feito (2026-06-01) |
 | 7 | `requests-client.tsx` — mensagem só em tooltip hover-only | Minor | ⬜ Pendente |
 | 9 | `anamnesis-document.tsx` — padding fixo `px-12` em 320px | Minor | ⬜ Pendente |
 
