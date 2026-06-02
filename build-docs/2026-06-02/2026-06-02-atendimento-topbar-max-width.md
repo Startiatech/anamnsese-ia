@@ -35,3 +35,19 @@ padrão já usado na **topbar pública** (`src/components/layout/topbar.tsx`, va
    `role="banner"`) falhando.
 2. GREEN → wrapper centralizado.
 3. Resultado: `consultation-page-flow.test.tsx` — 13/13 verdes.
+
+## Coesão do shell (corpo também capado)
+
+O `@responsive-reviewer` notou que, com só a topbar centralizada, em ≥1536px a logo
+recuava enquanto a sidebar do corpo continuava colada na borda esquerda
+(desalinhamento estético Minor).
+
+Decisão técnica: **capar o corpo com o mesmo teto**, tornando o app um shell coeso
+(borda do header full-bleed, conteúdo limitado a 1536px e centralizado).
+
+- `consultation-page-flow.tsx` — o container do corpo
+  (`flex flex-col md:flex-row flex-1 overflow-hidden`) recebeu
+  `w-full max-w-screen-2xl mx-auto`. Em ≥1536px sidebar + conteúdo recuam junto com
+  a logo, alinhados; abaixo disso nada muda. O conteúdo interno mantém seu próprio
+  `max-w-4xl/6xl mx-auto`.
+- Teste adicional: o corpo carrega `max-w-screen-2xl` + `mx-auto`. 14/14 verdes.

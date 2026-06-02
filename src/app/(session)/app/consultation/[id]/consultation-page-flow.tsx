@@ -240,7 +240,7 @@ function AtendimentoFlow({
         </div>
 
         {/* Body */}
-        <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
+        <div className="w-full max-w-screen-2xl mx-auto flex flex-col md:flex-row flex-1 overflow-hidden">
           {/* Sidebar — hidden on mobile */}
           <aside className="hidden md:flex w-64 shrink-0 border-r border-border bg-card/40 flex-col p-6 gap-8">
             {/* Patient info */}

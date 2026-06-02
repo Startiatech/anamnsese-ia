@@ -266,6 +266,14 @@ describe('ConsultationPageFlow — topbar', () => {
     expect(wrapper).not.toBeNull()
     expect(wrapper?.className).toContain('mx-auto')
   })
+
+  it('aplica a mesma largura máxima ao corpo, alinhando sidebar e conteúdo com a logo', () => {
+    const { container } = renderFlow()
+    const body = container.querySelector('.flex-1.overflow-hidden')
+    expect(body).not.toBeNull()
+    expect(body?.className).toContain('max-w-screen-2xl')
+    expect(body?.className).toContain('mx-auto')
+  })
 })
 
 describe('ConsultationPageFlow — TrialEndModal timing (experimental plan, last credit)', () => {
