@@ -35,14 +35,20 @@ Motivação: o master precisa, por exemplo, aprovar um pedido de acesso pelo cel
 
 ### Largura máxima de conteúdo (telas grandes)
 
-Em telas grandes (1536px+), conteúdo e controles não devem colar nas bordas extremas. Use os tokens centralizados de `src/lib/layout.ts` (`LAYOUT_MAX_W`) — **não** espalhar `max-w-*` solto em shells novos. São dois tiers intencionais:
+Em telas grandes, conteúdo não deve colar nas bordas extremas. Use os tokens centralizados de `src/lib/layout.ts` (`LAYOUT_MAX_W`) — **não** espalhar `max-w-*` solto em shells novos. São três tiers intencionais:
 
 | Token | Valor | Onde usar |
 | --- | --- | --- |
-| `LAYOUT_MAX_W.content` | `max-w-5xl` (1024px) | Áreas reading/form-centric: `<main>` do app e console, topbars (public/user/admin), navbar |
-| `LAYOUT_MAX_W.shell` | `max-w-screen-2xl` (1536px) | Shell de fluxo full-screen (atendimento/wizard) — precisa acomodar sidebar `w-64` + conteúdo `max-w-6xl` |
+| `LAYOUT_MAX_W.content` | `max-w-7xl` (1280px) | `<main>` do app/console — **centralizado** (`mx-auto`), recuado, com folga simétrica nos dois lados |
+| `LAYOUT_MAX_W.shell` | `max-w-screen-2xl` (1536px) | Fluxo full-screen de atendimento (sidebar `w-64` + conteúdo `max-w-6xl`) |
+| `LAYOUT_MAX_W.marketing` | `max-w-5xl` (1024px) | Navbar/topbar pública (alinha com as seções da landing) |
 
-Não unificar num valor único: 1024px cortaria o conteúdo do atendimento (já `max-w-6xl` = 1152px). Login/suspended (split-screen) e banners de alerta seguem full-bleed por design. O console **não** deve receber teto menor — sua dívida é largura insuficiente para tabelas densas (tabela→card), não excesso.
+Padrão do app autenticado (app/console):
+
+- **Topbar é full-width** (sem cap): os controles/avatar ficam no **canto** superior direito, como esperado num dashboard. Não capar a topbar — isso faz o avatar "flutuar" no meio em telas grandes.
+- **Conteúdo (`<main>`) é centralizado** num bloco recuado (`content` = 1280px, `mx-auto`), com folga igual nos dois lados. A borda direita do conteúdo fica **antes** da linha do avatar.
+
+Login/suspended (split-screen) e banners de alerta seguem full-bleed por design. O console **não** deve receber teto menor — sua dívida é largura insuficiente para tabelas densas (tabela→card), não excesso.
 
 ### Enforcement
 

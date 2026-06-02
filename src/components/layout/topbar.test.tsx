@@ -27,14 +27,14 @@ beforeAll(() => {
 
 const user = { name: 'Dr. Ana Silva', initials: 'AS', email: 'ana@test.com', specialty: 'Clínica' }
 
-describe('Topbar — largura máxima do conteúdo (alinha controles com o <main> capado)', () => {
-  it('envolve o conteúdo num container central max-w-5xl (não cola nos cantos em telas grandes)', () => {
+describe('Topbar autenticada — full-width (avatar no canto)', () => {
+  it('NÃO capa o inner (full-width): controles/avatar ficam no canto, conteúdo recua por conta própria', () => {
     // variant user + isOnboarding evita SidebarTrigger/NotificationBell (render mínimo)
     render(<Topbar variant="user" user={user} onLogout={() => {}} isOnboarding />)
 
     const header = screen.getByRole('banner')
-    const wrapper = header.querySelector('.max-w-5xl')
-    expect(wrapper).not.toBeNull()
-    expect(wrapper?.className).toContain('mx-auto')
+    // topbar autenticada é full-width — sem cap de largura no inner
+    expect(header.querySelector('.max-w-screen-2xl')).toBeNull()
+    expect(header.querySelector('.max-w-7xl')).toBeNull()
   })
 })

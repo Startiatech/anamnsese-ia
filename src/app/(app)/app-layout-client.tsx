@@ -114,7 +114,7 @@ function AppShell({ children, isOnboarding, deletionScheduledAt, bonusCredits, p
           />
           <DeletionBanner deletionScheduledAt={deletionScheduledAt} />
           <PinTempBanner pinIsTemp={pinIsTemp} />
-          <main id="main-content" tabIndex={-1} className={`container ${LAYOUT_MAX_W.content} mx-auto px-4 py-10`}>
+          <main id="main-content" tabIndex={-1} className={`w-full ${LAYOUT_MAX_W.content} mx-auto px-4 md:px-6 lg:px-8 py-10`}>
             {children}
           </main>
           <ScrollToTop />

@@ -226,7 +226,7 @@ export function Topbar(props: TopbarProps) {
         className="fixed top-0 left-0 right-0 h-16 z-50 transition-all duration-300 flex justify-center px-6"
         style={headerStyle}
       >
-        <div className={`w-full ${LAYOUT_MAX_W.content} flex items-center h-full gap-4`}>
+        <div className={`w-full ${LAYOUT_MAX_W.marketing} flex items-center h-full gap-4`}>
           <Logo size="md" id="topbar" />
           <div className="flex-1" />
           <div className="flex items-center gap-1">
@@ -247,7 +247,7 @@ export function Topbar(props: TopbarProps) {
       className="sticky top-0 h-16 z-50 transition-all duration-300"
       style={headerStyle}
     >
-      <div className={`h-full mx-auto w-full ${LAYOUT_MAX_W.content} flex items-center gap-2 px-3 md:gap-3 md:px-4`}>
+      <div className="h-full flex items-center gap-2 px-4 md:gap-3 md:px-6">
 
         {/* ── Mobile: trigger hambúrguer + logo (sidebar é Sheet no mobile) ── */}
         <div className="flex items-center gap-1.5 md:hidden">

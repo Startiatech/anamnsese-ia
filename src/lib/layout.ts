@@ -11,13 +11,18 @@
  */
 export const LAYOUT_MAX_W = {
   /**
-   * Conteúdo reading/form-centric: app, console, topbars e navbar pública.
-   * `max-w-5xl` = 1024px.
+   * Conteúdo do `<main>` do app/console — centralizado e **recuado** do shell,
+   * com folga simétrica nos dois lados. `max-w-7xl` = 1280px.
    */
-  content: 'max-w-5xl',
+  content: 'max-w-7xl',
   /**
-   * Shell de fluxo full-screen (atendimento/wizard) — sidebar `w-64` +
-   * conteúdo até `max-w-6xl`. `max-w-screen-2xl` = 1536px (breakpoint topo `2xl`).
+   * Shell full-screen — topbar autenticada (user/admin) e o fluxo de atendimento.
+   * Mais largo que o conteúdo, então os controles da topbar ficam mais perto do
+   * canto. `max-w-screen-2xl` = 1536px (breakpoint topo `2xl`).
    */
   shell: 'max-w-screen-2xl',
+  /**
+   * Marketing/público (navbar + seções de leitura). `max-w-5xl` = 1024px.
+   */
+  marketing: 'max-w-5xl',
 } as const
