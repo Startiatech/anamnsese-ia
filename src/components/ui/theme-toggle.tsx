@@ -4,6 +4,7 @@ import { useTheme } from 'next-themes'
 import { Moon, Sun } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { cn } from '@/lib/utils'
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip'
 
 interface ThemeToggleProps {
   className?: string
@@ -16,26 +17,36 @@ export function ThemeToggle({ className, showLabel = false }: ThemeToggleProps) 
 
   useEffect(() => { setMounted(true) }, [])
 
-  if (!mounted) return <div className={showLabel ? 'w-24 h-8' : 'w-8 h-8'} />
+  if (!mounted) return <div className={showLabel ? 'w-24 h-8' : 'w-10 h-10'} />
 
   const isDark = theme === 'dark'
   const label = isDark ? 'Tema claro' : 'Tema escuro'
 
-  return (
+  const button = (
     <button
       onClick={() => setTheme(isDark ? 'light' : 'dark')}
       className={cn(
         'flex items-center gap-1.5 rounded-md px-2 h-8',
         'text-muted-foreground hover:text-foreground hover:bg-accent',
         'transition-colors',
-        !showLabel && 'w-8 justify-center px-0',
+        !showLabel && 'h-10 w-10 justify-center px-0',
         className
       )}
       aria-label={label}
-      title={label}
     >
       {isDark ? <Sun className="w-4 h-4 shrink-0" /> : <Moon className="w-4 h-4 shrink-0" />}
       {showLabel && <span className="text-sm">{label}</span>}
     </button>
+  )
+
+  if (showLabel) return button
+
+  return (
+    <TooltipProvider delayDuration={200}>
+      <Tooltip>
+        <TooltipTrigger asChild>{button}</TooltipTrigger>
+        <TooltipContent>{label}</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   )
 }
