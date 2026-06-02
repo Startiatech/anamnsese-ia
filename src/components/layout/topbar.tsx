@@ -18,6 +18,7 @@ import {
 import { ROUTES } from '@/lib/routes'
 import { cn } from '@/lib/utils'
 import { NotificationBell } from './notification-bell'
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip'
 import type { Notification } from '@/server/repositories/notifications'
 
 function useScrolled(threshold = 60) {
@@ -97,16 +98,23 @@ function CreditsChip({ credits, planQuota }: { credits: number; planQuota: numbe
 function PendingBell({ count }: { count: number }) {
   if (count === 0) return null
   return (
-    <Link
-      href={ROUTES.consoleSolicitacoes}
-      className="relative flex items-center justify-center w-8 h-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-      aria-label={`${count} solicitações pendentes`}
-    >
-      <Bell className="w-4 h-4" />
-      <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold leading-none">
-        {count > 99 ? '99+' : count}
-      </span>
-    </Link>
+    <TooltipProvider delayDuration={200}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Link
+            href={ROUTES.consoleSolicitacoes}
+            className="relative flex items-center justify-center h-10 w-10 md:h-8 md:w-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+            aria-label={`${count} solicitações pendentes`}
+          >
+            <Bell className="w-4 h-4" />
+            <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold leading-none">
+              {count > 99 ? '99+' : count}
+            </span>
+          </Link>
+        </TooltipTrigger>
+        <TooltipContent>Solicitações pendentes</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   )
 }
 

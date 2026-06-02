@@ -6,6 +6,7 @@ import { Bell, Check, CheckCheck, Sparkles, Info, AlertTriangle, Gift } from 'lu
 import { markNotificationAsRead, markAllNotificationsAsRead } from '@/server/actions/notifications'
 import type { Notification, NotificationType } from '@/server/repositories/notifications'
 import { cn } from '@/lib/utils'
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip'
 
 const TYPE_ICON: Record<NotificationType, React.ComponentType<{ className?: string }>> = {
   info: Info,
@@ -79,23 +80,30 @@ export function NotificationBell({ initialItems, initialUnreadCount }: Notificat
 
   return (
     <div ref={wrapperRef} className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        aria-label={`Notificações${unreadCount > 0 ? ` — ${unreadCount} não lida${unreadCount === 1 ? '' : 's'}` : ''}`}
-        aria-expanded={open}
-        className="relative flex items-center justify-center w-8 h-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-      >
-        <Bell className="w-4 h-4" />
-        {unreadCount > 0 && (
-          <span
-            data-testid="notification-badge"
-            className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold leading-none"
-          >
-            {unreadCount > 99 ? '99+' : unreadCount}
-          </span>
-        )}
-      </button>
+      <TooltipProvider delayDuration={200}>
+        <Tooltip open={open ? false : undefined}>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              onClick={() => setOpen((v) => !v)}
+              aria-label={`Notificações${unreadCount > 0 ? ` — ${unreadCount} não lida${unreadCount === 1 ? '' : 's'}` : ''}`}
+              aria-expanded={open}
+              className="relative flex items-center justify-center h-10 w-10 md:h-8 md:w-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            >
+              <Bell className="w-4 h-4" />
+              {unreadCount > 0 && (
+                <span
+                  data-testid="notification-badge"
+                  className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold leading-none"
+                >
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>Notificações</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
 
       {open && (
         <div

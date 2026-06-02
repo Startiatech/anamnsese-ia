@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, act } from '@testing-library/react'
+import { render, screen, act, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { NotificationBell } from './notification-bell'
 import type { Notification } from '@/server/repositories/notifications'
@@ -39,6 +39,13 @@ describe('NotificationBell', () => {
   it('renderiza o icone do sino', () => {
     render(<NotificationBell initialItems={[]} initialUnreadCount={0} />)
     expect(screen.getByRole('button', { name: /notifica.*es/i })).toBeTruthy()
+  })
+
+  it('exibe tooltip "Notificações" ao focar o sino', async () => {
+    render(<NotificationBell initialItems={[]} initialUnreadCount={0} />)
+    fireEvent.focus(screen.getByRole('button', { name: /notifica.*es/i }))
+    const tooltips = await screen.findAllByText(/^Notificações$/)
+    expect(tooltips.length).toBeGreaterThan(0)
   })
 
   it('NAO mostra badge quando unreadCount = 0', () => {
