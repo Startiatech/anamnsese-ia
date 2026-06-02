@@ -1,9 +1,20 @@
+import type { ReactNode } from 'react'
 import { Logo } from '@/components/ui/logo'
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip'
 
 function LinkedInIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
       <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+    </svg>
+  )
+}
+
+function PortfolioIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="2" y="7" width="20" height="14" rx="2" />
+      <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" />
     </svg>
   )
 }
@@ -16,6 +27,31 @@ function WhatsAppIcon() {
   )
 }
 
+interface SocialLinkProps {
+  href: string
+  label: string
+  children: ReactNode
+}
+
+function SocialLink({ href, label, children }: SocialLinkProps) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <a
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={label}
+          className="inline-flex items-center justify-center min-h-[40px] min-w-[40px] rounded-lg border border-border text-muted-foreground hover:border-violet-500/40 hover:text-foreground transition-all"
+        >
+          {children}
+        </a>
+      </TooltipTrigger>
+      <TooltipContent>{label}</TooltipContent>
+    </Tooltip>
+  )
+}
+
 export function LandingFooter() {
   return (
     <footer className="border-t border-border py-8 px-6">
@@ -24,26 +60,19 @@ export function LandingFooter() {
         <p className="text-xs text-muted-foreground">
           © Desde 2026 Anamnese IA. Todos os direitos reservados.
         </p>
-        <div className="flex gap-3">
-          <a
-            href="https://www.linkedin.com/in/leojosants/"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="LinkedIn"
-            className="p-2 rounded-lg border border-border text-muted-foreground hover:border-violet-500/40 hover:text-foreground transition-all"
-          >
-            <LinkedInIcon />
-          </a>
-          <a
-            href="https://wa.me/5532999447711"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="WhatsApp"
-            className="p-2 rounded-lg border border-border text-muted-foreground hover:border-violet-500/40 hover:text-foreground transition-all"
-          >
-            <WhatsAppIcon />
-          </a>
-        </div>
+        <TooltipProvider delayDuration={200}>
+          <div className="flex gap-3">
+            <SocialLink href="https://leonardo-santos-portfolio.vercel.app/" label="Portfólio">
+              <PortfolioIcon />
+            </SocialLink>
+            <SocialLink href="https://www.linkedin.com/in/leojosants/" label="LinkedIn">
+              <LinkedInIcon />
+            </SocialLink>
+            <SocialLink href="https://wa.me/5532999447711" label="WhatsApp">
+              <WhatsAppIcon />
+            </SocialLink>
+          </div>
+        </TooltipProvider>
       </div>
     </footer>
   )
