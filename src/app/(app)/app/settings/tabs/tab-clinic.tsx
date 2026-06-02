@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Building2, MapPin, Info, Save, Loader2, Search } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { IconBadge } from '@/components/ui/icon-badge'
 import { FieldInput, FieldLabel } from '@/components/ui/field-input'
 import { toast } from 'sonner'
 import { clinicSchema, type ClinicFormData } from '@/lib/schemas'
@@ -111,9 +112,7 @@ export const TabClinic = forwardRef<ClinicHandle, Props>(function TabClinic({ us
         <CardContent className="pt-5 pb-5">
           <div className="flex gap-4">
             <div className="shrink-0">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-violet-500/15 dark:bg-violet-500/10 border border-violet-500/25 dark:border-violet-500/20">
-                <Building2 className="h-5 w-5 text-violet-600 dark:text-violet-400" />
-              </div>
+              <IconBadge icon={Building2} />
             </div>
             <div className="flex-1 space-y-1 pt-1">
               <p className="text-sm font-semibold text-foreground uppercase tracking-wide">Identificação</p>
@@ -192,9 +191,7 @@ export const TabClinic = forwardRef<ClinicHandle, Props>(function TabClinic({ us
         <CardContent className="pt-5 pb-5">
           <div className="flex gap-4">
             <div className="shrink-0">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-cyan-500/15 dark:bg-cyan-500/10 border border-cyan-500/25 dark:border-cyan-500/20">
-                <MapPin className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
-              </div>
+              <IconBadge icon={MapPin} />
             </div>
             <div className="flex-1 space-y-1 pt-1">
               <p className="text-sm font-semibold text-foreground uppercase tracking-wide">Endereço</p>
@@ -258,9 +255,7 @@ export const TabClinic = forwardRef<ClinicHandle, Props>(function TabClinic({ us
         <CardContent className="pt-5 pb-5">
           <div className="flex gap-4">
             <div className="shrink-0">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-violet-500/15 dark:bg-violet-500/10 border border-violet-500/25 dark:border-violet-500/20">
-                <Info className="h-5 w-5 text-violet-600 dark:text-violet-400" />
-              </div>
+              <IconBadge icon={Info} />
             </div>
             <div className="flex-1 space-y-1 pt-1">
               <p className="text-sm font-semibold text-foreground uppercase tracking-wide">Informações adicionais</p>
@@ -282,7 +277,7 @@ export const TabClinic = forwardRef<ClinicHandle, Props>(function TabClinic({ us
                     type="checkbox"
                     checked={field.value}
                     onChange={(e) => field.onChange(e.target.checked)}
-                    className="h-4 w-4 accent-violet-500"
+                    className="h-4 w-4 accent-blue-500"
                   />
                   Sou o Responsável Técnico desta clínica
                 </label>

@@ -7,6 +7,7 @@ import { toast } from 'sonner'
 import { UserCircle, Stethoscope, Save, ChevronDown, Timer } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { IconBadge } from '@/components/ui/icon-badge'
 import { FieldInput, FieldLabel } from '@/components/ui/field-input'
 import { profileSchema, REGISTRY_TYPES, type ProfileFormData } from '@/lib/schemas'
 import type { StoredUser } from '@/server/repositories/users'
@@ -184,9 +185,7 @@ export const TabProfile = forwardRef<ProfileHandle, TabProfileProps>(function Ta
         <CardContent className="pt-5 pb-5">
           <div className="flex gap-4">
             <div className="shrink-0">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-violet-500/15 dark:bg-violet-500/10 border border-violet-500/25 dark:border-violet-500/20">
-                <UserCircle className="h-5 w-5 text-violet-600 dark:text-violet-400" />
-              </div>
+              <IconBadge icon={UserCircle} />
             </div>
             <div className="flex-1 space-y-1 pt-1">
               <p className="text-sm font-semibold text-foreground uppercase tracking-wide">Pessoais</p>
@@ -217,9 +216,7 @@ export const TabProfile = forwardRef<ProfileHandle, TabProfileProps>(function Ta
         <CardContent className="pt-5 pb-5">
           <div className="flex gap-4">
             <div className="shrink-0">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-cyan-500/15 dark:bg-cyan-500/10 border border-cyan-500/25 dark:border-cyan-500/20">
-                <Stethoscope className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
-              </div>
+              <IconBadge icon={Stethoscope} />
             </div>
             <div className="flex-1 space-y-1 pt-1">
               <p className="text-sm font-semibold text-foreground uppercase tracking-wide">Dados CRM/CRP</p>
@@ -277,9 +274,7 @@ export const TabProfile = forwardRef<ProfileHandle, TabProfileProps>(function Ta
         <CardContent className="pt-5 pb-5">
           <div className="flex gap-4">
             <div className="shrink-0">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-violet-500/15 dark:bg-violet-500/10 border border-violet-500/25 dark:border-violet-500/20">
-                <Timer className="h-5 w-5 text-violet-600 dark:text-violet-400" />
-              </div>
+              <IconBadge icon={Timer} />
             </div>
             <div className="flex-1 space-y-1 pt-1">
               <p className="text-sm font-semibold text-foreground uppercase tracking-wide">Tempo médio por consulta</p>

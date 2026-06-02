@@ -1,7 +1,9 @@
 'use client'
 
 import { Type, Contrast, AlignJustify, Focus, Wind, Check, AlertTriangle, Loader2 } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
+import { IconBadge } from '@/components/ui/icon-badge'
 import { useAccessibility, type FontSize, type SaveStatus } from '@/context/accessibility-context'
 import { RequestFeedbackCard } from './request-feedback-card'
 
@@ -12,7 +14,7 @@ const FONT_OPTIONS: { value: FontSize; label: string; description: string }[] = 
 ]
 
 interface SectionCardProps {
-  icon: React.ComponentType<{ className?: string }>
+  icon: LucideIcon
   title: string
   description: string
   children: React.ReactNode
@@ -24,9 +26,7 @@ function SectionCard({ icon: Icon, title, description, children }: SectionCardPr
       <CardContent className="pt-5 pb-5">
         <div className="flex gap-4 mb-5">
           <div className="shrink-0">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-primary/10 border border-primary/20">
-              <Icon className="h-5 w-5 text-primary" />
-            </div>
+            <IconBadge icon={Icon} />
           </div>
           <div className="flex-1 space-y-1 pt-1">
             <p className="text-sm font-semibold text-foreground uppercase tracking-wide">{title}</p>
