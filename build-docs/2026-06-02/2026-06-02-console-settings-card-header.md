@@ -35,8 +35,14 @@ Antes, os cards do console exibiam apenas os campos, sem o cabeçalho de context
   (`mb-5` no header vs. `mt-5` no conteúdo) — **corrigido** para espelhar o user.
   Security já estava alinhado.
 
-## Notas
+## Unificação da regra de senha
 
-- A descrição da senha cita "pelo menos 8 caracteres" (copy espelhada do user);
-  o schema do console valida mínimo de 6 — é texto de recomendação, não validação,
-  mantido por paridade visual. Avaliar unificar a regra em entrega futura.
+- A descrição da senha cita "pelo menos 8 caracteres". O schema do console validava
+  mínimo de **6**, divergindo do lado user (mínimo 8). **Unificado para mínimo 8**
+  (`z.string().min(8, 'Mínimo 8 caracteres')`) em
+  `src/app/(admin)/console/settings/tabs/tab-security.tsx`, alinhando validação e copy.
+- Teste TDD adicionado: senha com 7 caracteres exibe "Mínimo 8 caracteres" e não
+  dispara o submit. `tab-security` do console — 3/3 verdes.
+- Observação: a validação de tamanho vive no schema do client (tanto user quanto
+  master); a Server Action `updateMasterProfile` não revalida o tamanho — mesma
+  postura já existente no lado user. Endurecer no servidor fica como melhoria futura.
