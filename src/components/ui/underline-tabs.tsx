@@ -34,10 +34,10 @@ export function UnderlineTabs<T extends string = string>({
             className={[
               'flex items-center gap-2 px-4 py-2.5 h-auto -mb-px border-b-2 rounded-none transition-colors',
               active === id
-                ? 'text-foreground border-primary font-medium hover:rounded-t-md'
+                ? 'bg-[color-mix(in_oklch,var(--primary)_12%,transparent)] text-primary border-primary font-medium rounded-t-md hover:bg-[color-mix(in_oklch,var(--primary)_20%,transparent)] hover:text-primary'
                 : disabled
                   ? 'text-muted-foreground/30 border-transparent cursor-not-allowed'
-                  : 'text-muted-foreground border-transparent hover:text-foreground hover:rounded-t-md',
+                  : 'text-muted-foreground border-transparent hover:bg-[color-mix(in_oklch,var(--primary)_8%,transparent)] hover:text-primary hover:rounded-t-md',
             ].join(' ')}
           >
             {Icon && <Icon className="h-4 w-4" />}
