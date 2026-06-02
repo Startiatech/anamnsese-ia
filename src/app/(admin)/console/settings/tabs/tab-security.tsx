@@ -15,7 +15,7 @@ import { updateMasterProfile } from '@/server/actions/settings'
 const schema = z
   .object({
     currentPassword: z.string().min(1, 'Informe a senha atual'),
-    newPassword:     z.string().min(6, 'Mínimo 6 caracteres'),
+    newPassword:     z.string().min(8, 'Mínimo 8 caracteres'),
     confirmPassword: z.string(),
   })
   .refine((d) => d.newPassword === d.confirmPassword, {
