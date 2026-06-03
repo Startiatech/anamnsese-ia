@@ -26,6 +26,14 @@ describe('Console TabProfile — campos de perfil', () => {
     expect(screen.getByText(/informações de identificação básica/i)).toBeTruthy()
   })
 
+  it('campos têm label associado + autocomplete (a11y / DevTools)', () => {
+    render(<TabProfile userName="Master" userEmail="master@test.com" userPhone="" />)
+
+    // getByLabelText só acha o input se o <label htmlFor> estiver associado ao id
+    expect(screen.getByLabelText(/nome/i).getAttribute('autocomplete')).toBe('name')
+    expect(screen.getByLabelText(/telefone/i).getAttribute('autocomplete')).toBe('tel')
+  })
+
   it('exibe o email como somente leitura (input desabilitado)', () => {
     render(<TabProfile userName="Master" userEmail="master@test.com" userPhone="" />)
 

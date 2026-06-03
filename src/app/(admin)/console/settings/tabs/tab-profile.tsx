@@ -52,21 +52,23 @@ export function TabProfile({ userName, userEmail, userPhone }: TabProfileProps) 
 
           <div className="mt-5 max-w-sm space-y-4">
             <div className="space-y-1">
-              <FieldLabel>Nome</FieldLabel>
-              <FieldInput {...register('name')} />
+              <FieldLabel htmlFor="console-profile-name">Nome</FieldLabel>
+              <FieldInput id="console-profile-name" autoComplete="name" {...register('name')} />
               {errors.name && (
                 <p className="text-xs text-destructive">{errors.name.message}</p>
               )}
             </div>
 
             <div className="space-y-1">
-              <FieldLabel>E-mail</FieldLabel>
-              <FieldInput value={userEmail} disabled className="opacity-50 cursor-not-allowed" data-testid="console-profile-email" />
+              <FieldLabel htmlFor="console-profile-email">E-mail</FieldLabel>
+              <FieldInput id="console-profile-email" name="email" autoComplete="email" value={userEmail} disabled className="opacity-50 cursor-not-allowed" data-testid="console-profile-email" />
             </div>
 
             <div className="space-y-1">
-              <FieldLabel>Telefone / WhatsApp</FieldLabel>
+              <FieldLabel htmlFor="console-profile-phone">Telefone / WhatsApp</FieldLabel>
               <FieldInput
+                id="console-profile-phone"
+                autoComplete="tel"
                 {...register('phone')}
                 placeholder="(00) 00000-0000"
                 data-testid="console-profile-phone"

@@ -18,17 +18,22 @@ function PasswordField({
   label,
   reg,
   error,
+  autoComplete,
 }: {
   label: string
   reg: ReturnType<ReturnType<typeof useForm<FormData>>['register']>
   error?: string
+  autoComplete: string
 }) {
   const [show, setShow] = useState(false)
+  const fieldId = `master-${reg.name}`
   return (
     <div className="space-y-1">
-      <FieldLabel>{label}</FieldLabel>
+      <FieldLabel htmlFor={fieldId}>{label}</FieldLabel>
       <div className="relative">
         <FieldInput
+          id={fieldId}
+          autoComplete={autoComplete}
           {...reg}
           type={show ? 'text' : 'password'}
           className="pr-8"
@@ -91,16 +96,19 @@ export function TabSecurity({ userName }: { userName: string }) {
               label="Senha atual"
               reg={register('currentPassword')}
               error={errors.currentPassword?.message}
+              autoComplete="current-password"
             />
             <PasswordField
               label="Nova senha"
               reg={register('newPassword')}
               error={errors.newPassword?.message}
+              autoComplete="new-password"
             />
             <PasswordField
               label="Confirmar nova senha"
               reg={register('confirmPassword')}
               error={errors.confirmPassword?.message}
+              autoComplete="new-password"
             />
           </div>
         </CardContent>
