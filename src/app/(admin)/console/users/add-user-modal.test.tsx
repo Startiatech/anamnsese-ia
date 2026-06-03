@@ -30,4 +30,11 @@ describe('AddUserModal', () => {
     render(<AddUserModal open={true} onClose={vi.fn()} onSuccess={vi.fn()} />)
     expect(screen.getByText('Novo usuário')).toBeInTheDocument()
   })
+
+  it('campos têm autocomplete="off" (admin cria outro usuário — não autofillar dados do admin)', () => {
+    render(<AddUserModal open={true} onClose={vi.fn()} onSuccess={vi.fn()} />)
+    for (const label of [/nome completo/i, /email/i, /especialidade/i, /whatsapp/i]) {
+      expect(screen.getByLabelText(label).getAttribute('autocomplete')).toBe('off')
+    }
+  })
 })

@@ -25,6 +25,18 @@ paths:
 - `FieldInput` é nativo (`<input>`), aceita `ref`, e expõe `className` para extensão via `cn()`
 - shadcn `<Input>` continua válido apenas para casos onde o estilo padrão shadcn é desejado (ex: modais de busca, filtros)
 
+### Atributos obrigatórios em campos de formulário (a11y / DevTools Issues)
+
+Todo campo de formulário **deve** ter `name` (ou `id`) e `autocomplete` explícitos — senão o Chrome DevTools (aba **Issues**) acusa "form field should have an id or name" e "doesn't have an autocomplete attribute". Vale para `<input>` nativo, `FieldInput` **e** shadcn `<Select>` (o Radix renderiza um campo nativo escondido que herda o `name` do `Select`).
+
+| Contexto | `autocomplete` | Motivo |
+| --- | --- | --- |
+| Busca/filtro (search, `<Select>` de filtro) | `off` + `name` | autofill não faz sentido; `<Select>` recebe `name` no `Select.Root` |
+| Form de **admin gerenciando outro usuário** (criar/editar usuário) | `off` | evita o navegador autofillar os dados do **próprio admin** nos campos do novo usuário |
+| Form do **próprio usuário** (login, settings, onboarding) | token correto (`email`, `name`, `tel`, `current-password`, `new-password`…) | habilita o autofill legítimo do dono da conta |
+
+Regra prática: **nunca** deixar `<input>`/`<Select>` sem `name`; **sempre** decidir o `autocomplete` (token específico ou `off`). Revisar telas novas com a aba Issues do DevTools antes de declarar pronto.
+
 ### Componentes de layout
 - Sheet lateral: sempre via `AppSheet` (`src/components/ui/app-sheet.tsx`) — nunca `Sheet` direto
 - Topbar/Sidebar: únicos em `src/components/layout/`, recebem dados via props

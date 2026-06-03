@@ -85,6 +85,7 @@ export function AddUserModal({ open, onClose, onSuccess }: AddUserModalProps) {
           <input
             id="add-user-name"
             {...register('name')}
+            autoComplete="off"
             placeholder="Dr. João Silva"
             className="w-full bg-transparent border-b border-border pb-1.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-highlight focus-visible:ring-1 focus-visible:ring-ring focus-visible:rounded-sm transition-colors"
           />
@@ -98,6 +99,7 @@ export function AddUserModal({ open, onClose, onSuccess }: AddUserModalProps) {
             id="add-user-email"
             {...register('email')}
             type="email"
+            autoComplete="off"
             placeholder="joao@clinica.com"
             className="w-full bg-transparent border-b border-border pb-1.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-highlight focus-visible:ring-1 focus-visible:ring-ring focus-visible:rounded-sm transition-colors"
           />
@@ -110,6 +112,7 @@ export function AddUserModal({ open, onClose, onSuccess }: AddUserModalProps) {
           <input
             id="add-user-specialty"
             {...register('specialty')}
+            autoComplete="off"
             placeholder="Clínica Geral, Cardiologia..."
             className="w-full bg-transparent border-b border-border pb-1.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-highlight focus-visible:ring-1 focus-visible:ring-ring focus-visible:rounded-sm transition-colors"
           />
@@ -122,6 +125,7 @@ export function AddUserModal({ open, onClose, onSuccess }: AddUserModalProps) {
           <input
             id="add-user-phone"
             {...register('phone')}
+            autoComplete="off"
             placeholder="(11) 99999-9999"
             className="w-full bg-transparent border-b border-border pb-1.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-highlight focus-visible:ring-1 focus-visible:ring-ring focus-visible:rounded-sm transition-colors"
           />
