@@ -83,6 +83,12 @@ describe('UsersClient — filtros', () => {
     shown('Carla Dias')
   })
 
+  it('campo de busca tem name (evita aviso de autofill do navegador)', () => {
+    render(<UsersClient initialUsers={users} />)
+    const search = screen.getByPlaceholderText(/buscar/i)
+    expect(search.getAttribute('name')).toBeTruthy()
+  })
+
   it('filtra por nome (case-insensitive)', () => {
     render(<UsersClient initialUsers={users} />)
     fireEvent.change(screen.getByPlaceholderText(/buscar/i), { target: { value: 'ana' } })

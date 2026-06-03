@@ -167,7 +167,9 @@ export function UsersClient({ initialUsers, usdToBrl = 5.75 }: { initialUsers: U
               <div className="relative flex-1 sm:max-w-sm">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
                 <input
-                  type="text"
+                  type="search"
+                  name="user-search"
+                  autoComplete="off"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Buscar por nome ou e-mail..."
