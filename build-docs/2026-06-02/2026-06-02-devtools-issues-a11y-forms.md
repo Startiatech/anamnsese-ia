@@ -59,6 +59,14 @@ Form do **próprio usuário** → tokens reais de autocomplete.
   (login/forgot/request) mesmo que só um esteja montado por vez — por isso apareceram
   campos de modos não-visíveis.
 
+### `/app/dashboard` → modal "Novo paciente"
+
+- `BirthDateSelect` (data de nascimento) usa 3 shadcn `<Select>` (dia/mês/ano), cada
+  um com campo nativo Radix escondido sem `name`. Adiciona `name`
+  (`birth-date-day`/`-month`/`-year`). Componente compartilhado → corrige também o
+  "Editar paciente". Os demais campos do form (nome/CPF/telefone/prontuário) já
+  tinham `id`+`name`.
+
 ## Regra documentada
 
 `.claude/rules/ui.md` → nova seção **"Atributos obrigatórios em campos de formulário"**:

@@ -63,6 +63,7 @@ export function BirthDateSelect({ value, onChange, onBlur, disabled }: BirthDate
   return (
     <div className="grid grid-cols-3 gap-2">
       <Select
+        name="birth-date-day"
         value={day}
         onValueChange={val => update({ day: val, month, year })}
         onOpenChange={open => { if (!open) onBlur?.() }}
@@ -81,6 +82,7 @@ export function BirthDateSelect({ value, onChange, onBlur, disabled }: BirthDate
       </Select>
 
       <Select
+        name="birth-date-month"
         value={month}
         onValueChange={val => update({ day, month: val, year })}
         onOpenChange={open => { if (!open) onBlur?.() }}
@@ -99,6 +101,7 @@ export function BirthDateSelect({ value, onChange, onBlur, disabled }: BirthDate
       </Select>
 
       <Select
+        name="birth-date-year"
         value={year}
         onValueChange={val => update({ day, month, year: val })}
         onOpenChange={open => { if (!open) onBlur?.() }}
