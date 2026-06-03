@@ -61,6 +61,9 @@ export function AppSheet({
         className="p-0 flex flex-col overflow-hidden rounded-tl-2xl rounded-bl-2xl"
         onInteractOutside={handleInteractOutside}
         onEscapeKeyDown={handleCancel}
+        // Sem description: aria-describedby={undefined} (escape hatch do Radix)
+        // silencia o warning de a11y de forma intencional — mesmo padrão do AppDialog.
+        {...(description ? {} : { 'aria-describedby': undefined })}
       >
         {/* Header com bg diferenciado */}
         <div className="px-6 py-5 border-b border-border pr-14 shrink-0 bg-primary/[0.08] dark:bg-primary/[0.06]">

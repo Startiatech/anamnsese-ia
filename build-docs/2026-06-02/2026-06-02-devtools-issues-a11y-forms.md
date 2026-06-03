@@ -93,6 +93,15 @@ Form do **próprio usuário** → tokens reais de autocomplete.
 - Select de refino ("Bloco"): `name=refine-block` (trigger já tinha `id`/`aria-label`).
 - Textarea de instrução de refino: `name=refine-instruction`.
 
+### Warning Radix: "Missing Description for DialogContent" (AppSheet/AppAlertDialog)
+
+- `AppDialog` já silenciava com o escape hatch `aria-describedby={undefined}` quando
+  não há `description`. `AppSheet` e `AppAlertDialog` **não** tinham — qualquer
+  sheet/alert sem `description` disparava o warning do Radix.
+- Aplicado o mesmo escape hatch em `app-sheet.tsx` e `app-alert-dialog.tsx`:
+  `{...(description ? {} : { 'aria-describedby': undefined })}` no Content.
+- Correção de **componente base** → cobre todos os sheets/alerts do projeto.
+
 ## Regra documentada
 
 `.claude/rules/ui.md` → nova seção **"Atributos obrigatórios em campos de formulário"**:

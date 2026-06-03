@@ -60,7 +60,11 @@ export function AppAlertDialog({
 }: AppAlertDialogProps) {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className={maxWidth}>
+      <AlertDialogContent
+        className={maxWidth}
+        // Sem description: escape hatch do Radix p/ silenciar o warning de a11y.
+        {...(description ? {} : { 'aria-describedby': undefined })}
+      >
         <AlertDialogHeader>
           <div className="flex flex-col items-center gap-4 mb-4">
             <Logo size="sm" id={logoId} />
