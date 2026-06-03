@@ -185,7 +185,7 @@ export function UsersClient({ initialUsers, usdToBrl = 5.75 }: { initialUsers: U
                   </button>
                 )}
               </div>
-              <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>
+              <Select name="status-filter" value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>
                 <SelectTrigger className="h-9 w-full sm:w-36 text-sm bg-card border-border">
                   <SelectValue />
                 </SelectTrigger>
