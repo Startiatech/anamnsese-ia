@@ -544,6 +544,7 @@ export function StepAudio({
               <input
                 ref={inputRef}
                 type="file"
+                name="audio-file"
                 accept={ACCEPTED_FORMATS}
                 className="hidden"
                 onChange={e => e.target.files?.[0] && handleFile(e.target.files[0])}
@@ -703,6 +704,7 @@ export function StepAudio({
           <div className="space-y-3">
             <Textarea
               ref={textareaRef}
+              name="transcript"
               readOnly
               value={displayedText}
               className={`resize-none font-mono text-sm min-h-[26rem] w-full ${

@@ -75,6 +75,11 @@ Form do **próprio usuário** → tokens reais de autocomplete.
   e abrir o sheet de novo paciente — os avisos eram da **lista**, não do sheet (o
   painel Issues mistura os campos visíveis da página + do modal).
 
+### `/app/consultation/[id]` → passo de áudio (`StepAudio`)
+
+- Textarea da transcrição (readonly, exibida em streaming/done): `name=transcript`.
+- File input escondido do upload de áudio: `name=audio-file`.
+
 ## Regra documentada
 
 `.claude/rules/ui.md` → nova seção **"Atributos obrigatórios em campos de formulário"**:
