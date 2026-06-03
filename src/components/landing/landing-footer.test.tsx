@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import { LandingFooter } from './landing-footer'
 
 describe('LandingFooter', () => {
@@ -20,25 +20,11 @@ describe('LandingFooter', () => {
     ).toBeTruthy()
   })
 
-  it('nao usa atributo title nos links (substituido por tooltip)', () => {
+  it('usa title nativo nos links (footer é server component estático — sem Radix Tooltip, evita hydration mismatch)', () => {
     render(<LandingFooter />)
-    for (const name of [/portf.lio/i, /linkedin/i, /whatsapp/i]) {
-      expect(screen.getByRole('link', { name }).hasAttribute('title')).toBe(false)
-    }
-  })
-
-  it('exibe tooltip ao focar cada icone social', async () => {
-    render(<LandingFooter />)
-    const cases: Array<[RegExp, RegExp]> = [
-      [/portf.lio/i, /portf.lio/i],
-      [/linkedin/i, /linkedin/i],
-      [/whatsapp/i, /whatsapp/i],
-    ]
-    for (const [linkName, tooltipText] of cases) {
-      fireEvent.focus(screen.getByRole('link', { name: linkName }))
-      const tooltips = await screen.findAllByText(tooltipText)
-      expect(tooltips.length).toBeGreaterThan(0)
-    }
+    expect(screen.getByRole('link', { name: /portf.lio/i }).getAttribute('title')).toMatch(/portf.lio/i)
+    expect(screen.getByRole('link', { name: /linkedin/i }).getAttribute('title')).toMatch(/linkedin/i)
+    expect(screen.getByRole('link', { name: /whatsapp/i }).getAttribute('title')).toMatch(/whatsapp/i)
   })
 
   it('mantem os links de LinkedIn e WhatsApp', () => {

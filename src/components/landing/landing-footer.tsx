@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react'
 import { Logo } from '@/components/ui/logo'
-import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip'
 
 function LinkedInIcon() {
   return (
@@ -35,20 +34,16 @@ interface SocialLinkProps {
 
 function SocialLink({ href, label, children }: SocialLinkProps) {
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <a
-          href={href}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label={label}
-          className="inline-flex items-center justify-center min-h-[40px] min-w-[40px] rounded-lg border border-border text-muted-foreground hover:border-violet-500/40 hover:text-foreground transition-all"
-        >
-          {children}
-        </a>
-      </TooltipTrigger>
-      <TooltipContent>{label}</TooltipContent>
-    </Tooltip>
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={label}
+      title={label}
+      className="inline-flex items-center justify-center min-h-[40px] min-w-[40px] rounded-lg border border-border text-muted-foreground hover:border-violet-500/40 hover:text-foreground transition-all"
+    >
+      {children}
+    </a>
   )
 }
 
@@ -60,19 +55,17 @@ export function LandingFooter() {
         <p className="text-xs text-muted-foreground">
           © Desde 2026 Anamnese IA. Todos os direitos reservados.
         </p>
-        <TooltipProvider delayDuration={200}>
-          <div className="flex gap-3">
-            <SocialLink href="https://leonardo-santos-portfolio.vercel.app/" label="Portfólio">
-              <PortfolioIcon />
-            </SocialLink>
-            <SocialLink href="https://www.linkedin.com/in/leojosants/" label="LinkedIn">
-              <LinkedInIcon />
-            </SocialLink>
-            <SocialLink href="https://wa.me/5532999447711" label="WhatsApp">
-              <WhatsAppIcon />
-            </SocialLink>
-          </div>
-        </TooltipProvider>
+        <div className="flex gap-3">
+          <SocialLink href="https://leonardo-santos-portfolio.vercel.app/" label="Portfólio">
+            <PortfolioIcon />
+          </SocialLink>
+          <SocialLink href="https://www.linkedin.com/in/leojosants/" label="LinkedIn">
+            <LinkedInIcon />
+          </SocialLink>
+          <SocialLink href="https://wa.me/5532999447711" label="WhatsApp">
+            <WhatsAppIcon />
+          </SocialLink>
+        </div>
       </div>
     </footer>
   )
