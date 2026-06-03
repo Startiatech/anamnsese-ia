@@ -33,7 +33,7 @@ export interface Plan {
 }
 
 // ─── shared field styles ───────────────────────────────────────────────────
-const fieldClass = 'w-full bg-transparent border-b border-border pb-1.5 text-sm text-foreground focus:outline-none focus:border-highlight focus-visible:ring-1 focus-visible:ring-ring focus-visible:rounded-sm transition-colors'
+const fieldClass = 'w-full bg-transparent border-b border-border px-2 pb-1.5 text-sm text-foreground focus:outline-none focus:border-highlight focus-visible:ring-1 focus-visible:ring-ring focus-visible:rounded-sm transition-colors'
 
 // ─── EditModal ─────────────────────────────────────────────────────────────
 interface EditModalProps {
