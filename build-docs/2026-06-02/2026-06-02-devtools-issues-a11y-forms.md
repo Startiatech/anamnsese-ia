@@ -67,6 +67,14 @@ Form do **próprio usuário** → tokens reais de autocomplete.
   "Editar paciente". Os demais campos do form (nome/CPF/telefone/prontuário) já
   tinham `id`+`name`.
 
+### `/app/consultation` (lista de pacientes)
+
+- Input de busca: `type=search` + `name=patient-search` + `autocomplete=off`.
+- Select de ordenação ("Nome A→Z"): `name=patient-sort`.
+- Nota: apareceram ao navegar do dashboard ("Novo atendimento" → `/app/consultation`)
+  e abrir o sheet de novo paciente — os avisos eram da **lista**, não do sheet (o
+  painel Issues mistura os campos visíveis da página + do modal).
+
 ## Regra documentada
 
 `.claude/rules/ui.md` → nova seção **"Atributos obrigatórios em campos de formulário"**:

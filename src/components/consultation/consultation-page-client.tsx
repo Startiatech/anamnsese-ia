@@ -147,7 +147,9 @@ export function ConsultationPageClient({ initialPatients, clinicComplete }: Cons
               <div className="relative w-full sm:max-w-sm">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
                 <Input
-                  type="text"
+                  type="search"
+                  name="patient-search"
+                  autoComplete="off"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Buscar paciente por nome ou CPF..."
@@ -177,7 +179,7 @@ export function ConsultationPageClient({ initialPatients, clinicComplete }: Cons
                   Sem atendimento
                 </button>
 
-                <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
+                <Select name="patient-sort" value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
                   <SelectTrigger className="h-8 w-full sm:w-44 text-xs bg-card border-border">
                     <SelectValue />
                   </SelectTrigger>
