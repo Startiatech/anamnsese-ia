@@ -14,6 +14,8 @@ interface BirthDateSelectProps {
   onChange: (value: string) => void
   onBlur?: () => void
   disabled?: boolean
+  /** id no trigger do "Dia" — permite associar um <label htmlFor> ao grupo de data. */
+  id?: string
 }
 
 const MONTHS = [
@@ -35,7 +37,7 @@ function partsFromValue(value: string): { day: string; month: string; year: stri
   }
 }
 
-export function BirthDateSelect({ value, onChange, onBlur, disabled }: BirthDateSelectProps) {
+export function BirthDateSelect({ value, onChange, onBlur, disabled, id }: BirthDateSelectProps) {
   const [parts, setParts] = useState(() => partsFromValue(value))
 
   useEffect(() => {
@@ -69,7 +71,7 @@ export function BirthDateSelect({ value, onChange, onBlur, disabled }: BirthDate
         onOpenChange={open => { if (!open) onBlur?.() }}
         disabled={disabled}
       >
-        <SelectTrigger>
+        <SelectTrigger id={id} aria-label="Dia">
           <SelectValue placeholder="Dia" />
         </SelectTrigger>
         <SelectContent>

@@ -95,7 +95,9 @@ export function HistoryClient({ consultations, patientsById, hasMore: initialHas
         <div className="relative w-full sm:max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
           <input
-            type="text"
+            type="search"
+            name="history-search"
+            autoComplete="off"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Buscar por nome ou CPF..."

@@ -102,6 +102,16 @@ Form do **próprio usuário** → tokens reais de autocomplete.
   `{...(description ? {} : { 'aria-describedby': undefined })}` no Content.
 - Correção de **componente base** → cobre todos os sheets/alerts do projeto.
 
+### Sheets de paciente (novo + editar) e `/app/history`
+
+- `BirthDateSelect` ganhou prop `id` (aplicada ao trigger "Dia") + `aria-label` nos
+  triggers — permite associar o `<FormLabel htmlFor>` ao grupo de data (resolve o
+  label órfão "Data de nascimento" nos dois sheets).
+- Campos dos sheets (nome/CPF/telefone/prontuário): `autocomplete=off` (médico
+  preenche dados do **paciente** — autofill dos dados do médico seria errado).
+- `/app/history`: input de busca vira `type=search` + `name=history-search` +
+  `autocomplete=off`.
+
 ## Regra documentada
 
 `.claude/rules/ui.md` → nova seção **"Atributos obrigatórios em campos de formulário"**:

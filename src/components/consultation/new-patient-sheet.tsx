@@ -141,7 +141,7 @@ export function NewPatientSheet({ open, onOpenChange, onSuccess }: NewPatientShe
       <form id={FORM_ID} role="form" onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         <div className="space-y-1">
           <FormLabel htmlFor="np-name" required>Nome completo</FormLabel>
-          <Input id="np-name" {...register('name')} autoFocus />
+          <Input id="np-name" autoComplete="off" {...register('name')} autoFocus />
           {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
         </div>
 
@@ -152,6 +152,7 @@ export function NewPatientSheet({ open, onOpenChange, onSuccess }: NewPatientShe
             placeholder="000.000.000-00"
             maxLength={14}
             name="cpf"
+            autoComplete="off"
             ref={register('cpf').ref}
             onBlur={register('cpf').onBlur}
             value={cpfValue}
@@ -161,12 +162,13 @@ export function NewPatientSheet({ open, onOpenChange, onSuccess }: NewPatientShe
         </div>
 
         <div className="space-y-1">
-          <FormLabel required>Data de nascimento</FormLabel>
+          <FormLabel htmlFor="np-birthdate" required>Data de nascimento</FormLabel>
           <Controller
             name="birthDate"
             control={control}
             render={({ field }) => (
               <BirthDateSelect
+                id="np-birthdate"
                 value={field.value ?? ''}
                 onChange={field.onChange}
                 onBlur={field.onBlur}
@@ -183,6 +185,7 @@ export function NewPatientSheet({ open, onOpenChange, onSuccess }: NewPatientShe
             placeholder="(00) 00000-0000"
             maxLength={15}
             name="phone"
+            autoComplete="off"
             ref={register('phone').ref}
             onBlur={register('phone').onBlur}
             value={phoneValue}
@@ -196,6 +199,7 @@ export function NewPatientSheet({ open, onOpenChange, onSuccess }: NewPatientShe
             id="np-externalId"
             placeholder="Código ou número no sistema externo (opcional)"
             maxLength={100}
+            autoComplete="off"
             {...register('externalId')}
           />
           {errors.externalId && <p className="text-xs text-destructive">{errors.externalId.message}</p>}

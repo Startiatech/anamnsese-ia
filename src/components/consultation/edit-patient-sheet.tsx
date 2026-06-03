@@ -90,7 +90,7 @@ export function EditPatientSheet({ open, onOpenChange, patient, onSuccess }: Edi
       <form id={FORM_ID} role="form" onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         <div className="space-y-1">
           <FormLabel htmlFor="ep-name" required>Nome completo</FormLabel>
-          <Input id="ep-name" {...register('name')} autoFocus />
+          <Input id="ep-name" autoComplete="off" {...register('name')} autoFocus />
           {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
         </div>
 
@@ -101,6 +101,7 @@ export function EditPatientSheet({ open, onOpenChange, patient, onSuccess }: Edi
             placeholder="000.000.000-00"
             maxLength={14}
             name="cpf"
+            autoComplete="off"
             ref={register('cpf').ref}
             onBlur={register('cpf').onBlur}
             value={cpfValue}
@@ -110,12 +111,13 @@ export function EditPatientSheet({ open, onOpenChange, patient, onSuccess }: Edi
         </div>
 
         <div className="space-y-1">
-          <FormLabel required>Data de nascimento</FormLabel>
+          <FormLabel htmlFor="ep-birthdate" required>Data de nascimento</FormLabel>
           <Controller
             name="birthDate"
             control={control}
             render={({ field }) => (
               <BirthDateSelect
+                id="ep-birthdate"
                 value={field.value ?? ''}
                 onChange={field.onChange}
                 onBlur={field.onBlur}
@@ -132,6 +134,7 @@ export function EditPatientSheet({ open, onOpenChange, patient, onSuccess }: Edi
             placeholder="(00) 00000-0000"
             maxLength={15}
             name="phone"
+            autoComplete="off"
             ref={register('phone').ref}
             onBlur={register('phone').onBlur}
             value={phoneValue}
@@ -145,6 +148,7 @@ export function EditPatientSheet({ open, onOpenChange, patient, onSuccess }: Edi
             id="ep-externalId"
             placeholder="Código ou número no sistema externo (opcional)"
             maxLength={100}
+            autoComplete="off"
             {...register('externalId')}
           />
         </div>
