@@ -387,6 +387,9 @@ export function AccessRequestChat({ onBack }: AccessRequestChatProps) {
                             <div className="flex items-center gap-1.5">
                               <input
                                 autoFocus
+                                name="access-request-edit"
+                                autoComplete="off"
+                                aria-label={`Editar ${label}`}
                                 value={editValue}
                                 inputMode={key === 'phone' ? 'tel' : undefined}
                                 onChange={(e) => {
@@ -445,6 +448,8 @@ export function AccessRequestChat({ onBack }: AccessRequestChatProps) {
             {inputError && <p className="text-xs text-destructive mb-2">{inputError}</p>}
             <div className="flex items-center gap-3 border-b border-border pb-3 focus-within:border-violet-500/60 transition-colors">
               <input ref={chatInputRef} value={chatInput}
+                name="access-request-input"
+                autoComplete="off"
                 aria-label={STEPS[currentStep]?.placeholder || 'Campo de entrada'}
                 inputMode={STEPS[currentStep]?.key === 'phone' ? 'tel' : undefined}
                 onChange={(e) => {

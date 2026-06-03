@@ -46,6 +46,19 @@ incompleto. Decisão de `autocomplete` por contexto (documentada em
   (`current-password`/`new-password`). É o próprio master → tokens reais.
 - Teste TDD: `tab-profile.test.tsx` (label associado + autocomplete).
 
+### `/login` (login, esqueci a senha, solicitar acesso)
+
+Form do **próprio usuário** → tokens reais de autocomplete.
+
+- Login: email `autocomplete=username`, senha `autocomplete=current-password`.
+- Esqueci a senha: email `autocomplete=username`, PIN `autocomplete=off` (PIN de
+  recuperação, não é campo padrão de autofill).
+- Solicitar acesso (`access-request-chat.tsx`): input do chat e input de edição
+  ganharam `name` + `autocomplete=off` (+ `aria-label` no de edição).
+- Nota: o painel **Issues do DevTools acumula** avisos dos modos visitados na sessão
+  (login/forgot/request) mesmo que só um esteja montado por vez — por isso apareceram
+  campos de modos não-visíveis.
+
 ## Regra documentada
 
 `.claude/rules/ui.md` → nova seção **"Atributos obrigatórios em campos de formulário"**:
