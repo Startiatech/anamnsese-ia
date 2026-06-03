@@ -240,8 +240,10 @@ export function StepAnamnesis({
         {sections.map((section, idx) => (
           <Card key={section.title}>
             <CardContent className="pt-4 space-y-1">
-              <Label>{section.title}</Label>
+              <Label htmlFor={`anamnesis-section-${idx}`}>{section.title}</Label>
               <Textarea
+                id={`anamnesis-section-${idx}`}
+                name={`anamnesis-section-${idx}`}
                 value={section.content}
                 onChange={e => updateSection(idx, e.target.value)}
                 rows={4}
@@ -307,6 +309,7 @@ export function StepAnamnesis({
           <div className="space-y-1">
             <Label htmlFor="refine-block-select" className="text-xs text-muted-foreground">Bloco</Label>
             <Select
+              name="refine-block"
               value={refineBlock}
               onValueChange={setRefineBlock}
               disabled={refinementLimitReached || refining || saving}
@@ -323,6 +326,7 @@ export function StepAnamnesis({
             </Select>
           </div>
           <Textarea
+            name="refine-instruction"
             placeholder="O que ajustar neste bloco?"
             value={refineInstruction}
             onChange={e => setRefineInstruction(e.target.value)}

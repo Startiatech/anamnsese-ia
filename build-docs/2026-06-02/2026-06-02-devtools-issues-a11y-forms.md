@@ -86,6 +86,13 @@ Form do **próprio usuário** → tokens reais de autocomplete.
 - Obs: StepSections só tem esse 1 campo; o 2º aviso reportado era acumulado do passo
   de áudio (o painel Issues não limpa ao trocar de step na mesma página/SPA).
 
+### `/app/consultation/[id]` → passo da anamnese estruturada (`StepAnamnesis`)
+
+- Textareas das seções editáveis (1 por seção): `id`+`name` `anamnesis-section-${idx}`
+  + `<Label htmlFor>` associado (resolve os labels órfãos por seção).
+- Select de refino ("Bloco"): `name=refine-block` (trigger já tinha `id`/`aria-label`).
+- Textarea de instrução de refino: `name=refine-instruction`.
+
 ## Regra documentada
 
 `.claude/rules/ui.md` → nova seção **"Atributos obrigatórios em campos de formulário"**:
