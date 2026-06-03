@@ -242,23 +242,23 @@ function PlanFormFields({ draft, setDraft, newFeature, setNewFeature, onAddFeatu
   return (
     <div className="space-y-4">
       <div className="space-y-1">
-        <label className="text-xs text-muted-foreground">Nome</label>
-        <input value={draft.name} onChange={(e) => setDraft((p) => ({ ...p, name: e.target.value }))} className={fieldClass} />
+        <label htmlFor="plan-name" className="text-xs text-muted-foreground">Nome</label>
+        <input id="plan-name" name="plan-name" autoComplete="off" value={draft.name} onChange={(e) => setDraft((p) => ({ ...p, name: e.target.value }))} className={fieldClass} />
       </div>
 
       <div className="space-y-1">
-        <label className="text-xs text-muted-foreground">Descrição</label>
-        <input value={draft.description} onChange={(e) => setDraft((p) => ({ ...p, description: e.target.value }))} className={fieldClass} />
+        <label htmlFor="plan-description" className="text-xs text-muted-foreground">Descrição</label>
+        <input id="plan-description" name="plan-description" autoComplete="off" value={draft.description} onChange={(e) => setDraft((p) => ({ ...p, description: e.target.value }))} className={fieldClass} />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-1">
-          <label className="text-xs text-muted-foreground">Preço (R$/mês)</label>
-          <input type="number" value={draft.price} onChange={(e) => setDraft((p) => ({ ...p, price: Number(e.target.value) }))} className={fieldClass} />
+          <label htmlFor="plan-price" className="text-xs text-muted-foreground">Preço (R$/mês)</label>
+          <input id="plan-price" name="plan-price" autoComplete="off" type="number" value={draft.price} onChange={(e) => setDraft((p) => ({ ...p, price: Number(e.target.value) }))} className={fieldClass} />
         </div>
         <div className="space-y-1">
-          <label className="text-xs text-muted-foreground">Franquia (atendimentos/mês)</label>
-          <input type="number" value={draft.quota} onChange={(e) => setDraft((p) => ({ ...p, quota: Number(e.target.value) }))} className={fieldClass} />
+          <label htmlFor="plan-quota" className="text-xs text-muted-foreground">Franquia (atendimentos/mês)</label>
+          <input id="plan-quota" name="plan-quota" autoComplete="off" type="number" value={draft.quota} onChange={(e) => setDraft((p) => ({ ...p, quota: Number(e.target.value) }))} className={fieldClass} />
         </div>
       </div>
 
@@ -275,7 +275,7 @@ function PlanFormFields({ draft, setDraft, newFeature, setNewFeature, onAddFeatu
       </div>
 
       <div className="space-y-2">
-        <label className="text-xs text-muted-foreground">Funcionalidades</label>
+        <span className="text-xs text-muted-foreground">Funcionalidades</span>
         <div className="space-y-1">
           {draft.features.map((f) => (
             <div key={f.id} className="flex items-center gap-1 group">
@@ -289,6 +289,9 @@ function PlanFormFields({ draft, setDraft, newFeature, setNewFeature, onAddFeatu
                 </span>
               </button>
               <input
+                name={`plan-feature-${f.id}`}
+                aria-label="Funcionalidade"
+                autoComplete="off"
                 value={f.label}
                 onChange={(e) => onEditFeature(f.id, e.target.value)}
                 className={`flex-1 bg-transparent border-b border-transparent focus:border-highlight pb-0.5 text-xs focus:outline-none transition-colors ${f.active ? 'text-foreground' : 'text-muted-foreground line-through'}`}
@@ -306,6 +309,9 @@ function PlanFormFields({ draft, setDraft, newFeature, setNewFeature, onAddFeatu
         </div>
         <div className="flex items-center gap-1 pt-1">
           <input
+            name="plan-new-feature"
+            aria-label="Nova funcionalidade"
+            autoComplete="off"
             value={newFeature}
             onChange={(e) => setNewFeature(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && onAddFeature()}
