@@ -100,6 +100,8 @@ export function StepSections() {
 
           <div className="flex gap-2">
             <Input
+              name="custom-section"
+              autoComplete="off"
               placeholder="Seção personalizada..."
               value={extraInput}
               onChange={e => setExtraInput(e.target.value)}

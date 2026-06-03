@@ -80,6 +80,12 @@ Form do **próprio usuário** → tokens reais de autocomplete.
 - Textarea da transcrição (readonly, exibida em streaming/done): `name=transcript`.
 - File input escondido do upload de áudio: `name=audio-file`.
 
+### `/app/consultation/[id]` → passo de seções (`StepSections`)
+
+- Input "Seção personalizada...": `name=custom-section` + `autocomplete=off`.
+- Obs: StepSections só tem esse 1 campo; o 2º aviso reportado era acumulado do passo
+  de áudio (o painel Issues não limpa ao trocar de step na mesma página/SPA).
+
 ## Regra documentada
 
 `.claude/rules/ui.md` → nova seção **"Atributos obrigatórios em campos de formulário"**:
