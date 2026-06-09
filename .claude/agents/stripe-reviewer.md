@@ -55,9 +55,14 @@ Ao revisar código Stripe, aplique sistematicamente os vetores abaixo. Reporte a
 - Verificar `src/server/repositories/credits.ts` — operações devem ser atômicas.
 
 ### Tratamento de erros e logging
-- Erros de verificação de assinatura devem retornar `400` — nunca `500` (evita retry desnecessário do Stripe).
-- Eventos desconhecidos devem retornar `200` silenciosamente (o Stripe para de tentar re-entregar com `400`/`500`).
+- O Stripe **retenta** entregas que respondem `4xx`/`5xx` e só para no `200`. Portanto:
+  - Assinatura inválida → `400` (requisição ilegítima; o retry vai falhar igual, mas o status correto sinaliza o problema no dashboard).
+  - Evento reconhecido mas com falha transitória (ex: banco fora) → `500` (queremos o retry).
+  - Evento desconhecido/não tratado → `200` silencioso (não queremos retry infinito).
 - Não logar dados de cartão ou PII do cliente.
+
+### Validação de metadata no webhook
+- Antes de creditar/alterar plano: validar que `metadata.userId` existe no banco e está ativo — sessões antigas, de teste ou com metadata inconsistente não podem creditar ninguém.
 
 ---
 

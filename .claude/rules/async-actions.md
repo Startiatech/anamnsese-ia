@@ -25,6 +25,7 @@ toast.promise(salvarDados(payload), {
 - `mode: 'onTouched'` obrigatório
 - Schema com `zodResolver` — sempre de `src/lib/schemas.ts`
 - Submit: `async onSubmit` + `await promise.catch(() => {})` → `isSubmitting` desabilita o botão
+- O `.catch(() => {})` existe **só** para evitar unhandled rejection quando a mesma promise vai ao `toast.promise` (que já trata o erro). **Proibido** usar `.catch` vazio fora desse padrão — engole falha silenciosamente
 
 ```typescript
 const onSubmit = async (data: FormData) => {
@@ -62,5 +63,5 @@ window.open(url, '_blank') // bloqueado
 ```
 
 ### Redirects pós-mutation
-- Após salvar flags server-side (role, onboarding, blocked, plan): `window.location.href` — força recarga com novo estado do servidor
-- `router.push` apenas para navegação pura sem mudança de estado server-side
+- Após salvar flags server-side (role, onboarding, blocked, plan): usar `hardNavigate(url)` de `src/lib/navigation.ts` — força recarga com novo estado do servidor (não espalhar `window.location.href` cru)
+- `router.push` apenas para navegação pura sem mudança de estado server-side — `router.push` após Server Action é flaky

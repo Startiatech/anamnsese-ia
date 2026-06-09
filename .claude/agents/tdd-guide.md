@@ -72,6 +72,7 @@ vi.mock('@/server/supabase', () => ({
 
 - Sufixo obrigatório: `.integration.test.ts`
 - Localização: `src/tests/integration/`
+- **Somente banco dev** (`anamnese-ia-com-claude-code--dev`) — nunca prod; conferir a ref do projeto na URL do `.env` de teste antes de rodar
 - Helpers compartilhados: `src/tests/integration/` (seed, teardown, factories)
 
 ### Seed e teardown
@@ -83,7 +84,8 @@ describe('MinhaFuncionalidade', () => {
   let userId: string
 
   beforeEach(async () => {
-    userId = await seedUser({ email: 'test@example.com', role: 'user' })
+    // Email único por teste — valores fixos quebram em execução paralela
+    userId = await seedUser({ email: `it-${Date.now()}@test.com`, role: 'user' })
   })
 
   afterEach(async () => {

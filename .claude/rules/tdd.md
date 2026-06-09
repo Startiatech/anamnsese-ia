@@ -46,5 +46,7 @@ vi.mock('@/server/supabase', () => ({ supabase: mockSupabase }))
 - Testes de auth: `// @vitest-environment node` como primeira linha (jose exige Uint8Array nativo)
 - Integração: sufixo `.integration.test.ts`, localização `src/tests/integration/`
 - Seed/teardown: `seedUser`, `seedAccessRequest` de `@/tests/integration/seed` — sempre limpar em `afterEach`
+- Dados de seed: emails/identificadores **únicos por teste** (ex: `` `it-${Date.now()}@test.com` ``) — valores fixos quebram em execução paralela
+- Integração roda **somente** contra o banco dev (`anamnese-ia-com-claude-code--dev`) — nunca apontar para prod; verificar a ref do projeto na URL antes de rodar
 - Repositórios com `insert`: obrigatório verificar `error` e lançar exceção — nunca engolir silenciosamente
 - Helpers de teste: tipar com estrutura exata retornada, nunca `any`

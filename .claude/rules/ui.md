@@ -44,7 +44,8 @@ Regra prática: **nunca** deixar `<input>`/`<Select>` sem `name`; **sempre** dec
 
 ### Topbar scroll effect (todas as variantes: public, user, admin)
 - Threshold: 60px — hook `useScrolled` interno ao `topbar.tsx`
-- Ao ultrapassar: `backdrop-blur(24px)` + bg `rgba(18,14,40,0.92)` + border `rgba(139,92,246,0.18)`
+- Ao ultrapassar: `backdrop-blur(24px)` + background/border translúcidos
+- **Dívida conhecida (era dark-only):** os valores `rgba(18,14,40,0.92)` / `rgba(139,92,246,0.18)` são legado do tema dark-only e violam a regra de tokens. Ao mexer no `topbar.tsx`, migrar para tokens CSS em `globals.css` que funcionem em light e dark — não replicar esses rgba em código novo
 
 ### Server vs Client Components
 - Padrão: Server Component — `'use client'` só para `useState`, `useEffect`, event handlers, browser APIs
