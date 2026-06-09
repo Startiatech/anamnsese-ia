@@ -71,12 +71,12 @@ describe('RequestCard', () => {
     expect(h.onReject).toHaveBeenCalledWith(req)
   })
 
-  it('renders Ver credenciais for approved + temp password', async () => {
+  it('renders Reenviar credenciais for approved + temp password', async () => {
     const user = userEvent.setup()
     const h = noopHandlers()
     const req = makeRequest({ status: 'approved', userPasswordIsTemp: true })
     render(<RequestCard request={req} processing={false} {...h} />)
-    const btn = screen.getByRole('button', { name: /ver credenciais/i })
+    const btn = screen.getByRole('button', { name: /reenviar credenciais/i })
     await user.click(btn)
     expect(h.onViewCredentials).toHaveBeenCalledWith(req)
   })
@@ -86,7 +86,7 @@ describe('RequestCard', () => {
     render(<RequestCard request={makeRequest({ status: 'rejected' })} processing={false} {...h} />)
     expect(screen.queryByRole('button', { name: /aprovar/i })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /rejeitar/i })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /ver credenciais/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /reenviar credenciais/i })).not.toBeInTheDocument()
   })
 
   it('expands and collapses a message that overflows the clamp', async () => {
@@ -109,7 +109,7 @@ describe('RequestCard', () => {
   it('renders no action buttons for approved without temp password', () => {
     const h = noopHandlers()
     render(<RequestCard request={makeRequest({ status: 'approved', userPasswordIsTemp: false })} processing={false} {...h} />)
-    expect(screen.queryByRole('button', { name: /ver credenciais/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /reenviar credenciais/i })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /aprovar/i })).not.toBeInTheDocument()
   })
 

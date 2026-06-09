@@ -10,6 +10,7 @@ import { PageHeader } from '@/components/console/page-header'
 import { StatusBadge } from '@/components/console/status-badge'
 import { toast } from 'sonner'
 import { API } from '@/lib/routes'
+import { generateTempPassword } from '@/lib/temp-password'
 import { Button } from '@/components/ui/button'
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -35,12 +36,6 @@ function formatDate(iso: string) {
     day: '2-digit', month: '2-digit', year: 'numeric',
     hour: '2-digit', minute: '2-digit',
   })
-}
-
-// Senha provisória com CSPRNG (não Math.random): 16 hex chars (~64 bits).
-function generateTempPassword(): string {
-  const bytes = crypto.getRandomValues(new Uint8Array(8))
-  return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('')
 }
 
 export function RequestsClient(_: { initialRequests: AccessRequest[] }) {
@@ -112,10 +107,10 @@ export function RequestsClient(_: { initialRequests: AccessRequest[] }) {
 
   async function handleViewCredentials(request: AccessRequest) {
     setProcessingId(request.id)
-    const promise = fetch(API.adminRequestViewCredentials(request.id)).then(async (res) => {
+    const promise = fetch(API.adminRequestViewCredentials(request.id), { method: 'POST' }).then(async (res) => {
       if (!res.ok) {
-        const body = await res.json().catch(() => ({ error: 'Erro ao buscar credenciais' }))
-        throw new Error(body.error ?? 'Erro ao buscar credenciais')
+        const body = await res.json().catch(() => ({ error: 'Erro ao gerar credenciais' }))
+        throw new Error(body.error ?? 'Erro ao gerar credenciais')
       }
       const data = (await res.json()) as Credentials & { ok: boolean }
       setCredentials({
@@ -126,8 +121,8 @@ export function RequestsClient(_: { initialRequests: AccessRequest[] }) {
       })
     })
     toast.promise(promise, {
-      loading: 'Consultando credenciais...',
-      success: 'Credenciais carregadas!',
+      loading: 'Gerando novas credenciais...',
+      success: 'Novas credenciais geradas!',
       error: (e: Error) => e.message,
     })
     await promise.catch(() => {})
@@ -267,7 +262,7 @@ export function RequestsClient(_: { initialRequests: AccessRequest[] }) {
                             className="gap-1.5 h-8"
                           >
                             <KeyRound className="h-3.5 w-3.5" />
-                            {processing ? 'Aguarde...' : 'Ver credenciais'}
+                            {processing ? 'Aguarde...' : 'Reenviar credenciais'}
                           </Button>
                         )}
                       </TableCell>

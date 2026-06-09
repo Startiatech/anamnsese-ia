@@ -64,10 +64,5 @@ export async function POST(req: NextRequest) {
     prefExtraReducedMotion: false,
   })
 
-  // Persiste a senha em texto plano enquanto for temporaria para permitir
-  // "Ver credenciais" no console sem regerar. Limpa quando o usuario troca
-  // a senha (em /api/users/me PATCH com novo password).
-  await supabase.from('users').update({ temp_password_plain: password }).eq('id', userId)
-
   return NextResponse.json({ ok: true })
 }

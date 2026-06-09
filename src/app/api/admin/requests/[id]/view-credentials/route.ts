@@ -1,62 +1,54 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { verifyToken, COOKIE_NAME } from '@/lib/auth'
-import { supabase } from '@/server/supabase'
+import { getServerUser } from '@/server/services/session'
+import { hashPassword } from '@/server/services/auth'
+import { generateTempPassword } from '@/lib/temp-password'
+import { findRequestById } from '@/server/repositories/requests'
+import { findUserByEmail, updateUser } from '@/server/repositories/users'
 
 /**
- * Retorna a senha temporaria ja persistida (texto plano) de uma solicitacao
- * aprovada. NAO regera. Disponivel apenas enquanto password_is_temp=true —
- * apos o usuario trocar a senha, /api/users/me limpa temp_password_plain.
+ * Regenera a senha temporaria de uma solicitacao aprovada e a retorna UMA vez,
+ * para reenvio (ex.: master fechou o WhatsApp sem enviar e precisa recuperar).
  *
- * Caso de uso: master fechou o WhatsApp sem enviar e precisa recuperar as
- * credenciais originais para reenviar.
+ * Nao ha senha em texto plano armazenada: geramos uma nova (CSPRNG), persistimos
+ * apenas o hash, e devolvemos o plaintext somente nesta resposta. Disponivel
+ * apenas enquanto password_is_temp=true — se o usuario ja definiu a propria
+ * senha, regenerar sequestraria a conta dele.
  */
-export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
-  const token = req.cookies.get(COOKIE_NAME)?.value
-  const payload = token ? await verifyToken(token) : null
-
-  if (!payload || (payload.role !== 'admin' && payload.role !== 'master')) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
+  const session = await getServerUser()
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (session.role !== 'admin' && session.role !== 'master') {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
   const { id } = await ctx.params
 
-  const { data: request, error: reqError } = await supabase
-    .from('access_requests')
-    .select('id, name, email, phone, status')
-    .eq('id', id)
-    .single()
-
-  if (reqError || !request) {
+  const request = await findRequestById(id)
+  if (!request) {
     return NextResponse.json({ error: 'Solicitação não encontrada' }, { status: 404 })
   }
-
   if (request.status !== 'approved') {
-    return NextResponse.json(
-      { error: 'Solicitação não está aprovada' },
-      { status: 400 },
-    )
+    return NextResponse.json({ error: 'Solicitação não está aprovada' }, { status: 400 })
   }
 
-  const { data: user, error: userError } = await supabase
-    .from('users')
-    .select('password_is_temp, temp_password_plain')
-    .eq('email', request.email)
-    .single()
-
-  if (userError || !user) {
+  const user = await findUserByEmail(request.email)
+  if (!user) {
     return NextResponse.json({ error: 'Usuário associado não encontrado' }, { status: 404 })
   }
-
-  if (!user.password_is_temp || !user.temp_password_plain) {
+  if (!user.passwordIsTemp) {
     return NextResponse.json(
-      { error: 'Usuário já trocou a senha — credenciais não disponíveis' },
+      { error: 'Usuário já definiu a própria senha — não é possível regenerar' },
       { status: 410 },
     )
   }
 
+  const password = generateTempPassword()
+  const passwordHash = await hashPassword(password)
+  await updateUser(user.id, { passwordHash, passwordIsTemp: true })
+
   return NextResponse.json({
     ok: true,
-    password: user.temp_password_plain,
+    password,
     name: request.name,
     email: request.email,
     phone: request.phone,

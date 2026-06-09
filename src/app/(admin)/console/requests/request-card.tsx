@@ -111,7 +111,7 @@ export function RequestCard({
           className="w-full h-10 gap-1.5"
         >
           <KeyRound className="h-4 w-4" />
-          {processing ? 'Aguarde...' : 'Ver credenciais'}
+          {processing ? 'Aguarde...' : 'Reenviar credenciais'}
         </Button>
       )}
     </div>

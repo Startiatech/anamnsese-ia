@@ -41,6 +41,15 @@ export async function listRequests(): Promise<AccessRequest[]> {
   )
 }
 
+export async function findRequestById(id: string): Promise<AccessRequest | undefined> {
+  const { data } = await supabase
+    .from('access_requests')
+    .select('*')
+    .eq('id', id)
+    .maybeSingle()
+  return data ? toAccessRequest(data as Record<string, string>) : undefined
+}
+
 export async function findRequestByEmail(email: string): Promise<AccessRequest | undefined> {
   const { data } = await supabase
     .from('access_requests')

@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { ROUTES } from '@/lib/routes'
+import { generateTempPassword } from '@/lib/temp-password'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { IconBadge } from '@/components/ui/icon-badge'
@@ -60,7 +61,7 @@ export function ConsoleDashboardClient({
 
   async function handleApprove(request: AccessRequest) {
     setProcessingId(request.id)
-    const tempPassword = Math.random().toString(36).slice(2, 10)
+    const tempPassword = generateTempPassword()
     const promise = fetch('/api/admin/create-user', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

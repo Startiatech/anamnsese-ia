@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { UserPlus, Stethoscope, Mail, User, Phone } from 'lucide-react'
 import { createUserSchema, type CreateUserFormData } from '@/lib/schemas'
+import { generateTempPassword } from '@/lib/temp-password'
 import { toast } from 'sonner'
 import { AppDialog } from '@/components/ui/app-dialog'
 import type { UserRow } from './users-client'
@@ -21,7 +22,7 @@ export function AddUserModal({ open, onClose, onSuccess }: AddUserModalProps) {
   })
 
   async function onSubmit(data: CreateUserFormData) {
-    const tempPassword = Math.random().toString(36).slice(2, 10)
+    const tempPassword = generateTempPassword()
     const phone = data.phone.replace(/\D/g, '')
     window.open(`https://wa.me/${phone.startsWith('55') ? phone : `55${phone}`}?text=${encodeURIComponent([
       '✅ *Anamnese IA — Bem-vindo(a)!*', '',
