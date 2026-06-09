@@ -1,7 +1,14 @@
 import { NextResponse } from 'next/server'
+import { getServerUser } from '@/server/services/session'
 import { updateRequestStatus } from '@/lib/requests'
 
 export async function PATCH(req: Request, props: { params: Promise<{ id: string }> }) {
+  const session = await getServerUser()
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (session.role !== 'admin' && session.role !== 'master') {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
   const params = await props.params;
   const { status } = await req.json()
 
