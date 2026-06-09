@@ -106,12 +106,20 @@ function toStoredUser(row: Record<string, unknown>): StoredUser {
 }
 
 export async function findUserByEmail(email: string): Promise<StoredUser | undefined> {
-  const { data } = await supabase.from('users').select('*').eq('email', email.toLowerCase()).single()
+  const { data, error } = await supabase.from('users').select('*').eq('email', email.toLowerCase()).single()
+  // PGRST116 = nenhuma linha encontrada — caso esperado, retorna undefined.
+  // Qualquer outro erro (conexão, banco indisponível) deve propagar, nunca virar "não encontrado".
+  if (error && error.code !== 'PGRST116') {
+    throw new Error(`Falha ao buscar usuário por email: ${error.message}`)
+  }
   return data ? toStoredUser(data) : undefined
 }
 
 export async function findUserById(id: string): Promise<StoredUser | undefined> {
-  const { data } = await supabase.from('users').select('*').eq('id', id).single()
+  const { data, error } = await supabase.from('users').select('*').eq('id', id).single()
+  if (error && error.code !== 'PGRST116') {
+    throw new Error(`Falha ao buscar usuário por id: ${error.message}`)
+  }
   return data ? toStoredUser(data) : undefined
 }
 

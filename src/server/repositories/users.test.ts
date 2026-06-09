@@ -28,7 +28,31 @@ vi.mock('@/server/supabase', () => {
   return { supabase: { from: vi.fn(() => chain) } }
 })
 
-import { findUserById, findUsersScheduledForDeletion, countRegisteredUsers } from './users'
+import { findUserById, findUserByEmail, findUsersScheduledForDeletion, countRegisteredUsers } from './users'
+
+describe('findUserByEmail / findUserById — tratamento de erro', () => {
+  beforeEach(() => vi.clearAllMocks())
+
+  it('findUserByEmail: retorna undefined quando linha não encontrada (PGRST116)', async () => {
+    mockSingle.mockResolvedValue({ data: null, error: { code: 'PGRST116', message: 'no rows' } })
+    await expect(findUserByEmail('ausente@x.com')).resolves.toBeUndefined()
+  })
+
+  it('findUserByEmail: lança em erro real (ex: conexão) — não mascara como não encontrado', async () => {
+    mockSingle.mockResolvedValue({ data: null, error: { code: 'XX000', message: 'fetch failed' } })
+    await expect(findUserByEmail('a@x.com')).rejects.toThrow(/fetch failed/)
+  })
+
+  it('findUserById: retorna undefined quando linha não encontrada (PGRST116)', async () => {
+    mockSingle.mockResolvedValue({ data: null, error: { code: 'PGRST116', message: 'no rows' } })
+    await expect(findUserById('nope')).resolves.toBeUndefined()
+  })
+
+  it('findUserById: lança em erro real (ex: conexão)', async () => {
+    mockSingle.mockResolvedValue({ data: null, error: { code: 'XX000', message: 'fetch failed' } })
+    await expect(findUserById('u1')).rejects.toThrow(/fetch failed/)
+  })
+})
 
 describe('findUserById — novos campos', () => {
   beforeEach(() => vi.clearAllMocks())

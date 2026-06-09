@@ -21,7 +21,13 @@ describe('users repository (integration)', () => {
   })
 
   it('findUserById returns undefined for unknown id', async () => {
-    expect(await findUserById('nonexistent-id-000')).toBeUndefined()
+    // UUID válido porém inexistente — id malformado agora lança (erro 22P02
+    // propaga em vez de ser engolido como "não encontrado")
+    expect(await findUserById(crypto.randomUUID())).toBeUndefined()
+  })
+
+  it('findUserById throws for malformed id (erro real não vira undefined)', async () => {
+    await expect(findUserById('nonexistent-id-000')).rejects.toThrow(/Falha ao buscar usuário/)
   })
 
   it('findUserByEmail returns user regardless of case', async () => {
